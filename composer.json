@@ -1,0 +1,19 @@
+{
+    "name": "oasis/dynamodb-odm",
+    "description": "ODM for dynamodb",
+    "type": "library",
+    "require": {
+        "doctrine/annotations": "^1.2",
+        "oasis/aws-wrappers": "^1.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.5"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Minhao Zhang",
+            "email": "minhao.zhang@qq.com"
+        }
+    ]
+}
