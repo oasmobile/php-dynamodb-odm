@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "doctrine/annotations": "^1.2",
-        "oasis/aws-wrappers": "^1.4"
+        "oasis/aws-wrappers": "^1.4",
+        "doctrine/common": "^2.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.5"
@@ -15,5 +16,11 @@
             "name": "Minhao Zhang",
             "email": "minhao.zhang@qq.com"
         }
-    ]
+    ],
+    "autoload" : {
+        "psr-4" : {
+            "Oasis\\Mlib\\Dynamodb\\ODM\\" : "src/"
+        }
+    }
+
 }
