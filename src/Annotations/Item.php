@@ -6,8 +6,9 @@
  * Time: 18:00
  */
 
-namespace Oasis\Mlib\Dynamodb\ODM\Annotations;
+namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
 
+use Doctrine\Common\Annotations\Annotation\Required;
 use Doctrine\Common\Annotations\Annotation\Target;
 
 /**
@@ -20,6 +21,7 @@ class Item
 {
     /**
      * @var string
+     * @Required()
      */
     public $table;
     /**
@@ -30,6 +32,10 @@ class Item
      * @var array
      */
     public $globalSecondaryIndices = [];
+    /**
+     * @var string
+     */
+    public $repository;
     
     //public function __construct(array $value)
     //{

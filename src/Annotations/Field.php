@@ -6,7 +6,7 @@
  * Time: 17:04
  */
 
-namespace Oasis\Mlib\Dynamodb\ODM\Annotations;
+namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
 
 use Doctrine\Common\Annotations\Annotation\Enum;
 use Doctrine\Common\Annotations\Annotation\Required;
@@ -27,10 +27,5 @@ class Field
      * @Enum(value={"string", "number", "binary", "bool", "null", "list", "map"})
      * @Required()
      */
-    public $type;
-    /**
-     * @var string
-     * @Enum(value={"hash", "sort", ""})
-     */
-    public $key = "";
+    public $type = 'string';
 }
