@@ -1,0 +1,14 @@
+<!--suppress XmlUnboundNsPrefix -->
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.5/phpunit.xsd"
+        bootstrap="ut/bootstrap.php"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+>
+    <testsuites>
+        <testsuite name="basic">
+            <file>ut/TokenRolesTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>

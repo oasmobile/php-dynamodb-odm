@@ -6,8 +6,9 @@
  * Time: 17:08
  */
 
-namespace Oasis\Mlib\ODM\Dynamodb;
+namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
+use Oasis\Mlib\ODM\Dynamodb\Annotations\CASTimestamp;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 
@@ -49,6 +50,12 @@ class User
      * @Field(type="string")
      */
     protected $hometown = 'new york';
+    /**
+     * @var
+     * @CASTimestamp()
+     * @Field(type="number")
+     */
+    protected $lastUpdated;
     
     /**
      * @return mixed
@@ -117,6 +124,14 @@ class User
     /**
      * @return mixed
      */
+    public function getLastUpdated()
+    {
+        return $this->lastUpdated;
+    }
+    
+    /**
+     * @return mixed
+     */
     public function getName()
     {
         return $this->name;
@@ -144,5 +159,13 @@ class User
     public function setWage($wage)
     {
         $this->wage = $wage;
+    }
+    
+    /**
+     * @param mixed $lastUpdated
+     */
+    public function setLastUpdated($lastUpdated)
+    {
+        $this->lastUpdated = $lastUpdated;
     }
 }

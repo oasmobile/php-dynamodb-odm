@@ -20,7 +20,8 @@
     ],
     "autoload"   : {
         "psr-4": {
-            "Oasis\\Mlib\\ODM\\Dynamodb\\": "src/"
+            "Oasis\\Mlib\\ODM\\Dynamodb\\"    : "src/",
+            "Oasis\\Mlib\\ODM\\Dynamodb\\Ut\\": "ut/"
         }
     }
 }

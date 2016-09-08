@@ -8,7 +8,7 @@
  */
 
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
-use Oasis\Mlib\ODM\Dynamodb\User;
+use Oasis\Mlib\ODM\Dynamodb\Ut\User;
 
 require_once __DIR__ . "/vendor/autoload.php";
 
@@ -81,3 +81,4 @@ $user->setAge(24);
 $itemManager->persist($user);
 
 $itemManager->flush();
+var_dump($users);
