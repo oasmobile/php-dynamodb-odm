@@ -8,6 +8,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
+use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 
 class ItemManagerTest extends \PHPUnit_Framework_TestCase
@@ -195,6 +196,22 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
     
     public function testUnmanagedRemove()
     {
-        
+        $user = new User();
+        self::expectException(ODMException::class);
+        $this->itemManager->remove($user);
+    }
+    
+    public function testUnmanagedRefresh()
+    {
+        $user = new User();
+        self::expectException(ODMException::class);
+        $this->itemManager->refresh($user);
+    }
+    
+    public function testUnmanagedDetach()
+    {
+        $user = new User();
+        self::expectException(ODMException::class);
+        $this->itemManager->detach($user);
     }
 }

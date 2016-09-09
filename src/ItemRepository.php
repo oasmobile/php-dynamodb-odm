@@ -176,7 +176,7 @@ class ItemRepository
         }
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (isset($this->itemManaged[$id])) {
-            throw new ODMException("Persisting existing object: " . print_r($obj));
+            throw new ODMException("Persisting existing object: " . print_r($obj, true));
         }
         
         $managedState = new ManagedItemState($this->itemReflection, $obj);
@@ -225,7 +225,7 @@ class ItemRepository
         }
         else {
             if ($this->itemManaged[$id]->isNew()) {
-                throw new ODMException("Newly created item conflicts with fetched remote data: " . print_r($obj));
+                throw new ODMException("Newly created item conflicts with fetched remote data: " . print_r($obj, true));
             }
             $this->itemManaged[$id]->setItem($obj);
             $this->itemManaged[$id]->setOriginalData($originalData);
@@ -241,7 +241,7 @@ class ItemRepository
         }
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj));
+            throw new ODMException("Object is not managed: " . print_r($obj, true));
         }
         
         $this->itemManaged[$id]->setState(ManagedItemState::STATE_REMOVED);
@@ -256,7 +256,7 @@ class ItemRepository
         }
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj));
+            throw new ODMException("Object is not managed: " . print_r($obj, true));
         }
         
         unset($this->itemManaged[$id]);
@@ -271,7 +271,7 @@ class ItemRepository
         }
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj));
+            throw new ODMException("Object is not managed: " . print_r($obj, true));
         }
         
         $this->get($this->itemReflection->getPrimaryKeys($obj), true);
