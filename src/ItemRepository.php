@@ -247,4 +247,33 @@ class ItemRepository
         $this->itemManaged[$id]->setState(ManagedItemState::STATE_REMOVED);
     }
     
+    public function detach($obj)
+    {
+        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
+            throw new ODMException(
+                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
+            );
+        }
+        $id = $this->itemReflection->getPrimaryIdentifier($obj);
+        if (!isset($this->itemManaged[$id])) {
+            throw new ODMException("Object is not managed: " . print_r($obj));
+        }
+        
+        unset($this->itemManaged[$id]);
+    }
+    
+    public function refresh($obj)
+    {
+        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
+            throw new ODMException(
+                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
+            );
+        }
+        $id = $this->itemReflection->getPrimaryIdentifier($obj);
+        if (!isset($this->itemManaged[$id])) {
+            throw new ODMException("Object is not managed: " . print_r($obj));
+        }
+        
+        $this->get($this->itemReflection->getPrimaryKeys($obj), true);
+    }
 }

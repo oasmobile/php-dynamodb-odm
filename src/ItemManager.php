@@ -46,6 +46,11 @@ class ItemManager
         );
     }
     
+    public function clear()
+    {
+        $this->repositories = [];
+    }
+    
     public function get($itemClass, array $keys, $consistentRead = false)
     {
         $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
@@ -73,6 +78,22 @@ class ItemManager
     public function persist($item)
     {
         $this->getRepository(get_class($item))->persist($item);
+    }
+    
+    public function detach($item)
+    {
+        if (!is_object($item)) {
+            throw new ODMException("You can only detach a managed object!");
+        }
+        $this->getRepository(get_class($item))->detach($item);
+    }
+    
+    public function refresh($item)
+    {
+        if (!is_object($item)) {
+            throw new ODMException("You can only refresh a managed object!");
+        }
+        $this->getRepository(get_class($item))->refresh($item);
     }
     
     public function remove($item)

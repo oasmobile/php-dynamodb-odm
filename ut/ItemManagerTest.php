@@ -92,6 +92,42 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      *
      * @param $id
      */
+    public function testRefresh($id)
+    {
+        /** @var User $user */
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        $user->setWage(888);
+        $this->itemManager->refresh($user);
+        
+        self::assertEquals(777, $user->getWage());
+        
+        return $id;
+    }
+    
+    /**
+     * @depends testRefresh
+     *
+     * @param $id
+     */
+    public function testDetach($id)
+    {
+        /** @var User $user */
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        $user->setWage(888);
+        $this->itemManager->detach($user);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        self::assertEquals(777, $user->getWage());
+        
+        return $id;
+    }
+    
+    /**
+     * @depends testDetach
+     *
+     * @param $id
+     */
     public function testDelete($id)
     {
         /** @var User $user */
@@ -155,5 +191,10 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         self::assertEquals(10, $count);
         
         $this->itemManager->flush();
+    }
+    
+    public function testUnmanagedRemove()
+    {
+        
     }
 }
