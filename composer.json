@@ -3,6 +3,7 @@
     "description": "ODM for dynamodb",
     "type"       : "library",
     "require"    : {
+        "php"                 : ">=5.6",
         "doctrine/annotations": "^1.2",
         "oasis/aws-wrappers"  : "^1.4",
         "oasis/logging"       : "^1.0",
@@ -20,7 +21,11 @@
     ],
     "autoload"   : {
         "psr-4": {
-            "Oasis\\Mlib\\ODM\\Dynamodb\\"    : "src/",
+            "Oasis\\Mlib\\ODM\\Dynamodb\\"    : "src/"
+        }
+    },
+    "autoload-dev"   : {
+        "psr-4": {
             "Oasis\\Mlib\\ODM\\Dynamodb\\Ut\\": "ut/"
         }
     }
