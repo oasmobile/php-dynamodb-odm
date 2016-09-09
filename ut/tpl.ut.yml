@@ -1,4 +1,4 @@
-prefix: odm-test-
+prefix: odm-
 dynamodb:
     region: ap-northeast-1
     profile: oasis-minhao

@@ -130,6 +130,14 @@ class User
     }
     
     /**
+     * @param mixed $lastUpdated
+     */
+    public function setLastUpdated($lastUpdated)
+    {
+        $this->lastUpdated = $lastUpdated;
+    }
+    
+    /**
      * @return mixed
      */
     public function getName()
@@ -159,13 +167,5 @@ class User
     public function setWage($wage)
     {
         $this->wage = $wage;
-    }
-    
-    /**
-     * @param mixed $lastUpdated
-     */
-    public function setLastUpdated($lastUpdated)
-    {
-        $this->lastUpdated = $lastUpdated;
     }
 }
