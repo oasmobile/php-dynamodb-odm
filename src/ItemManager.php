@@ -65,6 +65,12 @@ class ItemManager
         }
     }
     
+    /**
+     * @param $className
+     *
+     * @internal
+     * @return bool
+     */
     public function loadAnnotationClass($className)
     {
         if (class_exists($className)) {
@@ -131,20 +137,31 @@ class ItemManager
     /**
      * @param $itemClass
      *
+     * @return ItemReflection
+     */
+    public function getItemReflection($itemClass)
+    {
+        if (!isset($this->itemReflections[$itemClass])) {
+            $reflection = new ItemReflection($itemClass);
+            $reflection->parse($this->reader);
+            $this->itemReflections[$itemClass] = $reflection;
+        }
+        else {
+            $reflection = $this->itemReflections[$itemClass];
+        }
+        
+        return $reflection;
+    }
+    
+    /**
+     * @param $itemClass
+     *
      * @return ItemRepository
      */
     public function getRepository($itemClass)
     {
         if (!isset($this->repositories[$itemClass])) {
-            if (!isset($this->itemReflections[$itemClass])) {
-                $reflection = new ItemReflection($itemClass);
-                $reflection->parse($this->reader);
-                $this->itemReflections[$itemClass] = $reflection;
-            }
-            else {
-                $reflection = $this->itemReflections[$itemClass];
-            }
-            
+            $reflection                     = $this->getItemReflection($itemClass);
             $repoClass                      = $reflection->getRepositoryClass();
             $repo                           = new $repoClass(
                 $reflection,

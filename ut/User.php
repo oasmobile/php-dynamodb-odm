@@ -10,12 +10,20 @@ namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
 use Oasis\Mlib\ODM\Dynamodb\Annotations\CASTimestamp;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 
 /**
  * Class User
  *
- * @Item(table="users", primaryIndex={"id"})
+ * @Item(
+ *     table="users5",
+ *     primaryIndex=@Index(hash="id"),
+ *     globalSecondaryIndices={
+ *     {"hometown", "age"},
+ *     {"hometown", "salary"}
+ *     }
+ *     )
  * @package Oasis\Mlib\ODM\Dynamodb
  */
 class User
@@ -34,7 +42,7 @@ class User
      * @var
      * @Field(type="string")
      */
-    protected $alias ='';
+    protected $alias = '';
     /**
      * @var
      * @Field(type="number")

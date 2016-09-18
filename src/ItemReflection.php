@@ -174,6 +174,14 @@ class ItemReflection
         return $this->itemClass;
     }
     
+    /**
+     * @return Item
+     */
+    public function getItemDefinition()
+    {
+        return $this->itemDefinition;
+    }
+    
     public function getPrimaryIdentifier($obj)
     {
         $id = '';
@@ -187,7 +195,7 @@ class ItemReflection
     public function getPrimaryKeys($obj)
     {
         $keys = [];
-        foreach ($this->itemDefinition->primaryIndex as $key) {
+        foreach ($this->itemDefinition->primaryIndex->getKeys() as $key) {
             if (is_array($obj)) {
                 if (!isset($obj[$key])) {
                     throw new ODMException("Cannot get identifier for incomplete object! <" . $key . "> is empty!");

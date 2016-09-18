@@ -7,7 +7,9 @@
         "doctrine/annotations": "^1.2",
         "oasis/aws-wrappers"  : "^1.4",
         "oasis/logging"       : "^1.0",
-        "doctrine/common"     : "^2.6"
+        "doctrine/common"     : "^2.6",
+        "symfony/console": "^3.1",
+        "symfony/finder": "^3.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.5"

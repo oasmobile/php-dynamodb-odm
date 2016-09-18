@@ -8,7 +8,7 @@
 >
     <testsuites>
         <testsuite name="basic">
-            <file>ut/TokenRolesTest.php</file>
+            <file>ut/ItemManagerTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
