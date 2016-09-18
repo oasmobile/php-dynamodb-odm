@@ -63,20 +63,23 @@ class Index
         return $ret;
     }
     
-    public function getDynamodbIndex(array $attributeTypes)
+    public function getDynamodbIndex(array $fieldNameMapping, array $attributeTypes)
     {
-        if (!isset($attributeTypes[$this->hash])
-        || ($this->range && !isset($attributeTypes[$this->range]))
+        $hash  = $fieldNameMapping[$this->hash];
+        $range = $this->range ? $fieldNameMapping[$this->range] : '';
+        
+        if (!isset($attributeTypes[$hash])
+            || ($range && !isset($attributeTypes[$range]))
         ) {
             throw new ODMException("Index key is not defined as Field!");
         }
         
-        $hashType  = $attributeTypes[$this->hash];
-        $rangeKey  = $this->range ? : null;
-        $rangeType = $this->range ? $attributeTypes[$this->range] : 'string';
+        $hashType  = $attributeTypes[$hash];
+        $rangeKey  = $range ? : null;
+        $rangeType = $range ? $attributeTypes[$range] : 'string';
         $hashType  = constant(DynamoDbItem::class . '::ATTRIBUTE_TYPE_' . strtoupper($hashType));
         $rangeType = constant(DynamoDbItem::class . '::ATTRIBUTE_TYPE_' . strtoupper($rangeType));
-        $idx       = new DynamoDbIndex($this->hash, $hashType, $rangeKey, $rangeType);
+        $idx       = new DynamoDbIndex($hash, $hashType, $rangeKey, $rangeType);
         
         return $idx;
     }

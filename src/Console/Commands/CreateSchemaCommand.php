@@ -11,6 +11,7 @@ namespace Oasis\Mlib\ODM\Dynamodb\Console\Commands;
 use Oasis\Mlib\AwsWrappers\DynamoDbManager;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class CreateSchemaCommand extends AbstractSchemaCommand
@@ -21,11 +22,13 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         parent::configure();
         
         $this->setName('odm:schema-tool:create')
-             ->setDescription('Processes the schema and create corresponding tables and indices.');
+             ->setDescription('Processes the schema and create corresponding tables and indices.')
+             ->addOption('skip-existing-table', null, InputOption::VALUE_NONE, "skip creating existing table!");;
     }
     
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $skipExisting  = $input->getOption('skip-existing-table');
         $im            = $this->getItemManager();
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         
@@ -38,32 +41,42 @@ class CreateSchemaCommand extends AbstractSchemaCommand
             }
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
             if ($dynamoManager->listTables(sprintf("/%s/", preg_quote($tableName, "/")))) {
-                throw new ODMException("Table " . $tableName . " already exists!");
+                if (!$skipExisting) {
+                    throw new ODMException("Table " . $tableName . " already exists!");
+                }
             }
-            $classes[] = $class;
+            else {
+                $classes[] = $class;
+            }
         }
         
         foreach ($classes as $class) {
-            $reflection     = $im->getItemReflection($class);
-            $itemDef        = $reflection->getItemDefinition();
-            $attributeTypes = $reflection->getAttributeTypes();
+            $reflection       = $im->getItemReflection($class);
+            $itemDef          = $reflection->getItemDefinition();
+            $attributeTypes   = $reflection->getAttributeTypes();
+            $fieldNameMapping = $reflection->getFieldNameMapping();
             
             $lsis = [];
             foreach ($itemDef->localSecondaryIndices as $localSecondaryIndex) {
-                $lsis[] = $localSecondaryIndex->getDynamodbIndex($attributeTypes);
+                $lsis[] = $localSecondaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes);
             }
             $gsis = [];
             foreach ($itemDef->globalSecondaryIndices as $globalSecondaryIndex) {
-                $gsis[] = $globalSecondaryIndex->getDynamodbIndex($attributeTypes);
+                $gsis[] = $globalSecondaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes);
             }
             
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
+            
+            $output->writeln("Will create table <info>$tableName</info> for class <info>$class</info> ...");
+            
             $dynamoManager->createTable(
                 $tableName,
-                $itemDef->primaryIndex->getDynamodbIndex($attributeTypes),
+                $itemDef->primaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes),
                 $lsis,
                 $gsis
             );
+            
+            $output->writeln('Done.');
         }
     }
     

@@ -42,7 +42,7 @@ class ConsoleHelper
                 $splFileInfo->getBasename(".php")
             );
             $classname = preg_replace('#\\\\+#', '\\', $classname);
-            mdebug("Class name is %s", $classname);
+            //mdebug("Class name is %s", $classname);
             $this->classes[] = $classname;
         }
     }

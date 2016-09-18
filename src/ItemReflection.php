@@ -159,6 +159,19 @@ class ItemReflection
     }
     
     /**
+     * @return array a map of field name to attribute key
+     */
+    public function getFieldNameMapping()
+    {
+        $ret = [];
+        foreach ($this->fieldDefinitions as $key => $field) {
+            $ret[$key] = $field->name ? : $key;
+        }
+        
+        return $ret;
+    }
+    
+    /**
      * @return mixed
      */
     public function getCasField()
@@ -192,29 +205,41 @@ class ItemReflection
         return md5($id);
     }
     
-    public function getPrimaryKeys($obj)
+    public function getPrimaryKeys($obj, $asAttributeKeys = true)
     {
         $keys = [];
         foreach ($this->itemDefinition->primaryIndex->getKeys() as $key) {
+            if (!isset($this->fieldDefinitions[$key])) {
+                throw new AnnotationParsingException("Primary field " . $key . " is not defined.");
+            }
+            $attributeKey = $this->fieldDefinitions[$key]->name ? : $key;
+            
             if (is_array($obj)) {
-                if (!isset($obj[$key])) {
-                    throw new ODMException("Cannot get identifier for incomplete object! <" . $key . "> is empty!");
+                if (!isset($obj[$attributeKey])) {
+                    throw new ODMException(
+                        "Cannot get identifier for incomplete object! <" . $attributeKey . "> is empty!"
+                    );
                 }
-                $value = $obj[$key];
+                $value = $obj[$attributeKey];
             }
             else {
-                if (!isset($this->propertyMapping[$key])) {
-                    throw new AnnotationParsingException("Primary field " . $key . " is not defined.");
-                }
-                $propertyName       = $this->propertyMapping[$key];
-                $relfectionProperty = $this->reflectionProperties[$propertyName];
+                //if (!isset($this->propertyMapping[$key])) {
+                //    throw new AnnotationParsingException("Primary field " . $key . " is not defined.");
+                //}
+                //$propertyName       = $this->propertyMapping[$key];
+                $relfectionProperty = $this->reflectionProperties[$key];
                 $oldAccessibility   = $relfectionProperty->isPublic();
                 $relfectionProperty->setAccessible(true);
                 $value = $relfectionProperty->getValue($obj);
                 $relfectionProperty->setAccessible($oldAccessibility);
             }
             
-            $keys[$key] = $value;
+            if ($asAttributeKeys) {
+                $keys[$attributeKey] = $value;
+            }
+            else {
+                $keys[$key] = $value;
+            }
         }
         
         return $keys;

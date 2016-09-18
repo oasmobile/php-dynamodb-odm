@@ -180,7 +180,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             },
             '#wage = :wage AND #id BETWEEN :idmin AND :idmax ',
             [
-                '#wage' => 'salary',
+                '#wage' => 'wage',
                 '#id'   => 'id',
             ],
             [
@@ -192,6 +192,34 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         self::assertEquals(10, $count);
         
         $this->itemManager->flush();
+    }
+    
+    public function testGetWithAttributeKey()
+    {
+        self::expectException(ODMException::class);
+        $this->itemManager->get(User::class, ['uid' => 10]);
+    }
+    
+    public function testQueryWithAttributeKey()
+    {
+        self::expectException(ODMException::class);
+        $this->itemManager->getRepository(User::class)
+                          ->query(
+                              '#hometown = :hometown AND #wage > :wage',
+                              ['#hometown' => 'hometown', '#wage' => 'salary'],
+                              [':hometown' => 'NY', ':wage' => 100],
+                              'hometown-salary-index'
+                          );
+    }
+    public function testScanWithAttributeKey()
+    {
+        self::expectException(ODMException::class);
+        $this->itemManager->getRepository(User::class)
+                          ->scan(
+                              '#hometown = :hometown AND #wage > :wage',
+                              ['#hometown' => 'hometown', '#wage' => 'salary'],
+                              [':hometown' => 'NY', ':wage' => 100]
+                          );
     }
     
     public function testUnmanagedRemove()

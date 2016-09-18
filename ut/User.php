@@ -17,11 +17,11 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
  * Class User
  *
  * @Item(
- *     table="users5",
+ *     table="users8",
  *     primaryIndex=@Index(hash="id"),
  *     globalSecondaryIndices={
  *     {"hometown", "age"},
- *     {"hometown", "salary"}
+ *     {"hometown", "wage"}
  *     }
  *     )
  * @package Oasis\Mlib\ODM\Dynamodb
@@ -30,7 +30,7 @@ class User
 {
     /**
      * @var int
-     * @Field(type="number")
+     * @Field(type="number", name="uid")
      */
     protected $id = 0;
     /**

@@ -50,6 +50,17 @@ class ItemRepository
                           $evaluationLimit = 30,
                           $consistentRead = false)
     {
+        $fields  = array_map(
+            function ($fieldName) {
+                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+                if (!isset($fieldNameMapping[$fieldName])) {
+                    throw new ODMException("Cannot find field named $fieldName!");
+                }
+                
+                return $fieldNameMapping[$fieldName];
+            },
+            $fields
+        );
         $results = $this->dynamodbTable->query(
             $conditions,
             $fields,
@@ -80,6 +91,17 @@ class ItemRepository
                                 $indexName = DynamoDbTable::PRIMARY_INDEX,
                                 $consistentRead = false)
     {
+        $fields = array_map(
+            function ($fieldName) {
+                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+                if (!isset($fieldNameMapping[$fieldName])) {
+                    throw new ODMException("Cannot find field named $fieldName!");
+                }
+                
+                return $fieldNameMapping[$fieldName];
+            },
+            $fields
+        );
         $this->dynamodbTable->queryAndRun(
             function ($result) use ($callback) {
                 $managed = $this->getManagedObject($result);
@@ -105,6 +127,17 @@ class ItemRepository
                          &$lastKey = null,
                          $evaluationLimit = 30)
     {
+        $fields  = array_map(
+            function ($fieldName) {
+                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+                if (!isset($fieldNameMapping[$fieldName])) {
+                    throw new ODMException("Cannot find field named $fieldName!");
+                }
+                
+                return $fieldNameMapping[$fieldName];
+            },
+            $fields
+        );
         $results = $this->dynamodbTable->scan(
             $conditions,
             $fields,
@@ -131,6 +164,17 @@ class ItemRepository
                                array $fields = [],
                                array $params = [])
     {
+        $fields = array_map(
+            function ($fieldName) {
+                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+                if (!isset($fieldNameMapping[$fieldName])) {
+                    throw new ODMException("Cannot find field named $fieldName!");
+                }
+                
+                return $fieldNameMapping[$fieldName];
+            },
+            $fields
+        );
         $this->dynamodbTable->scanAndRun(
             function ($result) use ($callback) {
                 $managed = $this->getManagedObject($result);
@@ -150,7 +194,17 @@ class ItemRepository
     
     public function get($keys, $isConsistentRead = false)
     {
-        $result = $this->dynamodbTable->get($keys, $isConsistentRead);
+        /** @var string[] $fieldNameMapping */
+        $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+        $translatedKeys   = [];
+        foreach ($keys as $k => $v) {
+            if (!isset($fieldNameMapping[$k])) {
+                throw new ODMException("Cannot find primary index field: $k!");
+            }
+            $k                  = $fieldNameMapping[$k];
+            $translatedKeys[$k] = $v;
+        }
+        $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
         if (is_array($result)) {
             $managed = $this->getManagedObject($result);
             $obj     = $this->itemReflection->hydrate($result, $managed);
@@ -274,6 +328,6 @@ class ItemRepository
             throw new ODMException("Object is not managed: " . print_r($obj, true));
         }
         
-        $this->get($this->itemReflection->getPrimaryKeys($obj), true);
+        $this->get($this->itemReflection->getPrimaryKeys($obj, false), true);
     }
 }
