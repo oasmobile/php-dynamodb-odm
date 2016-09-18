@@ -17,7 +17,7 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
  * Class User
  *
  * @Item(
- *     table="users8",
+ *     table="users",
  *     primaryIndex=@Index(hash="id"),
  *     globalSecondaryIndices={
  *     {"hometown", "age"},

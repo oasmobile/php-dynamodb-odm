@@ -9,6 +9,7 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Console\Commands;
 
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
+use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
 use Symfony\Component\Console\Command\Command;
 
 abstract class AbstractSchemaCommand extends Command
@@ -56,5 +57,22 @@ abstract class AbstractSchemaCommand extends Command
         $this->classes = $classes;
         
         return $this;
+    }
+    
+    /**
+     * @return ItemReflection[]
+     */
+    protected function getValidClasses()
+    {
+        foreach ($this->getClasses() as $class) {
+            try {
+                $reflection = $this->itemManager->getItemReflection($class);
+            } catch (\Exception $e) {
+                continue;
+            }
+            $classes[$class] = $reflection;
+        }
+        
+        return $classes;
     }
 }

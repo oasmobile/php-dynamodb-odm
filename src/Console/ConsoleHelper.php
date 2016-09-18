@@ -9,6 +9,7 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Console;
 
 use Oasis\Mlib\ODM\Dynamodb\Console\Commands\CreateSchemaCommand;
+use Oasis\Mlib\ODM\Dynamodb\Console\Commands\DropSchemaCommand;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
@@ -52,7 +53,7 @@ class ConsoleHelper
         $application->addCommands(
             [
                 (new CreateSchemaCommand())->withItemManager($this->itemManager)->withClasses($this->classes),
-                //(new DropSchemaCommand())->withItemManager($this->itemManager)->withClasses($this->classes),
+                (new DropSchemaCommand())->withItemManager($this->itemManager)->withClasses($this->classes),
                 //(new UpdateSchemaCommand())->withItemManager($this->itemManager)->withClasses($this->classes),
             ]
         );

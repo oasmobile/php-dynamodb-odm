@@ -32,26 +32,17 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         $im            = $this->getItemManager();
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         
-        $classes = [];
-        foreach ($this->getClasses() as $class) {
-            try {
-                $reflection = $im->getItemReflection($class);
-            } catch (\Exception $e) {
-                continue;
-            }
+        $classes = $this->getValidClasses();
+        foreach ($classes as $class => $reflection) {
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
             if ($dynamoManager->listTables(sprintf("/%s/", preg_quote($tableName, "/")))) {
                 if (!$skipExisting) {
                     throw new ODMException("Table " . $tableName . " already exists!");
                 }
             }
-            else {
-                $classes[] = $class;
-            }
         }
         
-        foreach ($classes as $class) {
-            $reflection       = $im->getItemReflection($class);
+        foreach ($classes as $class => $reflection) {
             $itemDef          = $reflection->getItemDefinition();
             $attributeTypes   = $reflection->getAttributeTypes();
             $fieldNameMapping = $reflection->getFieldNameMapping();
