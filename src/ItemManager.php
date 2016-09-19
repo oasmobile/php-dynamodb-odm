@@ -13,9 +13,15 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Cache\FilesystemCache;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
+use Symfony\Component\Finder\Finder;
 
 class ItemManager
 {
+    /**
+     * @var string[]
+     */
+    protected $possibleItemClasses = [];
+    
     protected $dynamodbConfig;
     protected $defaultTablePrefix;
     
@@ -32,7 +38,7 @@ class ItemManager
      */
     protected $repositories = [];
     
-    public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDebug = true)
+    public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
         $this->dynamodbConfig     = $dynamodbConfig;
         $this->defaultTablePrefix = $defaultTablePrefix;
@@ -42,8 +48,26 @@ class ItemManager
         $this->reader = new CachedReader(
             new AnnotationReader(),
             new FilesystemCache($cacheDir),
-            $isDebug
+            $isDev
         );
+    }
+    
+    public function addNamespace($namespace, $srcDir)
+    {
+        $finder = new Finder();
+        $finder->in($srcDir)
+               ->path('/\.php$/');
+        foreach ($finder as $splFileInfo) {
+            $classname = sprintf(
+                "%s\\%s\\%s",
+                $namespace,
+                str_replace("/", "\\", $splFileInfo->getRelativePath()),
+                $splFileInfo->getBasename(".php")
+            );
+            $classname = preg_replace('#\\\\+#', '\\', $classname);
+            //mdebug("Class name is %s", $classname);
+            $this->possibleItemClasses[] = $classname;
+        }
     }
     
     public function clear()
@@ -51,11 +75,12 @@ class ItemManager
         $this->repositories = [];
     }
     
-    public function get($itemClass, array $keys, $consistentRead = false)
+    public function detach($item)
     {
-        $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
-        
-        return $item;
+        if (!is_object($item)) {
+            throw new ODMException("You can only detach a managed object!");
+        }
+        $this->getRepository(get_class($item))->detach($item);
     }
     
     public function flush()
@@ -86,14 +111,6 @@ class ItemManager
         $this->getRepository(get_class($item))->persist($item);
     }
     
-    public function detach($item)
-    {
-        if (!is_object($item)) {
-            throw new ODMException("You can only detach a managed object!");
-        }
-        $this->getRepository(get_class($item))->detach($item);
-    }
-    
     public function refresh($item)
     {
         if (!is_object($item)) {
@@ -108,6 +125,13 @@ class ItemManager
             throw new ODMException("You can only removed a managed object!");
         }
         $this->getRepository(get_class($item))->remove($item);
+    }
+    
+    public function get($itemClass, array $keys, $consistentRead = false)
+    {
+        $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
+        
+        return $item;
     }
     
     /**
@@ -127,14 +151,6 @@ class ItemManager
     }
     
     /**
-     * @return AnnotationReader
-     */
-    public function getReader()
-    {
-        return $this->reader;
-    }
-    
-    /**
      * @param $itemClass
      *
      * @return ItemReflection
@@ -151,6 +167,22 @@ class ItemManager
         }
         
         return $reflection;
+    }
+    
+    /**
+     * @return \string[]
+     */
+    public function getPossibleItemClasses()
+    {
+        return $this->possibleItemClasses;
+    }
+    
+    /**
+     * @return AnnotationReader
+     */
+    public function getReader()
+    {
+        return $this->reader;
     }
     
     /**

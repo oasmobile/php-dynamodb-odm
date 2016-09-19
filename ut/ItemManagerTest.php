@@ -166,7 +166,6 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         
         $result = $this->itemManager->getRepository(User::class)->query(
             '#hometown = :hometown AND #age > :age',
-            ['#hometown' => 'hometown', '#age' => 'age'],
             [':hometown' => 'NY' . $base, ':age' => 45],
             'hometown-age-index'
         );
@@ -179,10 +178,6 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
                 $this->itemManager->remove($user);
             },
             '#wage = :wage AND #id BETWEEN :idmin AND :idmax ',
-            [
-                '#wage' => 'wage',
-                '#id'   => 'id',
-            ],
             [
                 ':wage'  => 12345,
                 ':idmin' => $base,
@@ -205,8 +200,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         self::expectException(ODMException::class);
         $this->itemManager->getRepository(User::class)
                           ->query(
-                              '#hometown = :hometown AND #wage > :wage',
-                              ['#hometown' => 'hometown', '#wage' => 'salary'],
+                              '#hometown = :hometown AND #salary > :wage',
                               [':hometown' => 'NY', ':wage' => 100],
                               'hometown-salary-index'
                           );
@@ -216,8 +210,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         self::expectException(ODMException::class);
         $this->itemManager->getRepository(User::class)
                           ->scan(
-                              '#hometown = :hometown AND #wage > :wage',
-                              ['#hometown' => 'hometown', '#wage' => 'salary'],
+                              '#hometown = :hometown AND #salary > :wage',
                               [':hometown' => 'NY', ':wage' => 100]
                           );
     }

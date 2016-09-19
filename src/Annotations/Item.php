@@ -10,7 +10,6 @@ namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
 
 use Doctrine\Common\Annotations\Annotation\Required;
 use Doctrine\Common\Annotations\Annotation\Target;
-use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 
 /**
  * Class Item

@@ -24,7 +24,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
     
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $classes       = $this->getValidClasses();
+        $classes       = $this->getManagedItemClasses();
         $im            = $this->getItemManager();
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         

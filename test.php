@@ -18,12 +18,16 @@ $config = Yaml::parse(file_get_contents(__DIR__ . "/ut/ut.yml"));
 $aws    = $config['dynamodb'];
 
 $im = new ItemManager($aws, 'odm-', __DIR__ . "/ut/cache");
+$im->addNamespace('Oasis\Mlib\ODM\Dynamodb\Ut', __DIR__ . "/ut");
 
 //$refl = $im->getItemReflection(User::class);
 //var_dump($refl);
 
 $consoleHelper = new ConsoleHelper($im);
 $app           = new Application();
-$consoleHelper->addNamespace('Oasis\Mlib\ODM\Dynamodb\Ut', __DIR__ . "/ut");
 $consoleHelper->addCommands($app);
 $app->run();
+
+//$ret = preg_match_all('/#(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)/', '#abca > 10 and #aa in (9, 10)', $matches);
+//var_dump($ret);
+//var_dump($matches);

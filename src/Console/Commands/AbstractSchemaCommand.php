@@ -16,8 +16,6 @@ abstract class AbstractSchemaCommand extends Command
 {
     /** @var  ItemManager */
     protected $itemManager;
-    /** @var  array */
-    protected $classes;
     
     /**
      * @param ItemManager $itemManager
@@ -32,14 +30,6 @@ abstract class AbstractSchemaCommand extends Command
     }
     
     /**
-     * @return array
-     */
-    public function getClasses()
-    {
-        return $this->classes;
-    }
-    
-    /**
      * @return ItemManager
      */
     public function getItemManager()
@@ -48,23 +38,12 @@ abstract class AbstractSchemaCommand extends Command
     }
     
     /**
-     * @param array $classes
-     *
-     * @return AbstractSchemaCommand
-     */
-    public function withClasses($classes)
-    {
-        $this->classes = $classes;
-        
-        return $this;
-    }
-    
-    /**
      * @return ItemReflection[]
      */
-    protected function getValidClasses()
+    protected function getManagedItemClasses()
     {
-        foreach ($this->getClasses() as $class) {
+        $classes = [];
+        foreach ($this->itemManager->getPossibleItemClasses() as $class) {
             try {
                 $reflection = $this->itemManager->getItemReflection($class);
             } catch (\Exception $e) {

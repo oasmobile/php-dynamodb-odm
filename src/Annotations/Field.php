@@ -9,23 +9,23 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
 
 use Doctrine\Common\Annotations\Annotation\Enum;
-use Doctrine\Common\Annotations\Annotation\Required;
+use Doctrine\Common\Annotations\Annotation\Target;
 
 /**
  * Class Field
  *
  * @Annotation
+ * @Target("PROPERTY")
  */
 class Field
 {
     /**
      * @var string
      */
-    public $name;
+    public $name = null;
     /**
      * @var string
      * @Enum(value={"string", "number", "binary", "bool", "null", "list", "map"})
-     * @Required()
      */
     public $type = 'string';
 }

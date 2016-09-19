@@ -10,9 +10,10 @@ namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
 
 /**
  * Class CASTimestamp
+ * @package Oasis\Mlib\ODM\Dynamodb\Annotations
  *
  * @Annotation
- * @package Oasis\Mlib\ODM\Dynamodb\Annotations
+ * @Target("PROPERTY")
  */
 class CASTimestamp
 {

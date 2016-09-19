@@ -42,25 +42,66 @@ class ItemRepository
         );
     }
     
+    public function detach($obj)
+    {
+        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
+            throw new ODMException(
+                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
+            );
+        }
+        $id = $this->itemReflection->getPrimaryIdentifier($obj);
+        if (!isset($this->itemManaged[$id])) {
+            throw new ODMException("Object is not managed: " . print_r($obj, true));
+        }
+        
+        unset($this->itemManaged[$id]);
+    }
+    
+    public function flush()
+    {
+        foreach ($this->itemManaged as $managedItemState) {
+            if ($managedItemState->isRemoved()) {
+                $this->dynamodbTable->delete(
+                    $this->itemReflection->getPrimaryKeys($managedItemState->getItem())
+                );
+            }
+            elseif ($managedItemState->isNew()) {
+                $this->dynamodbTable->set(
+                    $this->itemReflection->dehydrate($managedItemState->getItem())
+                );
+            }
+            else {
+                $dirtyData = $managedItemState->getDirtyData();
+                if ($dirtyData) {
+                    $this->dynamodbTable->set($dirtyData);
+                }
+            }
+        }
+    }
+    
+    public function persist($obj)
+    {
+        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
+            throw new ODMException("Persisting wrong boject, expecting: " . $this->itemReflection->getItemClass());
+        }
+        $id = $this->itemReflection->getPrimaryIdentifier($obj);
+        if (isset($this->itemManaged[$id])) {
+            throw new ODMException("Persisting existing object: " . print_r($obj, true));
+        }
+        
+        $managedState = new ManagedItemState($this->itemReflection, $obj);
+        $managedState->setState(ManagedItemState::STATE_NEW);
+        $this->itemManaged[$id] = $managedState;
+    }
+    
     public function query($conditions,
-                          array $fields,
                           array $params,
                           $indexName = DynamoDbTable::PRIMARY_INDEX,
                           &$lastKey = null,
                           $evaluationLimit = 30,
                           $consistentRead = false)
     {
-        $fields  = array_map(
-            function ($fieldName) {
-                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-                if (!isset($fieldNameMapping[$fieldName])) {
-                    throw new ODMException("Cannot find field named $fieldName!");
-                }
-                
-                return $fieldNameMapping[$fieldName];
-            },
-            $fields
-        );
+        $fields  = $this->getFieldsArray($conditions);
         $results = $this->dynamodbTable->query(
             $conditions,
             $fields,
@@ -86,22 +127,11 @@ class ItemRepository
     
     public function queryAndRun(callable $callback,
                                 $conditions = '',
-                                array $fields = [],
                                 array $params = [],
                                 $indexName = DynamoDbTable::PRIMARY_INDEX,
                                 $consistentRead = false)
     {
-        $fields = array_map(
-            function ($fieldName) {
-                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-                if (!isset($fieldNameMapping[$fieldName])) {
-                    throw new ODMException("Cannot find field named $fieldName!");
-                }
-                
-                return $fieldNameMapping[$fieldName];
-            },
-            $fields
-        );
+        $fields = $this->getFieldsArray($conditions);
         $this->dynamodbTable->queryAndRun(
             function ($result) use ($callback) {
                 $managed = $this->getManagedObject($result);
@@ -121,23 +151,42 @@ class ItemRepository
         );
     }
     
+    public function refresh($obj)
+    {
+        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
+            throw new ODMException(
+                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
+            );
+        }
+        $id = $this->itemReflection->getPrimaryIdentifier($obj);
+        if (!isset($this->itemManaged[$id])) {
+            throw new ODMException("Object is not managed: " . print_r($obj, true));
+        }
+        
+        $this->get($this->itemReflection->getPrimaryKeys($obj, false), true);
+    }
+    
+    public function remove($obj)
+    {
+        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
+            throw new ODMException(
+                "Object removed is not of correct type, expected: " . $this->itemReflection->getItemClass()
+            );
+        }
+        $id = $this->itemReflection->getPrimaryIdentifier($obj);
+        if (!isset($this->itemManaged[$id])) {
+            throw new ODMException("Object is not managed: " . print_r($obj, true));
+        }
+        
+        $this->itemManaged[$id]->setState(ManagedItemState::STATE_REMOVED);
+    }
+    
     public function scan($conditions = '',
-                         array $fields = [],
                          array $params = [],
                          &$lastKey = null,
                          $evaluationLimit = 30)
     {
-        $fields  = array_map(
-            function ($fieldName) {
-                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-                if (!isset($fieldNameMapping[$fieldName])) {
-                    throw new ODMException("Cannot find field named $fieldName!");
-                }
-                
-                return $fieldNameMapping[$fieldName];
-            },
-            $fields
-        );
+        $fields = $this->getFieldsArray($conditions);
         $results = $this->dynamodbTable->scan(
             $conditions,
             $fields,
@@ -161,20 +210,9 @@ class ItemRepository
     
     public function scanAndRun(callable $callback,
                                $conditions = '',
-                               array $fields = [],
                                array $params = [])
     {
-        $fields = array_map(
-            function ($fieldName) {
-                $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-                if (!isset($fieldNameMapping[$fieldName])) {
-                    throw new ODMException("Cannot find field named $fieldName!");
-                }
-                
-                return $fieldNameMapping[$fieldName];
-            },
-            $fields
-        );
+        $fields = $this->getFieldsArray($conditions);
         $this->dynamodbTable->scanAndRun(
             function ($result) use ($callback) {
                 $managed = $this->getManagedObject($result);
@@ -223,43 +261,6 @@ class ItemRepository
         }
     }
     
-    public function persist($obj)
-    {
-        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
-            throw new ODMException("Persisting wrong boject, expecting: " . $this->itemReflection->getItemClass());
-        }
-        $id = $this->itemReflection->getPrimaryIdentifier($obj);
-        if (isset($this->itemManaged[$id])) {
-            throw new ODMException("Persisting existing object: " . print_r($obj, true));
-        }
-        
-        $managedState = new ManagedItemState($this->itemReflection, $obj);
-        $managedState->setState(ManagedItemState::STATE_NEW);
-        $this->itemManaged[$id] = $managedState;
-    }
-    
-    public function flush()
-    {
-        foreach ($this->itemManaged as $managedItemState) {
-            if ($managedItemState->isRemoved()) {
-                $this->dynamodbTable->delete(
-                    $this->itemReflection->getPrimaryKeys($managedItemState->getItem())
-                );
-            }
-            elseif ($managedItemState->isNew()) {
-                $this->dynamodbTable->set(
-                    $this->itemReflection->dehydrate($managedItemState->getItem())
-                );
-            }
-            else {
-                $dirtyData = $managedItemState->getDirtyData();
-                if ($dirtyData) {
-                    $this->dynamodbTable->set($dirtyData);
-                }
-            }
-        }
-    }
-    
     protected function getManagedObject($resultData)
     {
         $id = $this->itemReflection->getPrimaryIdentifier($resultData);
@@ -286,48 +287,25 @@ class ItemRepository
         }
     }
     
-    public function remove($obj)
+    protected function getFieldsArray($conditions)
     {
-        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
-            throw new ODMException(
-                "Object removed is not of correct type, expected: " . $this->itemReflection->getItemClass()
-            );
-        }
-        $id = $this->itemReflection->getPrimaryIdentifier($obj);
-        if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj, true));
+        $ret = preg_match_all('/#(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)/', $conditions, $matches);
+        if (!$ret) {
+            return [];
         }
         
-        $this->itemManaged[$id]->setState(ManagedItemState::STATE_REMOVED);
-    }
-    
-    public function detach($obj)
-    {
-        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
-            throw new ODMException(
-                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
-            );
-        }
-        $id = $this->itemReflection->getPrimaryIdentifier($obj);
-        if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj, true));
+        $result = [];
+        if (isset($matches['field']) && is_array($matches['field'])) {
+            $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+            
+            foreach ($matches['field'] as $fieldName) {
+                if (!isset($fieldNameMapping[$fieldName])) {
+                    throw new ODMException("Cannot find field named $fieldName!");
+                }
+                $result["#" . $fieldName] = $fieldNameMapping[$fieldName];
+            }
         }
         
-        unset($this->itemManaged[$id]);
-    }
-    
-    public function refresh($obj)
-    {
-        if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
-            throw new ODMException(
-                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
-            );
-        }
-        $id = $this->itemReflection->getPrimaryIdentifier($obj);
-        if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj, true));
-        }
-        
-        $this->get($this->itemReflection->getPrimaryKeys($obj, false), true);
+        return $result;
     }
 }
