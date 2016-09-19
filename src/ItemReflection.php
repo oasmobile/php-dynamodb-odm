@@ -13,6 +13,7 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\CASTimestamp;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
+use Oasis\Mlib\ODM\Dynamodb\Exceptions\NotAnnotatedException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
 class ItemReflection
@@ -114,7 +115,7 @@ class ItemReflection
         $this->reflectionClass = new \ReflectionClass($this->itemClass);
         $this->itemDefinition  = $reader->getClassAnnotation($this->reflectionClass, Item::class);
         if (!$this->itemDefinition) {
-            throw new AnnotationParsingException("Class " . $this->itemClass . " is not configured as an Item");
+            throw new NotAnnotatedException("Class " . $this->itemClass . " is not configured as an Item");
         }
         
         // initialize property annotation info

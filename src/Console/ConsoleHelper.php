@@ -10,6 +10,7 @@ namespace Oasis\Mlib\ODM\Dynamodb\Console;
 
 use Oasis\Mlib\ODM\Dynamodb\Console\Commands\CreateSchemaCommand;
 use Oasis\Mlib\ODM\Dynamodb\Console\Commands\DropSchemaCommand;
+use Oasis\Mlib\ODM\Dynamodb\Console\Commands\UpdateSchemaCommand;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 use Symfony\Component\Console\Application;
 
@@ -31,7 +32,7 @@ class ConsoleHelper
             [
                 (new CreateSchemaCommand())->withItemManager($this->itemManager),
                 (new DropSchemaCommand())->withItemManager($this->itemManager),
-                //(new UpdateSchemaCommand())->withItemManager($this->itemManager)->withClasses($this->classes),
+                (new UpdateSchemaCommand())->withItemManager($this->itemManager),
             ]
         );
     }
