@@ -63,7 +63,7 @@ if (!is_readable($configFile)) {
 /** @var ConsoleHelper $consoleHelper */
 $consoleHelper = require $configFile;
 
-$cli = new Application('Doctrine Command Line Interface', '0.2.1');
+$cli = new Application('DynamoDb ODM Command Line Interface', '0.2.2');
 $cli->setCatchExceptions(true);
 $consoleHelper->addCommands($cli);
 $cli->run();
