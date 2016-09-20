@@ -45,7 +45,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
         /** @var ItemReflection $reflection */
         foreach ($classes as $class => $reflection) {
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
-            if (!$dynamoManager->listTables(sprintf("/%s/", preg_quote($tableName, "/")))) {
+            if (!$dynamoManager->listTables(sprintf("/^%s\$/", preg_quote($tableName, "/")))) {
                 // will create
                 $classCreation[] = function () use (
                     $isDryRun,

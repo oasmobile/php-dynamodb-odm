@@ -86,6 +86,8 @@ return new ConsoleHelper($itemManager);
 
 ```
 
+Detailed usage can be found in later [section](#using-the-command-line-tool)
+
 ## Mapping
 
 The fundamental functionality of an ODM library is to map object models (i.e. classes) to database sctructure. DynamoDb ODM provides a handy way to establish this mapping with the help of annotations:
@@ -325,3 +327,39 @@ $users = $userRepo->scan(
 );
 
 ```
+
+## Using the Command Line Tool
+
+DynamoDb ODM ships an executable tool together with the library. After installation, there are following built-commands which helps you manage the database schema for the items:
+
+#### Create
+
+```bash
+$ ./vendor/bin/oasis-dynamodb-odm odm:schema-tool:create
+```
+
+The create command will iterate all managed items and create tables correspondingly. All primary index, LSIs and GSIs are created as well.
+
+> **NOTE**: if a table with the same name under the same prefix already exists, an exception will be thrown. No table will be created in this case.
+
+> **NOTE**: if you would like to skip creating existing table (i.e. only create non-existing tables), you can use the "--skip-existing-table" option
+
+#### Update
+
+```bash
+$ ./vendor/bin/oasis-dynamodb-odm odm:schema-tool:update
+```
+
+The update command is actually a more powerful (and slower too) version of create command. It checks all managed items and creates the table if it doesn't exist. Furthermore, if a table exists but have different GSIs defined, the update command will update the GSIs accordingly.
+
+> **NOTE**: due to the nature of DynamoDb, it is not possible to update the primary index or LSI when a table is already created. Under dev environment, it is suggested to drop the table and re-create them when needed.
+
+> **NOTE**: if you would like to only see the changes to database schemas without perfoming actual update, you can specify the "--dry-run" option in command line. The program will only prompts possible changes withou actually performing them.
+
+#### Drop
+
+```bash
+$ ./vendor/bin/oasis-dynamodb-odm odm:schema-tool:drop
+```
+
+The drop command will drop all tables associated with the managed items. **DO NOT** run this command in production environment!

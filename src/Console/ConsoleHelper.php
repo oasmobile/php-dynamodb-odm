@@ -36,4 +36,12 @@ class ConsoleHelper
             ]
         );
     }
+    
+    /**
+     * @return ItemManager
+     */
+    public function getItemManager()
+    {
+        return $this->itemManager;
+    }
 }

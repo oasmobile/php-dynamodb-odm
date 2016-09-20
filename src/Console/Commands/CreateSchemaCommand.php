@@ -35,7 +35,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         $classes = $this->getManagedItemClasses();
         foreach ($classes as $class => $reflection) {
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
-            if ($dynamoManager->listTables(sprintf("/%s/", preg_quote($tableName, "/")))) {
+            if ($dynamoManager->listTables(sprintf("/^%s\$/", preg_quote($tableName, "/")))) {
                 if (!$skipExisting) {
                     throw new ODMException("Table " . $tableName . " already exists!");
                 }
