@@ -32,6 +32,6 @@
         }
     },
     "bin"         : [
-        "bin/slimapp"
+        "bin/oasis-dynamodb-odm"
     ]
 }
