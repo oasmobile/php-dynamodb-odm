@@ -61,7 +61,7 @@ class User
     /**
      * @var
      * @CASTimestamp()
-     * @Field(type="number")
+     * @Field(type="number", name="ts")
      */
     protected $lastUpdated;
     

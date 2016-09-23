@@ -166,7 +166,7 @@ class ItemReflection
                         "Duplicate CASTimestamp field: " . $this->casPropertyName . ", " . $fieldName
                     );
                 }
-                $this->casPropertyName = $fieldName;
+                $this->casPropertyName = $propertyName;
             }
         }
     }
