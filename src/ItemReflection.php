@@ -34,8 +34,8 @@ class ItemReflection
      * Maps each dynamodb attribute key to its type
      */
     protected $attributeTypes;
-    /** @var string CAS field name */
-    protected $casField;
+    /** @var string CAS property name */
+    protected $casPropertyName;
     /**
      * @var  Field[]
      * Maps class property name to its field definition
@@ -50,6 +50,26 @@ class ItemReflection
     public function __construct($itemClass)
     {
         $this->itemClass = $itemClass;
+    }
+    
+    public function updateProperty($obj, $propertyName, $value)
+    {
+        if (!$obj instanceof $this->itemClass) {
+            throw new ODMException(
+                "Object updated is not of correct type, expected: " . $this->itemClass . ", got: " . get_class($obj)
+            );
+        }
+        
+        if (!isset($this->reflectionProperties[$propertyName])) {
+            throw new ODMException(
+                "Object " . $this->itemClass . " doesn't have a property named: " . $propertyName
+            );
+        }
+        $relfectionProperty = $this->reflectionProperties[$propertyName];
+        $oldAccessibility   = $relfectionProperty->isPublic();
+        $relfectionProperty->setAccessible(true);
+        $relfectionProperty->setValue($obj, $value);
+        $relfectionProperty->setAccessible($oldAccessibility);
     }
     
     public function dehydrate($obj)
@@ -123,7 +143,7 @@ class ItemReflection
         $this->fieldDefinitions     = [];
         $this->reflectionProperties = [];
         $this->attributeTypes       = [];
-        $this->casField             = '';
+        $this->casPropertyName      = '';
         foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             if ($reflectionProperty->isStatic()) {
                 continue;
@@ -141,12 +161,12 @@ class ItemReflection
             $this->fieldDefinitions[$propertyName] = $field;
             $this->attributeTypes[$fieldName]      = $field->type;
             if ($reader->getPropertyAnnotation($reflectionProperty, CASTimestamp::class)) {
-                if ($this->casField) {
+                if ($this->casPropertyName) {
                     throw new AnnotationParsingException(
-                        "Duplicate CASTimestamp field: " . $this->casField . ", " . $fieldName
+                        "Duplicate CASTimestamp field: " . $this->casPropertyName . ", " . $fieldName
                     );
                 }
-                $this->casField = $fieldName;
+                $this->casPropertyName = $fieldName;
             }
         }
     }
@@ -173,11 +193,29 @@ class ItemReflection
     }
     
     /**
-     * @return mixed
+     * @return string
+     */
+    public function getCasPropertyName()
+    {
+        return $this->casPropertyName;
+    }
+    
+    /**
+     * @return string
      */
     public function getCasField()
     {
-        return $this->casField;
+        if ($this->casPropertyName) {
+            $fieldDef = $this->fieldDefinitions[$this->casPropertyName];
+            if (!$fieldDef) {
+                throw new ODMException("CAS property " . $this->casPropertyName . " doesn't have a field definition");
+            }
+            
+            return $fieldDef->name ? : $this->casPropertyName;
+        }
+        else {
+            return '';
+        }
     }
     
     /**

@@ -65,6 +65,8 @@ class User
      */
     protected $lastUpdated;
     
+    public $haha;
+    
     /**
      * @return mixed
      */

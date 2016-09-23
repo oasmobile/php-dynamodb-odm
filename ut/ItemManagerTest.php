@@ -8,6 +8,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
+use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 
@@ -54,6 +55,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(User::class, $user);
         self::assertNotEquals('John', $user->getName());
         $user->setName('John');
+        $user->haha = 22;
         $this->itemManager->flush();
         
         $this->itemManager->clear();
@@ -61,7 +63,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $user2 = $this->itemManager->get(User::class, ['id' => $id]);
         
         self::assertInstanceOf(User::class, $user2);
-        self::assertNotEquals($user, $user2);
+        self::assertTrue($user != $user2);
         self::assertEquals('John', $user2->getName());
         
         return $id;
@@ -86,6 +88,63 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
         
         return $id;
+    }
+    
+    /**
+     * @depends testCASTimestamp
+     *
+     * @param $id
+     */
+    public function testCreatingInconsistentDataWhenUsingCASTimestamp($id)
+    {
+        /** @var User $user */
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        $this->itemManager->clear();
+        
+        $user->setLastUpdated(0);
+        $user->setWage(999);
+        $this->itemManager->persist($user);
+        
+        self::expectException(DataConsistencyException::class);
+        $this->itemManager->flush();
+        
+    }
+    
+    /**
+     * @depends testCASTimestamp
+     *
+     * @param $id
+     */
+    public function testUpdatingInconsistentDataWhenUsingCASTimestamp($id)
+    {
+        /** @var User $user */
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        
+        $user->setLastUpdated(time() + 10);
+        $user->setWage(999);
+        
+        self::expectException(DataConsistencyException::class);
+        $this->itemManager->flush();
+        
+    }
+    
+    /**
+     * @depends testCASTimestamp
+     *
+     * @param $id
+     */
+    public function testNoDoubleSetWhenFlushingTwice($id)
+    {
+        /** @var User $user */
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        $user->setAlias('pope');
+        $time = time();
+        $this->itemManager->flush();
+        sleep(2);
+        $this->itemManager->flush();
+        $lastUpdated = $user->getLastUpdated();
+        self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
+        
     }
     
     /**
@@ -205,6 +264,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
                               'hometown-salary-index'
                           );
     }
+    
     public function testScanWithAttributeKey()
     {
         self::expectException(ODMException::class);

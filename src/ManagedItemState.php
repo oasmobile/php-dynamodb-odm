@@ -113,4 +113,9 @@ class ManagedItemState
         }
     }
     
+    public function setUpdated()
+    {
+        $this->originalData = $this->itemReflection->dehydrate($this->item);
+    }
+    
 }

@@ -9,6 +9,7 @@
 namespace Oasis\Mlib\ODM\Dynamodb;
 
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
+use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\UnderlyingDatabaseException;
 
@@ -60,20 +61,47 @@ class ItemRepository
     public function flush()
     {
         foreach ($this->itemManaged as $managedItemState) {
+            $item = $managedItemState->getItem();
             if ($managedItemState->isRemoved()) {
                 $this->dynamodbTable->delete(
-                    $this->itemReflection->getPrimaryKeys($managedItemState->getItem())
+                    $this->itemReflection->getPrimaryKeys($item)
                 );
             }
             elseif ($managedItemState->isNew()) {
-                $this->dynamodbTable->set(
-                    $this->itemReflection->dehydrate($managedItemState->getItem())
+                $ret = $this->dynamodbTable->set(
+                    $this->itemReflection->dehydrate($item),
+                    true,
+                    $updatedCasValue
                 );
+                if (!$ret) {
+                    throw new DataConsistencyException(
+                        "Item exists! type = " . $this->itemReflection->getItemClass()
+                    );
+                }
+                $casProperty = $this->itemReflection->getCasPropertyName();
+                if ($casProperty) {
+                    $this->itemReflection->updateProperty($item, $casProperty, $updatedCasValue);
+                }
             }
             else {
                 $dirtyData = $managedItemState->getDirtyData();
                 if ($dirtyData) {
-                    $this->dynamodbTable->set($dirtyData);
+                    $ret = $this->dynamodbTable->set(
+                        $dirtyData,
+                        true,
+                        $updatedCasValue
+                    );
+                    if (!$ret) {
+                        throw new DataConsistencyException(
+                            "Item upated elsewhere! type = " . $this->itemReflection->getItemClass()
+                        );
+                    }
+                    $casProperty = $this->itemReflection->getCasPropertyName();
+                    if ($casProperty) {
+                        $this->itemReflection->updateProperty($item, $casProperty, $updatedCasValue);
+                    }
+                    
+                    $managedItemState->setUpdated();
                 }
             }
         }
@@ -186,7 +214,7 @@ class ItemRepository
                          &$lastKey = null,
                          $evaluationLimit = 30)
     {
-        $fields = $this->getFieldsArray($conditions);
+        $fields  = $this->getFieldsArray($conditions);
         $results = $this->dynamodbTable->scan(
             $conditions,
             $fields,
