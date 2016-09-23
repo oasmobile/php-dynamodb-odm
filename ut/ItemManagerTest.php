@@ -144,7 +144,25 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->flush();
         $lastUpdated = $user->getLastUpdated();
         self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
+    }
+    
+    public function testNoDoubleSetWhenInsertedAreFlushedTwice()
+    {
+        $id   = mt_rand(1000, PHP_INT_MAX);
+        $user = new User();
+        $user->setId($id);
+        $user->setName('Alice');
+        $this->itemManager->persist($user);
+        $time = time();
+        $this->itemManager->flush();
+        sleep(2);
+        $this->itemManager->flush();
+        $lastUpdated = $user->getLastUpdated();
+        self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
         
+        $this->itemManager->remove($user);
+        $this->itemManager->flush();
+        $this->itemManager->flush();
     }
     
     /**

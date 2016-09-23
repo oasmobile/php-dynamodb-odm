@@ -60,12 +60,14 @@ class ItemRepository
     
     public function flush()
     {
-        foreach ($this->itemManaged as $managedItemState) {
+        $removed = [];
+        foreach ($this->itemManaged as $oid => $managedItemState) {
             $item = $managedItemState->getItem();
             if ($managedItemState->isRemoved()) {
                 $this->dynamodbTable->delete(
                     $this->itemReflection->getPrimaryKeys($item)
                 );
+                $removed[] = $oid;
             }
             elseif ($managedItemState->isNew()) {
                 $ret = $this->dynamodbTable->set(
@@ -82,6 +84,8 @@ class ItemRepository
                 if ($casProperty) {
                     $this->itemReflection->updateProperty($item, $casProperty, $updatedCasValue);
                 }
+                $managedItemState->setState(ManagedItemState::STATE_MANAGED);
+                $managedItemState->setUpdated();
             }
             else {
                 $dirtyData = $managedItemState->getDirtyData();
@@ -104,6 +108,9 @@ class ItemRepository
                     $managedItemState->setUpdated();
                 }
             }
+        }
+        foreach ($removed as $id) {
+            unset($this->itemManaged[$id]);
         }
     }
     
