@@ -18,6 +18,10 @@ use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
 class ItemReflection
 {
+    const RESERVED_FIELDS = [
+        "source_tabl",
+    ];
+    
     protected $itemClass;
     
     /** @var  \ReflectionClass */
@@ -46,10 +50,16 @@ class ItemReflection
      * Maps each class property name to its reflection property
      */
     protected $reflectionProperties;
+    /**
+     * @var array
+     * Reserved attribute names will be cleared when hydrating an object
+     */
+    protected $reservedAttributeNames;
     
-    public function __construct($itemClass)
+    public function __construct($itemClass, $reservedAttributeNames)
     {
-        $this->itemClass = $itemClass;
+        $this->itemClass              = $itemClass;
+        $this->reservedAttributeNames = $reservedAttributeNames;
     }
     
     public function updateProperty($obj, $propertyName, $value)
@@ -108,6 +118,10 @@ class ItemReflection
         }
         
         foreach ($array as $key => $value) {
+            if (in_array($key, $this->reservedAttributeNames)) {
+                // this attribute is reserved for other use
+                continue;
+            }
             if (!isset($this->propertyMapping[$key])) {
                 // this property is not defined, skip it
                 mwarning("Got an unknown attribute: %s with value %s", $key, print_r($value, true));
@@ -262,10 +276,6 @@ class ItemReflection
                 $value = $obj[$attributeKey];
             }
             else {
-                //if (!isset($this->propertyMapping[$key])) {
-                //    throw new AnnotationParsingException("Primary field " . $key . " is not defined.");
-                //}
-                //$propertyName       = $this->propertyMapping[$key];
                 $relfectionProperty = $this->reflectionProperties[$key];
                 $oldAccessibility   = $relfectionProperty->isPublic();
                 $relfectionProperty->setAccessible(true);

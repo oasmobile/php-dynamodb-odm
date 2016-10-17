@@ -38,6 +38,11 @@ class ItemManager
      */
     protected $repositories = [];
     
+    /**
+     * @var array
+     */
+    protected $reservedAttributeNames = [];
+    
     public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
         $this->dynamodbConfig     = $dynamodbConfig;
@@ -158,7 +163,7 @@ class ItemManager
     public function getItemReflection($itemClass)
     {
         if (!isset($this->itemReflections[$itemClass])) {
-            $reflection = new ItemReflection($itemClass);
+            $reflection = new ItemReflection($itemClass, $this->reservedAttributeNames);
             $reflection->parse($this->reader);
             $this->itemReflections[$itemClass] = $reflection;
         }
@@ -206,6 +211,22 @@ class ItemManager
         }
         
         return $repo;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getReservedAttributeNames()
+    {
+        return $this->reservedAttributeNames;
+    }
+    
+    /**
+     * @param array $reservedAttributeNames
+     */
+    public function setReservedAttributeNames($reservedAttributeNames)
+    {
+        $this->reservedAttributeNames = $reservedAttributeNames;
     }
     
 }
