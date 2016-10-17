@@ -75,6 +75,13 @@ class ItemManager
         }
     }
     
+    public function addReservedAttributeNames(...$args)
+    {
+        foreach ($args as $arg) {
+            $this->reservedAttributeNames[] = $arg;
+        }
+    }
+    
     public function clear()
     {
         $this->repositories = [];
