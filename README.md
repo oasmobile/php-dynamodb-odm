@@ -186,11 +186,18 @@ class User
 }
 ```
 
-#### CASTimestamp
+#### Check and Set
 
-A _@CASTimestamp_ can be annotated together with a _@Field_ annotation. A field declared as CASTimestamp will be automatically updated to the current timestamp when the content of the object changes.
+A field and be declared as a check-and-set field, using the "cas" attribute of the _@Field_ annotation.
 
-> **NOTE**: only one _@CASTimestamp_ can be declared in a single item.
+A check-and-set field is a field ODM uses to make sure no single item is updated/inserted more than once by different workers at the same time.
+
+The value of the "cas" property can be one of the following:
+- disabled: this is the default value, and the field with "cas" disabled will not be checked when updating/inserting item
+- enabled: the old value of this field will be checked when updating the item. When inserting an item, this field must either posses a NULL value, or be absent.
+- timestamp: this is a special type of enabled cas property. Every time an item is updated/inserted, the value of this field will automatically be set to the current timestamp.
+
+> **NOTE**: Check-and-set validation is done only when you call `ItemManger#flush()`. Failure to meet the check and set condition(s) will lead to an `Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException` being thrown.
 
 ## Working with Objects
 
