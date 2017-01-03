@@ -8,9 +8,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\CASTimestamp;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 
 /**
@@ -43,8 +41,7 @@ class Game
     protected $family;
     /**
      * @var int
-     * @Field(type="number")
-     * @CASTimestamp()
+     * @Field(type="number", cas="timestamp")
      */
     protected $lastUpdatedAt;
     

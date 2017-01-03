@@ -9,7 +9,6 @@
 namespace Oasis\Mlib\ODM\Dynamodb;
 
 use Doctrine\Common\Annotations\Reader;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\CASTimestamp;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
@@ -38,8 +37,8 @@ class ItemReflection
      * Maps each dynamodb attribute key to its type
      */
     protected $attributeTypes;
-    /** @var string CAS property name */
-    protected $casPropertyName;
+    /** @var array cas properties property name => cas type */
+    protected $casProperties;
     /**
      * @var  Field[]
      * Maps class property name to its field definition
@@ -158,6 +157,7 @@ class ItemReflection
         $this->reflectionProperties = [];
         $this->attributeTypes       = [];
         $this->casPropertyName      = '';
+        $this->casProperties        = [];
         foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             if ($reflectionProperty->isStatic()) {
                 continue;
@@ -174,13 +174,8 @@ class ItemReflection
             $this->propertyMapping[$fieldName]     = $propertyName;
             $this->fieldDefinitions[$propertyName] = $field;
             $this->attributeTypes[$fieldName]      = $field->type;
-            if ($reader->getPropertyAnnotation($reflectionProperty, CASTimestamp::class)) {
-                if ($this->casPropertyName) {
-                    throw new AnnotationParsingException(
-                        "Duplicate CASTimestamp field: " . $this->casPropertyName . ", " . $fieldName
-                    );
-                }
-                $this->casPropertyName = $propertyName;
+            if ($field->cas != Field::CAS_DISABLED) {
+                $this->casProperties[$propertyName] = $field->cas;
             }
         }
     }
@@ -194,42 +189,38 @@ class ItemReflection
     }
     
     /**
-     * @return array a map of field name to attribute key
+     * @return array
+     */
+    public function getCasProperties()
+    {
+        return $this->casProperties;
+    }
+    
+    /**
+     * @return array a map of property name to attribute key
      */
     public function getFieldNameMapping()
     {
         $ret = [];
-        foreach ($this->fieldDefinitions as $key => $field) {
-            $ret[$key] = $field->name ? : $key;
+        foreach ($this->fieldDefinitions as $propertyName => $field) {
+            $ret[$propertyName] = $field->name ? : $propertyName;
         }
         
         return $ret;
     }
     
     /**
+     * Returns field name (attribute key for dynamodb) according to property name
+     *
+     * @param $propertyName
+     *
      * @return string
      */
-    public function getCasPropertyName()
+    public function getFieldNameByPropertyName($propertyName)
     {
-        return $this->casPropertyName;
-    }
-    
-    /**
-     * @return string
-     */
-    public function getCasField()
-    {
-        if ($this->casPropertyName) {
-            $fieldDef = $this->fieldDefinitions[$this->casPropertyName];
-            if (!$fieldDef) {
-                throw new ODMException("CAS property " . $this->casPropertyName . " doesn't have a field definition");
-            }
-            
-            return $fieldDef->name ? : $this->casPropertyName;
-        }
-        else {
-            return '';
-        }
+        $field = $this->fieldDefinitions[$propertyName];
+        
+        return $field->name ? : $propertyName;
     }
     
     /**

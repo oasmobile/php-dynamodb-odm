@@ -19,6 +19,10 @@ use Doctrine\Common\Annotations\Annotation\Target;
  */
 class Field
 {
+    const CAS_DISABLED  = 'disabled';
+    const CAS_ENABLED   = 'enabled';
+    const CAS_TIMESTAMP = 'timestamp';
+    
     /**
      * @var string
      */
@@ -28,4 +32,11 @@ class Field
      * @Enum(value={"string", "number", "binary", "bool", "null", "list", "map"})
      */
     public $type = 'string';
+    /**
+     * Check and set type
+     *
+     * @var string
+     * @Enum(value={"disabled", "enabled", "timestamp"})
+     */
+    public $cas = self::CAS_DISABLED;
 }

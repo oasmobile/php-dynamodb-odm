@@ -16,11 +16,16 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
 {
     /** @var  ItemManager */
     protected $itemManager;
+    /** @var  ItemManager */
+    protected $itemManager2;
     
     protected function setUp()
     {
         parent::setUp();
-        $this->itemManager = new ItemManager(
+        $this->itemManager  = new ItemManager(
+            UTConfig::$dynamodbConfig, UTConfig::$tablePrefix, __DIR__ . "/cache", true
+        );
+        $this->itemManager2 = new ItemManager(
             UTConfig::$dynamodbConfig, UTConfig::$tablePrefix, __DIR__ . "/cache", true
         );
     }
@@ -74,6 +79,26 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      *
      * @param $id
      */
+    public function testCASEnabled($id)
+    {
+        /** @var User $user */
+        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        /** @var User $user2 */
+        $user2 = $this->itemManager2->get(User::class, ['id' => $id]);
+        
+        $user->setName('Chris');
+        $this->itemManager->flush();
+        
+        $user2->setName('Michael');
+        self::expectException(DataConsistencyException::class);
+        $this->itemManager2->flush();
+    }
+    
+    /**
+     * @depends testEdit
+     *
+     * @param $id
+     */
     public function testCASTimestamp($id)
     {
         /** @var User $user */
@@ -82,6 +107,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $user->setWage(777);
         $time = time();
         $this->itemManager->flush();
+        $this->itemManager->clear();
         
         $user        = $this->itemManager->get(User::class, ['id' => $id]);
         $lastUpdated = $user->getLastUpdated();
@@ -95,14 +121,14 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      *
      * @param $id
      */
-    public function testCreatingInconsistentDataWhenUsingCASTimestamp($id)
+    public function testCreatingInconsistentData($id)
     {
         /** @var User $user */
         $user = $this->itemManager->get(User::class, ['id' => $id]);
         $this->itemManager->clear();
         
-        $user->setLastUpdated(0);
-        $user->setWage(999);
+        //$user->setLastUpdated(0);
+        //$user->setWage(999);
         $this->itemManager->persist($user);
         
         self::expectException(DataConsistencyException::class);
@@ -119,12 +145,17 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
     {
         /** @var User $user */
         $user = $this->itemManager->get(User::class, ['id' => $id]);
+        /** @var User $user2 */
+        $user2 = $this->itemManager2->get(User::class, ['id' => $id]);
         
-        $user->setLastUpdated(time() + 10);
-        $user->setWage(999);
+        //$user->setLastUpdated(time() + 10);
+        sleep(1);
+        $user->setAlias('emperor');
+        $this->itemManager->flush();
+        $user2->setWage(999);
         
         self::expectException(DataConsistencyException::class);
-        $this->itemManager->flush();
+        $this->itemManager2->flush();
         
     }
     

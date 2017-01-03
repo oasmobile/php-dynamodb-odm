@@ -8,6 +8,8 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
+use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+
 class ManagedItemState
 {
     const STATE_NEW     = 1;
@@ -89,6 +91,30 @@ class ManagedItemState
     }
     
     /**
+     * @return array
+     */
+    public function getCheckConditionData()
+    {
+        $checkValues = [];
+        foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
+            $fieldName               = $this->itemReflection->getFieldNameByPropertyName($propertyName);
+            $checkValues[$fieldName] = isset($this->originalData[$fieldName]) ? $this->originalData[$fieldName] : null;
+        }
+        
+        return $checkValues;
+    }
+    
+    public function updateCASTimestamps($timestampOffset = 0)
+    {
+        $now = time() + $timestampOffset;
+        foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
+            if ($casType == Field::CAS_TIMESTAMP) {
+                $this->itemReflection->updateProperty($this->item, $propertyName, $now);
+            }
+        }
+    }
+    
+    /**
      * @param int $state
      */
     public function setState($state)
@@ -96,7 +122,7 @@ class ManagedItemState
         $this->state = $state;
     }
     
-    public function getDirtyData()
+    public function hasDirtyData()
     {
         if ($this->state != self::STATE_MANAGED) {
             return false;
@@ -106,7 +132,7 @@ class ManagedItemState
         if (array_diff_assoc($data, $this->originalData)
             || array_diff_assoc($this->originalData, $data)
         ) {
-            return $data;
+            return true;
         }
         else {
             return false;

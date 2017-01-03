@@ -9,7 +9,6 @@
 
 use Oasis\Mlib\ODM\Dynamodb\Console\ConsoleHelper;
 use Oasis\Mlib\ODM\Dynamodb\Ut\Game;
-use Symfony\Component\Console\Application;
 
 require_once __DIR__ . "/vendor/autoload.php";
 

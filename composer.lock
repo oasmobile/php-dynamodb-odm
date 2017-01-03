@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0581740a2a5279a7fdbd72a43c2008e7",
-    "content-hash": "128c0e058cabcc443618e398453d5d96",
+    "hash": "1c4765397ef8529b6f35eb872164f4f4",
+    "content-hash": "a2f0804eca0f7a0f0935d565ad2b2280",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -915,16 +915,16 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "v1.5.7",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/oasmobile/php-aws-wrappers.git",
-                "reference": "6b66f7508ac37a16090015d13598c42af558eadc"
+                "reference": "8946b746ab40960b1f61d1cbaa09aaef8f4daef6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oasmobile/php-aws-wrappers/zipball/6b66f7508ac37a16090015d13598c42af558eadc",
-                "reference": "6b66f7508ac37a16090015d13598c42af558eadc",
+                "url": "https://packagist.phpcomposer.com/files/oasmobile/php-aws-wrappers/8946b746ab40960b1f61d1cbaa09aaef8f4daef6.zip",
+                "reference": "8946b746ab40960b1f61d1cbaa09aaef8f4daef6",
                 "shasum": ""
             },
             "require": {
@@ -952,7 +952,7 @@
                 }
             ],
             "description": "Wrappers for AWS SDK",
-            "time": "2016-09-23 09:45:34"
+            "time": "2017-01-03 11:46:40"
         },
         {
             "name": "oasis/event",

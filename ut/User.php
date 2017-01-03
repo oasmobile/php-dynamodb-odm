@@ -8,7 +8,6 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\CASTimestamp;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
@@ -35,7 +34,7 @@ class User
     protected $id = 0;
     /**
      * @var
-     * @Field(type="string")
+     * @Field(type="string", cas="enabled")
      */
     protected $name;
     /**
@@ -60,8 +59,7 @@ class User
     protected $hometown = 'new york';
     /**
      * @var
-     * @CASTimestamp()
-     * @Field(type="number", name="ts")
+     * @Field(type="number", name="ts", cas="timestamp")
      */
     protected $lastUpdated;
     

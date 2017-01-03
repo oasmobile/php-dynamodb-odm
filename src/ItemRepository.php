@@ -38,8 +38,7 @@ class ItemRepository
         $this->dynamodbTable = new DynamoDbTable(
             $itemManager->getDynamodbConfig(),
             $tableName,
-            $this->itemReflection->getAttributeTypes(),
-            $this->itemReflection->getCasField()
+            $this->itemReflection->getAttributeTypes()
         );
     }
     
@@ -70,41 +69,32 @@ class ItemRepository
                 $removed[] = $oid;
             }
             elseif ($managedItemState->isNew()) {
+                $managedItemState->updateCASTimestamps();
                 $ret = $this->dynamodbTable->set(
                     $this->itemReflection->dehydrate($item),
-                    true,
-                    $updatedCasValue
+                    $managedItemState->getCheckConditionData()
                 );
-                if (!$ret) {
+                if ($ret === false) {
                     throw new DataConsistencyException(
                         "Item exists! type = " . $this->itemReflection->getItemClass()
                     );
-                }
-                $casProperty = $this->itemReflection->getCasPropertyName();
-                if ($casProperty) {
-                    $this->itemReflection->updateProperty($item, $casProperty, $updatedCasValue);
                 }
                 $managedItemState->setState(ManagedItemState::STATE_MANAGED);
                 $managedItemState->setUpdated();
             }
             else {
-                $dirtyData = $managedItemState->getDirtyData();
-                if ($dirtyData) {
+                $hasData = $managedItemState->hasDirtyData();
+                if ($hasData) {
+                    $managedItemState->updateCASTimestamps();
                     $ret = $this->dynamodbTable->set(
-                        $dirtyData,
-                        true,
-                        $updatedCasValue
+                        $this->itemReflection->dehydrate($item),
+                        $managedItemState->getCheckConditionData()
                     );
                     if (!$ret) {
                         throw new DataConsistencyException(
                             "Item upated elsewhere! type = " . $this->itemReflection->getItemClass()
                         );
                     }
-                    $casProperty = $this->itemReflection->getCasPropertyName();
-                    if ($casProperty) {
-                        $this->itemReflection->updateProperty($item, $casProperty, $updatedCasValue);
-                    }
-                    
                     $managedItemState->setUpdated();
                 }
             }
