@@ -297,6 +297,45 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->flush();
     }
     
+    public function testBatchGet()
+    {
+        $base = mt_rand(100, PHP_INT_MAX);
+        
+        /** @var User[] $users */
+        $users = [];
+        $keys  = [];
+        for ($i = 0; $i < 10; ++$i) {
+            $id   = $base + $i;
+            $user = new User();
+            $user->setId($id);
+            $user->setName('Batch #' . ($i + 1));
+            $user->setHometown(((($i % 2) == 0) ? 'LA' : 'NY') . $base);
+            $user->setAge(46 + $i); // 46 to 55
+            $user->setWage(12345);
+            $users[$id] = $user;
+            $this->itemManager->persist($user);
+            
+            $keys[] = ["id" => $id];
+        }
+        
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+        
+        $keys[] = ["id" => -PHP_INT_MAX,]; // some non existing key
+        $result = $this->itemManager->getRepository(User::class)->batchGet(
+            $keys
+        );
+        $this->assertEquals(count($keys), count($result) + 1); // we get all result except the non-existing one
+        /** @var User $user */
+        foreach ($result as $user) {
+            $this->assertArrayHasKey($user->getId(), $users);
+            $this->assertEquals($users[$user->getId()]->getName(), $user->getName());
+            
+            $this->itemManager->remove($user);
+        }
+        $this->itemManager->flush();
+    }
+    
     public function testGetWithAttributeKey()
     {
         self::expectException(ODMException::class);

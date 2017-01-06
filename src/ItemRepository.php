@@ -8,6 +8,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
+use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
@@ -121,10 +122,12 @@ class ItemRepository
     
     public function query($conditions,
                           array $params,
-                          $indexName = DynamoDbTable::PRIMARY_INDEX,
+                          $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                          $filterExpression = '',
                           &$lastKey = null,
                           $evaluationLimit = 30,
-                          $consistentRead = false)
+                          $isConsistentRead = false,
+                          $isAscendingOrder = true)
     {
         $fields  = $this->getFieldsArray($conditions);
         $results = $this->dynamodbTable->query(
@@ -132,9 +135,11 @@ class ItemRepository
             $fields,
             $params,
             $indexName,
+            $filterExpression,
             $lastKey,
             $evaluationLimit,
-            $consistentRead
+            $isConsistentRead,
+            $isAscendingOrder
         );
         $ret     = [];
         foreach ($results as $result) {
@@ -153,8 +158,10 @@ class ItemRepository
     public function queryAndRun(callable $callback,
                                 $conditions = '',
                                 array $params = [],
-                                $indexName = DynamoDbTable::PRIMARY_INDEX,
-                                $consistentRead = false)
+                                $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                                $filterExpression = '',
+                                $isConsistentRead = false,
+                                $isAscendingOrder = true)
     {
         $fields = $this->getFieldsArray($conditions);
         $this->dynamodbTable->queryAndRun(
@@ -172,7 +179,9 @@ class ItemRepository
             $fields,
             $params,
             $indexName,
-            $consistentRead
+            $filterExpression,
+            $isConsistentRead,
+            $isAscendingOrder
         );
     }
     
@@ -208,16 +217,22 @@ class ItemRepository
     
     public function scan($conditions = '',
                          array $params = [],
+                         $indexName = DynamoDbIndex::PRIMARY_INDEX,
                          &$lastKey = null,
-                         $evaluationLimit = 30)
+                         $evaluationLimit = 30,
+                         $isConsistentRead = false,
+                         $isAscendingOrder = true)
     {
         $fields  = $this->getFieldsArray($conditions);
         $results = $this->dynamodbTable->scan(
             $conditions,
             $fields,
             $params,
+            $indexName,
             $lastKey,
-            $evaluationLimit
+            $evaluationLimit,
+            $isConsistentRead,
+            $isAscendingOrder
         );
         $ret     = [];
         foreach ($results as $result) {
@@ -235,7 +250,11 @@ class ItemRepository
     
     public function scanAndRun(callable $callback,
                                $conditions = '',
-                               array $params = [])
+                               array $params = [],
+                               $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                               $isConsistentRead = false,
+                               $isAscendingOrder = true
+    )
     {
         $fields = $this->getFieldsArray($conditions);
         $this->dynamodbTable->scanAndRun(
@@ -251,8 +270,79 @@ class ItemRepository
             },
             $conditions,
             $fields,
-            $params
+            $params,
+            $indexName,
+            $isConsistentRead,
+            $isAscendingOrder
         );
+    }
+    
+    public function parallelScanAndRun($parallel,
+                                       callable $callback,
+                                       $conditions = '',
+                                       array $params = [],
+                                       $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                                       $isConsistentRead = false,
+                                       $isAscendingOrder = true
+    )
+    {
+        $fields = $this->getFieldsArray($conditions);
+        $this->dynamodbTable->parallelScanAndRun(
+            $parallel,
+            function ($result) use ($callback) {
+                $managed = $this->getManagedObject($result);
+                $obj     = $this->itemReflection->hydrate($result, $managed);
+                
+                if (!$managed) {
+                    $this->persistFetchedItemData($obj, $result);
+                }
+                
+                return call_user_func($callback, $obj);
+            },
+            $conditions,
+            $fields,
+            $params,
+            $indexName,
+            $isConsistentRead,
+            $isAscendingOrder
+        );
+    }
+    
+    public function batchGet($groupOfKeys, $isConsistentRead = false)
+    {
+        /** @var string[] $fieldNameMapping */
+        $fieldNameMapping      = $this->itemReflection->getFieldNameMapping();
+        $groupOfTranslatedKeys = [];
+        foreach ($groupOfKeys as $keys) {
+            $translatedKeys = [];
+            foreach ($keys as $k => $v) {
+                if (!isset($fieldNameMapping[$k])) {
+                    throw new ODMException("Cannot find primary index field: $k!");
+                }
+                $k                  = $fieldNameMapping[$k];
+                $translatedKeys[$k] = $v;
+            }
+            $groupOfTranslatedKeys[] = $translatedKeys;
+        }
+        $resultSet = $this->dynamodbTable->batchGet($groupOfTranslatedKeys, $isConsistentRead);
+        if (is_array($resultSet)) {
+            $ret = [];
+            foreach ($resultSet as $singleResult) {
+                $managed = $this->getManagedObject($singleResult);
+                $obj     = $this->itemReflection->hydrate($singleResult, $managed);
+                
+                if (!$managed) {
+                    $this->persistFetchedItemData($obj, $singleResult);
+                }
+                
+                $ret[] = $obj;
+            }
+            
+            return $ret;
+        }
+        else {
+            throw new UnderlyingDatabaseException("Result returned from dynamodb for BatchGet() is not an array!");
+        }
     }
     
     public function get($keys, $isConsistentRead = false)
