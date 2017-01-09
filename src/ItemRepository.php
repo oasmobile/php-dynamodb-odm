@@ -129,7 +129,7 @@ class ItemRepository
                           $isConsistentRead = false,
                           $isAscendingOrder = true)
     {
-        $fields  = $this->getFieldsArray($conditions);
+        $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
         $results = $this->dynamodbTable->query(
             $conditions,
             $fields,
@@ -163,7 +163,7 @@ class ItemRepository
                                 $isConsistentRead = false,
                                 $isAscendingOrder = true)
     {
-        $fields = $this->getFieldsArray($conditions);
+        $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
         $this->dynamodbTable->queryAndRun(
             function ($result) use ($callback) {
                 $managed = $this->getManagedObject($result);
