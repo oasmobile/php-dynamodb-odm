@@ -81,8 +81,10 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                             $gsis
                         );
                         
-                        $output->writeln('Done.');
+                        $output->writeln('Created.');
                     }
+                    
+                    return $tableName;
                 };
             }
             else {
@@ -171,7 +173,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                                 }
                             };
                         }
-    
+                        
                         unset($oldGsis[$idx->getName()]);
                     }
                 }
@@ -198,9 +200,15 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             $output->writeln("Nothing to change.");
         }
         else {
+            $waits = [];
             foreach ($classCreation as $callable) {
-                call_user_func($callable);
+                $tableName = call_user_func($callable);
+                $waits[]   = $dynamoManager->waitForTableCreation($tableName, 60, 1, false);
             }
+            $output->writeln("Waiting for all created tables to be active ...");
+            \GuzzleHttp\Promise\all($waits)->wait();
+            $output->writeln("Done.");
+            
             foreach ($gsiChanges as $callable) {
                 call_user_func($callable);
             }

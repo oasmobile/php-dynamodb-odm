@@ -23,12 +23,19 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         
         $this->setName('odm:schema-tool:create')
              ->setDescription('Processes the schema and create corresponding tables and indices.')
-             ->addOption('skip-existing-table', null, InputOption::VALUE_NONE, "skip creating existing table!");;
+             ->addOption('skip-existing-table', null, InputOption::VALUE_NONE, "skip creating existing table!")
+             ->addOption(
+                 'dry-run',
+                 null,
+                 InputOption::VALUE_NONE,
+                 "output possible table creations without actually creating them."
+             );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $skipExisting  = $input->getOption('skip-existing-table');
+        $dryRun        = $input->getOption('dry-run');
         $im            = $this->getItemManager();
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         
@@ -36,12 +43,13 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         foreach ($classes as $class => $reflection) {
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
             if ($dynamoManager->listTables(sprintf("/^%s\$/", preg_quote($tableName, "/")))) {
-                if (!$skipExisting) {
+                if (!$skipExisting && !$dryRun) {
                     throw new ODMException("Table " . $tableName . " already exists!");
                 }
             }
         }
         
+        $waits = [];
         foreach ($classes as $class => $reflection) {
             $itemDef          = $reflection->getItemDefinition();
             $attributeTypes   = $reflection->getAttributeTypes();
@@ -59,15 +67,27 @@ class CreateSchemaCommand extends AbstractSchemaCommand
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
             
             $output->writeln("Will create table <info>$tableName</info> for class <info>$class</info> ...");
-            
-            $dynamoManager->createTable(
-                $tableName,
-                $itemDef->primaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes),
-                $lsis,
-                $gsis
-            );
-            
-            $output->writeln('Done.');
+            if (!$dryRun) {
+                $dynamoManager->createTable(
+                    $tableName,
+                    $itemDef->primaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes),
+                    $lsis,
+                    $gsis
+                );
+                $waits[] = $dynamoManager->waitForTableCreation(
+                    $tableName,
+                    60,
+                    1,
+                    false
+                );
+                $output->writeln('Created.');
+            }
+        }
+        
+        if (!$dryRun) {
+            $output->writeln("Waiting for all tables to be active ...");
+            \GuzzleHttp\Promise\all($waits)->wait();
+            $output->writeln("Done.");
         }
     }
     

@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "612e4807dd1bf76d241bafde84e117ff",
-    "content-hash": "c8abb52ce78dbf2745d73cd76f7d59ff",
+    "hash": "3f0d1696b92194ebf1eb52415d839698",
+    "content-hash": "0b3800d45e6f6413b934516d6ebaa706",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -915,11 +915,11 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "v2.0.0",
+            "version": "v2.0.4",
             "source": {
                 "type": "git",
-                "url": "/Users/minhao/git/mlib/php-aws-wrappers",
-                "reference": "82f4a2c49b555030dc8be43c0390087105920527"
+                "url": "https://github.com/oasmobile/php-aws-wrappers.git",
+                "reference": "8c5011d27c500364782eff6481486e5ed06eae50"
             },
             "require": {
                 "aws/aws-sdk-php": "^3.12",
@@ -950,7 +950,7 @@
                 }
             ],
             "description": "Wrappers for AWS SDK",
-            "time": "2017-01-06 14:03:52"
+            "time": "2017-01-10 06:46:47"
         },
         {
             "name": "oasis/event",
@@ -990,25 +990,18 @@
         },
         {
             "name": "oasis/logging",
-            "version": "v1.1.9",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/oasmobile/php-logging.git",
-                "reference": "36762274bea0070fe637991b968b655990e79493"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/oasmobile/php-logging/zipball/36762274bea0070fe637991b968b655990e79493",
-                "reference": "36762274bea0070fe637991b968b655990e79493",
-                "shasum": ""
+                "url": "../php-logging/",
+                "reference": "42ba8e40ba5d59b288854d3effc4a32bfce35f25"
             },
             "require": {
                 "bramus/monolog-colored-line-formatter": "^2.0",
                 "monolog/monolog": "^1.17",
-                "oasis/utils": "^1.0"
+                "oasis/utils": "^1.6"
             },
             "require-dev": {
-                "oasis/aws-wrappers": "^1.0",
                 "phpunit/phpunit": "^5.1",
                 "symfony/console": "^3.0",
                 "symfony/finder": "^3.0"
@@ -1026,7 +1019,6 @@
                     "src/MLogging.inc.php"
                 ]
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -1037,7 +1029,7 @@
                 }
             ],
             "description": "Wrapper of monolog/monolog. Should be easier to use/configure than monolog",
-            "time": "2016-07-12 06:49:10"
+            "time": "2017-01-10 07:47:07"
         },
         {
             "name": "oasis/utils",
@@ -2830,123 +2822,6 @@
             "description": "Library that helps with managing the version number of Git-hosted PHP projects",
             "homepage": "https://github.com/sebastianbergmann/version",
             "time": "2016-10-03 07:35:21"
-        },
-        {
-            "name": "symfony/polyfill-intl-icu",
-            "version": "v1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-intl-icu.git",
-                "reference": "0f8dc2c45f69f8672379e9210bca4a115cd5146f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/symfony/polyfill-intl-icu/0f8dc2c45f69f8672379e9210bca4a115cd5146f.zip",
-                "reference": "0f8dc2c45f69f8672379e9210bca4a115cd5146f",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3",
-                "symfony/intl": "~2.3|~3.0"
-            },
-            "suggest": {
-                "ext-intl": "For best performance"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.2-dev"
-                }
-            },
-            "autoload": {
-                "files": [
-                    "bootstrap.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony polyfill for intl's ICU-related data and classes",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "compatibility",
-                "icu",
-                "intl",
-                "polyfill",
-                "portable",
-                "shim"
-            ],
-            "time": "2016-05-18 14:26:46"
-        },
-        {
-            "name": "symfony/polyfill-mbstring",
-            "version": "v1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "dff51f72b0706335131b00a7f49606168c582594"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/symfony/polyfill-mbstring/dff51f72b0706335131b00a7f49606168c582594.zip",
-                "reference": "dff51f72b0706335131b00a7f49606168c582594",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "suggest": {
-                "ext-mbstring": "For best performance"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.2-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Mbstring\\": ""
-                },
-                "files": [
-                    "bootstrap.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony polyfill for the Mbstring extension",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "compatibility",
-                "mbstring",
-                "polyfill",
-                "portable",
-                "shim"
-            ],
-            "time": "2016-05-18 14:26:46"
         },
         {
             "name": "symfony/yaml",

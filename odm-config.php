@@ -17,7 +17,7 @@ require_once __DIR__ . '/ut/bootstrap.php';
 $config = Yaml::parse(file_get_contents(__DIR__ . "/ut/ut.yml"));
 $aws    = $config['dynamodb'];
 
-$im = new ItemManager($aws, 'odm-', __DIR__ . "/ut/cache");
+$im = new ItemManager($aws, $config['prefix'], __DIR__ . "/ut/cache");
 $im->addNamespace('Oasis\Mlib\ODM\Dynamodb\Ut', __DIR__ . "/ut");
 
 return new ConsoleHelper($im);
