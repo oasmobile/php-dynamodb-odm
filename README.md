@@ -152,12 +152,12 @@ We use _@Field_ annotation to describe class properties which are DynamoDb attri
 
 #### Partitioned Hash Key
 
-A partitioned hash key is an extension to fields used as hash key in queries. There are circumstances that you only want to query on a single value (or very few values) for that field. The nature of DynamoDB will only utilize a fraction of the read capacity assigned, and therefore limit your system performance. However, by using a partitioned hash key for that field, each value of the originial field will have a group of mapped values in the partitioned hash key field (default to 16). By querying those partitioned values parallelly (see [Multi Query](#by-using-multi-query-on-partitioned-hash-key)), your query performace should be significantly improved in this use case.
+A partitioned hash key is an extension to fields used as hash key in queries. There are circumstances that you only want to query on a single value (or very few values) for that field. The nature of DynamoDB will only utilize a fraction of the read capacity assigned, and therefore limit your system performance. However, by using a partitioned hash key for that field, each value of the originial field will have a group of mapped values in the partitioned hash key field. By querying those partitioned values parallelly (see [Multi Query](#by-using-multi-query-on-partitioned-hash-key)), your query performace should be significantly improved in this use case.
 
 We use _@PartitionedHashKey_ annotation to describe the partitioned hash key field. The supported attributes are:
 
 - **baseField**: the original field name
-- **hashField**: the field whose value is used as a hashing source
+- **hashField**: the field whose value is used as a hashing source, always use a well distributed field as hash field (e.g. unqiue ID for the item) 
 - **size**: size of partition, default to 16
 
 #### Index
@@ -204,9 +204,9 @@ A field and be declared as a check-and-set field, using the "cas" attribute of t
 A check-and-set field is a field ODM uses to make sure no single item is updated/inserted more than once by different workers at the same time.
 
 The value of the "cas" property can be one of the following:
-- disabled: this is the default value, and the field with "cas" disabled will not be checked when updating/inserting item
-- enabled: the old value of this field will be checked when updating the item. When inserting an item, this field must either posses a NULL value, or be absent.
-- timestamp: this is a special type of enabled cas property. Every time an item is updated/inserted, the value of this field will automatically be set to the current timestamp.
+- _disabled_: this is the default value, and the field with "cas" disabled will not be checked when updating/inserting item
+- _enabled_: the old value of this field will be checked when updating the item. When inserting an item, this field must either posses a NULL value, or be absent.
+- _timestamp_: this is a special type of enabled cas property. Every time an item is updated/inserted, the value of this field will automatically be set to the current timestamp.
 
 > **NOTE**: Check-and-set validation is done only when you call `ItemManger#flush()`. Failure to meet the check and set condition(s) will lead to an `Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException` being thrown.
 
@@ -348,9 +348,6 @@ $users = $userRepo->multiQueryAndRun(
 );
 
 ```
-
-> **NOTE**: a simple condition is a condition that uses one and only one index. If the used index contains both _hash key_ and _range key_, the _range key_ may only be used when _hash key_ is also presented in the condition. Furthermore, only equal test operation can be performed against the _hash key_.
-
 
 #### By Filters on Non-Queriable Index
 
