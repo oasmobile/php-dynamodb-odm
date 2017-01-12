@@ -65,6 +65,21 @@ class ManagedItemState
         return $this->state == self::STATE_REMOVED;
     }
     
+    public function updatePartitionedHashKeys($hashFunction = null)
+    {
+        foreach ($this->itemReflection->getPartitionedHashKeys() as $partitionedHashKey => $def) {
+            $baseValue  = $this->itemReflection->getPropertyValue($this->item, $def->baseField);
+            $hashSource = $this->itemReflection->getPropertyValue($this->item, $def->hashField);
+            if (is_callable($hashFunction)) {
+                $hashSource = call_user_func($hashFunction, $hashSource);
+            }
+            $hashNumber    = hexdec(substr(md5($hashSource), 0, 8));
+            $hashRemainder = dechex($hashNumber % $def->size);
+            $hashResult    = sprintf("%s-%s", $baseValue, $hashRemainder);
+            $this->itemReflection->updateProperty($this->item, $partitionedHashKey, $hashResult);
+        }
+    }
+    
     public function updateCASTimestamps($timestampOffset = 0)
     {
         $now = time() + $timestampOffset;

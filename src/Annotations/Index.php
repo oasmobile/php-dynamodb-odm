@@ -31,6 +31,10 @@ class Index
      * @var string
      */
     public $range = '';
+    /**
+     * @var string
+     */
+    public $name = '';
     
     public function __construct(array $values)
     {
@@ -39,11 +43,17 @@ class Index
             if (isset($values[1])) {
                 $this->range = $values[1];
             }
+            if (isset($values[2])) {
+                $this->name = $values[2];
+            }
         }
         elseif (isset($values['hash'])) {
             $this->hash = $values['hash'];
             if (isset($values['range'])) {
                 $this->range = $values['range'];
+            }
+            if (isset($values['name'])) {
+                $this->name = $values['name'];
             }
         }
         else {
@@ -80,6 +90,9 @@ class Index
         $hashType  = constant(DynamoDbItem::class . '::ATTRIBUTE_TYPE_' . strtoupper($hashType));
         $rangeType = constant(DynamoDbItem::class . '::ATTRIBUTE_TYPE_' . strtoupper($rangeType));
         $idx       = new DynamoDbIndex($hash, $hashType, $rangeKey, $rangeType);
+        if ($this->name) {
+            $idx->setName($this->name);
+        }
         
         return $idx;
     }

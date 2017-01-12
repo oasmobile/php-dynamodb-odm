@@ -24,10 +24,24 @@ $consoleHelper = require_once __DIR__ . "/odm-config.php";
 ////var_dump($matches);
 
 $im = $consoleHelper->getItemManager();
+//
+//for ($i = 0; $i < 8; ++$i) {
+//    $languages = ["pt", "de"];
+//    $game      = new Game();
+//    $game->setGamecode('game-' . $i);
+//    $game->setLanguage($languages[mt_rand(0, count($languages) - 1)]);
+//    $game->setFamily('lo');
+//    $im->persist($game);
+//}
+//$im->flush();
 
-$game = new Game();
-$game->setGamecode('lobr');
-$game->setLanguage('pt');
-$game->setFamily('lo');
-$im->persist($game);
-$im->flush();
+$im->getRepository(Game::class)->multiQueryAndRun(
+    function ($item) {
+        var_dump($item);
+    },
+    "languagePartition",
+    "pt",
+    '#lastUpdatedAt < :ts',
+    [':ts' => time()],
+    'language_partition-last_updated_at-index'
+);

@@ -108,6 +108,7 @@ class ItemRepository
             }
             elseif ($managedItemState->isNew()) {
                 $managedItemState->updateCASTimestamps();
+                $managedItemState->updatePartitionedHashKeys();
                 $ret = $this->dynamodbTable->set(
                     $this->itemReflection->dehydrate($item),
                     $managedItemState->getCheckConditionData()
@@ -124,6 +125,7 @@ class ItemRepository
                 $hasData = $managedItemState->hasDirtyData();
                 if ($hasData) {
                     $managedItemState->updateCASTimestamps();
+                    $managedItemState->updatePartitionedHashKeys();
                     $ret = $this->dynamodbTable->set(
                         $this->itemReflection->dehydrate($item),
                         $managedItemState->getCheckConditionData()
@@ -228,7 +230,7 @@ class ItemRepository
                           $isConsistentRead = false,
                           $isAscendingOrder = true)
     {
-        $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
+        $fields  = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
         $results = $this->dynamodbTable->query(
             $conditions,
             $fields,
@@ -279,6 +281,52 @@ class ItemRepository
             $params,
             $indexName,
             $filterExpression,
+            $isConsistentRead,
+            $isAscendingOrder
+        );
+    }
+    
+    public function multiQueryAndRun(callable $callback,
+                                     $hashKey,
+                                     $hashKeyValues,
+                                     $rangeConditions,
+                                     array $params,
+                                     $indexName,
+                                     $filterExpression = '',
+                                     $evaluationLimit = 30,
+                                     $isConsistentRead = false,
+                                     $isAscendingOrder = true)
+    {
+        if (!is_array($hashKeyValues)) {
+            $hashKeyValues = [$hashKeyValues];
+        }
+        $partitionedHashKeyValues = [];
+        foreach ($hashKeyValues as $hashKeyValue) {
+            $partitionedHashKeyValues = array_merge(
+                $partitionedHashKeyValues,
+                $this->itemReflection->getAllPartitionedValues($hashKey, $hashKeyValue)
+            );
+        }
+        $fields = array_merge($this->getFieldsArray($rangeConditions), $this->getFieldsArray($filterExpression));
+        $this->dynamodbTable->multiQueryAndRun(
+            function ($result) use ($callback) {
+                $managed = $this->getManagedObject($result);
+                $obj     = $this->itemReflection->hydrate($result, $managed);
+                
+                if (!$managed) {
+                    $this->persistFetchedItemData($obj, $result);
+                }
+                
+                return call_user_func($callback, $obj);
+            },
+            $hashKey,
+            $partitionedHashKeyValues,
+            $rangeConditions,
+            $fields,
+            $params,
+            $indexName,
+            $filterExpression,
+            $evaluationLimit,
             $isConsistentRead,
             $isAscendingOrder
         );

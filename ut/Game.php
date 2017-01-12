@@ -9,7 +9,9 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
 
 /**
  * Class Game
@@ -18,7 +20,8 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
  *     table="games",
  *     primaryIndex={"gamecode"},
  *     globalSecondaryIndices={
- *          {"family", "language"}
+ *          {"family", "language"},
+ *          @Index(hash="languagePartition", range="lastUpdatedAt")
  *     }
  * )
  */
@@ -34,6 +37,12 @@ class Game
      * @Field()
      */
     protected $language;
+    /**
+     * @var string
+     * @Field()
+     * @PartitionedHashKey(baseField="language", hashField="gamecode", size=4)
+     */
+    protected $languagePartition;
     /**
      * @var string
      * @Field()

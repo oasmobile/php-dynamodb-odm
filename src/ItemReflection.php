@@ -11,16 +11,13 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 use Doctrine\Common\Annotations\Reader;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\NotAnnotatedException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
 class ItemReflection
 {
-    const RESERVED_FIELDS = [
-        "source_tabl",
-    ];
-    
     protected $itemClass;
     
     /** @var  \ReflectionClass */
@@ -37,8 +34,16 @@ class ItemReflection
      * Maps each dynamodb attribute key to its type
      */
     protected $attributeTypes;
-    /** @var array cas properties property name => cas type */
+    /**
+     * @var array
+     * cas properties, in the format of property name => cas type
+     */
     protected $casProperties;
+    /**
+     * @var PartitionedHashKey[]
+     * partitioned hash keys, in the format of property name => partioned hash key definition
+     */
+    protected $partitionedHashKeys;
     /**
      * @var  Field[]
      * Maps class property name to its field definition
@@ -75,11 +80,7 @@ class ItemReflection
         
         $array = [];
         foreach ($this->fieldDefinitions as $propertyName => $field) {
-            $relfectionProperty = $this->reflectionProperties[$propertyName];
-            $oldAccessibility   = $relfectionProperty->isPublic();
-            $relfectionProperty->setAccessible(true);
-            $value = $relfectionProperty->getValue($obj);
-            $relfectionProperty->setAccessible($oldAccessibility);
+            $value       = $this->getPropertyValue($obj, $propertyName);
             $key         = $field->name ? : $propertyName;
             $array[$key] = $value;
         }
@@ -112,11 +113,7 @@ class ItemReflection
                 // cast to string because dynamo stores "" as null
                 $value = strval($value);
             }
-            $relfectionProperty = $this->reflectionProperties[$propertyName];
-            $oldAccessibility   = $relfectionProperty->isPublic();
-            $relfectionProperty->setAccessible(true);
-            $relfectionProperty->setValue($obj, $value);
-            $relfectionProperty->setAccessible($oldAccessibility);
+            $this->updateProperty($obj, $propertyName, $value);
         }
         
         return $obj;
@@ -136,8 +133,8 @@ class ItemReflection
         $this->fieldDefinitions     = [];
         $this->reflectionProperties = [];
         $this->attributeTypes       = [];
-        $this->casPropertyName      = '';
         $this->casProperties        = [];
+        $this->partitionedHashKeys  = [];
         foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             if ($reflectionProperty->isStatic()) {
                 continue;
@@ -157,7 +154,51 @@ class ItemReflection
             if ($field->cas != Field::CAS_DISABLED) {
                 $this->casProperties[$propertyName] = $field->cas;
             }
+            
+            /** @var PartitionedHashKey $partitionedHashKeyDef */
+            $partitionedHashKeyDef = $reader->getPropertyAnnotation($reflectionProperty, PartitionedHashKey::class);
+            if ($partitionedHashKeyDef) {
+                $this->partitionedHashKeys[$propertyName] = $partitionedHashKeyDef;
+            }
         }
+    }
+    
+    public function getAllPartitionedValues($hashKeyName, $baseValue)
+    {
+        if (!isset($this->partitionedHashKeys[$hashKeyName])) {
+            throw new NotAnnotatedException(
+                sprintf("The field %s is not declared as a PartitionedHashKey!", $hashKeyName)
+            );
+        }
+        $def = $this->partitionedHashKeys[$hashKeyName];
+        $ret = [];
+        for ($i = 0; $i < $def->size; ++$i) {
+            $ret[] = sprintf("%s-%s", $baseValue, dechex($i));
+        }
+        
+        return $ret;
+    }
+    
+    public function getPropertyValue($obj, $propertyName)
+    {
+        if (!$obj instanceof $this->itemClass) {
+            throw new ODMException(
+                "Object accessed is not of correct type, expected: " . $this->itemClass . ", got: " . get_class($obj)
+            );
+        }
+        
+        if (!isset($this->reflectionProperties[$propertyName])) {
+            throw new ODMException(
+                "Object " . $this->itemClass . " doesn't have a property named: " . $propertyName
+            );
+        }
+        $relfectionProperty = $this->reflectionProperties[$propertyName];
+        $oldAccessibility   = $relfectionProperty->isPublic();
+        $relfectionProperty->setAccessible(true);
+        $ret = $relfectionProperty->getValue($obj);
+        $relfectionProperty->setAccessible($oldAccessibility);
+        
+        return $ret;
     }
     
     public function updateProperty($obj, $propertyName, $value)
@@ -239,6 +280,14 @@ class ItemReflection
         return $this->itemDefinition;
     }
     
+    /**
+     * @return PartitionedHashKey[]
+     */
+    public function getPartitionedHashKeys()
+    {
+        return $this->partitionedHashKeys;
+    }
+    
     public function getPrimaryIdentifier($obj)
     {
         $id = '';
@@ -267,11 +316,7 @@ class ItemReflection
                 $value = $obj[$attributeKey];
             }
             else {
-                $relfectionProperty = $this->reflectionProperties[$key];
-                $oldAccessibility   = $relfectionProperty->isPublic();
-                $relfectionProperty->setAccessible(true);
-                $value = $relfectionProperty->getValue($obj);
-                $relfectionProperty->setAccessible($oldAccessibility);
+                $value = $this->getPropertyValue($obj, $key);
             }
             
             if ($asAttributeKeys) {

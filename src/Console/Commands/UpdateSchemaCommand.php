@@ -229,7 +229,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             }
             if ($changedTables) {
                 $output->writeln("Waiting for all GSI modifications to be active ...");
-                $dynamoManager->waitForTablesToBeFullyReady($changedTables);
+                $dynamoManager->waitForTablesToBeFullyReady($changedTables, 180, 5);
                 $output->writeln("Done.");
             }
         }

@@ -279,14 +279,20 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         );
         self::assertEquals(5, count($result));
         
-        $result = $this->itemManager->getRepository(User::class)->query(
-            '#hometown = :hometown AND #age > :age',
-            [':hometown' => 'NY' . $base, ':age' => 45, ":wage" => 12345],
-            'hometown-age-index',
-            "#wage = :wage"
+        $result = [];
+        $this->itemManager->getRepository(User::class)->multiQueryAndRun(
+            function ($item) use (&$result) {
+                $result[] = $item;
+            },
+            "hometownPartition",
+            "NY" . $base,
+            "#age > :age",
+            [":age" => 48],
+            "home-age-gsi"
         );
-        self::assertEquals(5, count($result));
+        self::assertEquals(4, count($result));
         
+        // remove all inserted users
         $count = 0;
         $this->itemManager->getRepository(User::class)->scanAndRun(
             function (User $user) use (&$count) {

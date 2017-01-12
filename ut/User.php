@@ -11,6 +11,7 @@ namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
 
 /**
  * Class User
@@ -19,8 +20,9 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
  *     table="users",
  *     primaryIndex=@Index(hash="id"),
  *     globalSecondaryIndices={
- *     {"hometown", "age"},
- *     {"hometown", "wage"}
+ *      {"hometown", "age"},
+ *      {"hometown", "wage"},
+ *      @Index(hash="hometownPartition", range="age", name="home-age-gsi")
  *     }
  *     )
  * @package Oasis\Mlib\ODM\Dynamodb
@@ -57,6 +59,12 @@ class User
      * @Field(type="string")
      */
     protected $hometown = 'new york';
+    /**
+     * @var string
+     * @Field()
+     * @PartitionedHashKey(hashField="id", baseField="hometown")
+     */
+    protected $hometownPartition;
     /**
      * @var
      * @Field(type="number", name="ts", cas="timestamp")
