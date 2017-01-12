@@ -150,11 +150,22 @@ We use _@Field_ annotation to describe class properties which are DynamoDb attri
     - map
 - **name**: the name of the DynamoDb attribute, if it's not the same as the property name. This value defaults to `null`, meaning the attribute key is the same as the property name.
 
+#### Partitioned Hash Key
+
+A partitioned hash key is an extension to fields used as hash key in queries. There are circumstances that you only want to query on a single value (or very few values) for that field. The nature of DynamoDB will only utilize a fraction of the read capacity assigned, and therefore limit your system performance. However, by using a partitioned hash key for that field, each value of the originial field will have a group of mapped values in the partitioned hash key field (default to 16). By querying those partitioned values parallelly (see [Multi Query](#by-using-multi-query-on-partitioned-hash-key)), your query performace should be significantly improved in this use case.
+
+We use _@PartitionedHashKey_ annotation to describe the partitioned hash key field. The supported attributes are:
+
+- **baseField**: the original field name
+- **hashField**: the field whose value is used as a hashing source
+- **size**: size of partition, default to 16
+
 #### Index
 
 When declaring different indexes, we can use the _@Index_ annotation to make the docblock more readable. An _@Index_ is composited with two keys:
 - **hash**: the hash key name
 - **range**: the range key name, leave empty if no range key for this index
+- **name**: the name of the index, leave empty if you would like ODM to automatically generate one for you. (**NOTE**: a primary index doesn't need a name)
 
 Below is the User class declaration when we add a global secondary index to it:
 
@@ -164,7 +175,7 @@ Below is the User class declaration when we add a global secondary index to it:
  *     table="users",
  *     primaryIndex={"id"},
  *     globalSecondaryIndex={
- *         @Index(hash="class", range="age")
+ *         @Index(hash="class", range="age", name="class-age-gsi")
  *     }
  * )
  */
@@ -308,6 +319,32 @@ $users = $userRepo->query(
         ":minAge" => 25,
     ],
     "class-age-index"
+);
+
+```
+
+> **NOTE**: a simple condition is a condition that uses one and only one index. If the used index contains both _hash key_ and _range key_, the _range key_ may only be used when _hash key_ is also presented in the condition. Furthermore, only equal test operation can be performed against the _hash key_.
+
+#### By Using Multi Query on Partitioned Hash Key
+
+To query for one or more items based on a PartitionedHashKey, use `ItemManager#multiQueryAndRun()` methods on a repository as follows:
+
+```php
+/** @var ItemManager $im */
+/** @var ItemRepository $userRepo */
+$userRepo = $im->getRepository(User::class);
+/** @var Users[] $users */
+$users = $userRepo->multiQueryAndRun(
+    function ($item) {
+        // each item returned can be accessed here in the callback
+    },
+    "classPartition", // PartitionedHashKey field name
+    "A", // value expected in the base field (not the partition field)
+    "#age >= :minAge", // only range conditions here
+    [
+        ":minAge" => 25,
+    ],
+    "class-partition-age-index" // index for PartitionedHashKey
 );
 
 ```
