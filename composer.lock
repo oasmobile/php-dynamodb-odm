@@ -915,11 +915,11 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "v2.1.0",
+            "version": "v2.1.2",
             "source": {
                 "type": "git",
                 "url": "../php-aws-wrappers/",
-                "reference": "757c3b44b3e4b3c685d92d355db27472ff31c739"
+                "reference": "7d437d44cddc0510e9c498d6353562096ebcfea7"
             },
             "require": {
                 "aws/aws-sdk-php": "^3.12",
@@ -950,7 +950,7 @@
                 }
             ],
             "description": "Wrappers for AWS SDK",
-            "time": "2017-01-11 14:05:41"
+            "time": "2017-01-12 10:58:40"
         },
         {
             "name": "oasis/event",
@@ -1550,16 +1550,16 @@
         },
         {
             "name": "voku/portable-utf8",
-            "version": "3.1.10",
+            "version": "3.1.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/portable-utf8.git",
-                "reference": "e0f45282a59cb2124b23897108b39f23100f2a1e"
+                "reference": "3084a79bb7a304917526cce40486ed72b2b56de4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/voku/portable-utf8/e0f45282a59cb2124b23897108b39f23100f2a1e.zip",
-                "reference": "e0f45282a59cb2124b23897108b39f23100f2a1e",
+                "url": "https://packagist.phpcomposer.com/files/voku/portable-utf8/3084a79bb7a304917526cce40486ed72b2b56de4.zip",
+                "reference": "3084a79bb7a304917526cce40486ed72b2b56de4",
                 "shasum": ""
             },
             "require": {
@@ -1616,7 +1616,7 @@
                 "utf-8",
                 "utf8"
             ],
-            "time": "2017-01-03 13:56:55"
+            "time": "2017-01-12 09:40:01"
         }
     ],
     "packages-dev": [

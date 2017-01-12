@@ -194,9 +194,10 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                                 $table->deleteGlobalSecondaryIndex($removedGsi->getName());
                                 $output->writeln('Done.');
                             }
+                            
+                            return $tableName;
                         };
                         
-                        return $tableName;
                     }
                 }
             }
@@ -209,16 +210,22 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             $waits = [];
             foreach ($classCreation as $callable) {
                 $tableName = call_user_func($callable);
-                $waits[]   = $dynamoManager->waitForTableCreation($tableName, 60, 1, false);
+                if (!$isDryRun) {
+                    $waits[] = $dynamoManager->waitForTableCreation($tableName, 60, 1, false);
+                }
             }
-            $output->writeln("Waiting for all created tables to be active ...");
-            \GuzzleHttp\Promise\all($waits)->wait();
-            $output->writeln("Done.");
+            if ($waits) {
+                $output->writeln("Waiting for all created tables to be active ...");
+                \GuzzleHttp\Promise\all($waits)->wait();
+                $output->writeln("Done.");
+            }
             
             $changedTables = [];
             foreach ($gsiChanges as $callable) {
-                $tableName       = call_user_func($callable);
-                $changedTables[] = $tableName;
+                $tableName = call_user_func($callable);
+                if (!$isDryRun) {
+                    $changedTables[] = $tableName;
+                }
             }
             if ($changedTables) {
                 $output->writeln("Waiting for all GSI modifications to be active ...");
