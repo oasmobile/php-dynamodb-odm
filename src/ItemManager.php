@@ -102,6 +102,13 @@ class ItemManager
         }
     }
     
+    public function get($itemClass, array $keys, $consistentRead = false)
+    {
+        $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
+        
+        return $item;
+    }
+    
     /**
      * @param $className
      *
@@ -137,13 +144,6 @@ class ItemManager
             throw new ODMException("You can only removed a managed object!");
         }
         $this->getRepository(get_class($item))->remove($item);
-    }
-    
-    public function get($itemClass, array $keys, $consistentRead = false)
-    {
-        $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
-        
-        return $item;
     }
     
     /**

@@ -61,26 +61,6 @@ class ItemReflection
         $this->reservedAttributeNames = $reservedAttributeNames;
     }
     
-    public function updateProperty($obj, $propertyName, $value)
-    {
-        if (!$obj instanceof $this->itemClass) {
-            throw new ODMException(
-                "Object updated is not of correct type, expected: " . $this->itemClass . ", got: " . get_class($obj)
-            );
-        }
-        
-        if (!isset($this->reflectionProperties[$propertyName])) {
-            throw new ODMException(
-                "Object " . $this->itemClass . " doesn't have a property named: " . $propertyName
-            );
-        }
-        $relfectionProperty = $this->reflectionProperties[$propertyName];
-        $oldAccessibility   = $relfectionProperty->isPublic();
-        $relfectionProperty->setAccessible(true);
-        $relfectionProperty->setValue($obj, $value);
-        $relfectionProperty->setAccessible($oldAccessibility);
-    }
-    
     public function dehydrate($obj)
     {
         if (!is_object($obj)) {
@@ -180,6 +160,26 @@ class ItemReflection
         }
     }
     
+    public function updateProperty($obj, $propertyName, $value)
+    {
+        if (!$obj instanceof $this->itemClass) {
+            throw new ODMException(
+                "Object updated is not of correct type, expected: " . $this->itemClass . ", got: " . get_class($obj)
+            );
+        }
+        
+        if (!isset($this->reflectionProperties[$propertyName])) {
+            throw new ODMException(
+                "Object " . $this->itemClass . " doesn't have a property named: " . $propertyName
+            );
+        }
+        $relfectionProperty = $this->reflectionProperties[$propertyName];
+        $oldAccessibility   = $relfectionProperty->isPublic();
+        $relfectionProperty->setAccessible(true);
+        $relfectionProperty->setValue($obj, $value);
+        $relfectionProperty->setAccessible($oldAccessibility);
+    }
+    
     /**
      * @return mixed
      */
@@ -197,19 +197,6 @@ class ItemReflection
     }
     
     /**
-     * @return array a map of property name to attribute key
-     */
-    public function getFieldNameMapping()
-    {
-        $ret = [];
-        foreach ($this->fieldDefinitions as $propertyName => $field) {
-            $ret[$propertyName] = $field->name ? : $propertyName;
-        }
-        
-        return $ret;
-    }
-    
-    /**
      * Returns field name (attribute key for dynamodb) according to property name
      *
      * @param $propertyName
@@ -221,6 +208,19 @@ class ItemReflection
         $field = $this->fieldDefinitions[$propertyName];
         
         return $field->name ? : $propertyName;
+    }
+    
+    /**
+     * @return array a map of property name to attribute key
+     */
+    public function getFieldNameMapping()
+    {
+        $ret = [];
+        foreach ($this->fieldDefinitions as $propertyName => $field) {
+            $ret[$propertyName] = $field->name ? : $propertyName;
+        }
+        
+        return $ret;
     }
     
     /**

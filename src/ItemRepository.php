@@ -43,6 +43,43 @@ class ItemRepository
         );
     }
     
+    public function batchGet($groupOfKeys, $isConsistentRead = false)
+    {
+        /** @var string[] $fieldNameMapping */
+        $fieldNameMapping      = $this->itemReflection->getFieldNameMapping();
+        $groupOfTranslatedKeys = [];
+        foreach ($groupOfKeys as $keys) {
+            $translatedKeys = [];
+            foreach ($keys as $k => $v) {
+                if (!isset($fieldNameMapping[$k])) {
+                    throw new ODMException("Cannot find primary index field: $k!");
+                }
+                $k                  = $fieldNameMapping[$k];
+                $translatedKeys[$k] = $v;
+            }
+            $groupOfTranslatedKeys[] = $translatedKeys;
+        }
+        $resultSet = $this->dynamodbTable->batchGet($groupOfTranslatedKeys, $isConsistentRead);
+        if (is_array($resultSet)) {
+            $ret = [];
+            foreach ($resultSet as $singleResult) {
+                $managed = $this->getManagedObject($singleResult);
+                $obj     = $this->itemReflection->hydrate($singleResult, $managed);
+                
+                if (!$managed) {
+                    $this->persistFetchedItemData($obj, $singleResult);
+                }
+                
+                $ret[] = $obj;
+            }
+            
+            return $ret;
+        }
+        else {
+            throw new UnderlyingDatabaseException("Result returned from dynamodb for BatchGet() is not an array!");
+        }
+    }
+    
     public function detach($obj)
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
@@ -103,6 +140,68 @@ class ItemRepository
         foreach ($removed as $id) {
             unset($this->itemManaged[$id]);
         }
+    }
+    
+    public function get($keys, $isConsistentRead = false)
+    {
+        /** @var string[] $fieldNameMapping */
+        $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
+        $translatedKeys   = [];
+        foreach ($keys as $k => $v) {
+            if (!isset($fieldNameMapping[$k])) {
+                throw new ODMException("Cannot find primary index field: $k!");
+            }
+            $k                  = $fieldNameMapping[$k];
+            $translatedKeys[$k] = $v;
+        }
+        $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
+        if (is_array($result)) {
+            $managed = $this->getManagedObject($result);
+            $obj     = $this->itemReflection->hydrate($result, $managed);
+            
+            if (!$managed) {
+                $this->persistFetchedItemData($obj, $result);
+            }
+            
+            return $obj;
+        }
+        elseif ($result === null) {
+            return null;
+        }
+        else {
+            throw new UnderlyingDatabaseException("Result returned from dynamodb is not an array!");
+        }
+    }
+    
+    public function parallelScanAndRun($parallel,
+                                       callable $callback,
+                                       $conditions = '',
+                                       array $params = [],
+                                       $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                                       $isConsistentRead = false,
+                                       $isAscendingOrder = true
+    )
+    {
+        $fields = $this->getFieldsArray($conditions);
+        $this->dynamodbTable->parallelScanAndRun(
+            $parallel,
+            function ($result) use ($callback) {
+                $managed = $this->getManagedObject($result);
+                $obj     = $this->itemReflection->hydrate($result, $managed);
+                
+                if (!$managed) {
+                    $this->persistFetchedItemData($obj, $result);
+                }
+                
+                return call_user_func($callback, $obj);
+            },
+            $conditions,
+            $fields,
+            $params,
+            $indexName,
+            $isConsistentRead,
+            $isAscendingOrder
+        );
     }
     
     public function persist($obj)
@@ -277,103 +376,26 @@ class ItemRepository
         );
     }
     
-    public function parallelScanAndRun($parallel,
-                                       callable $callback,
-                                       $conditions = '',
-                                       array $params = [],
-                                       $indexName = DynamoDbIndex::PRIMARY_INDEX,
-                                       $isConsistentRead = false,
-                                       $isAscendingOrder = true
-    )
+    protected function getFieldsArray($conditions)
     {
-        $fields = $this->getFieldsArray($conditions);
-        $this->dynamodbTable->parallelScanAndRun(
-            $parallel,
-            function ($result) use ($callback) {
-                $managed = $this->getManagedObject($result);
-                $obj     = $this->itemReflection->hydrate($result, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $result);
-                }
-                
-                return call_user_func($callback, $obj);
-            },
-            $conditions,
-            $fields,
-            $params,
-            $indexName,
-            $isConsistentRead,
-            $isAscendingOrder
-        );
-    }
-    
-    public function batchGet($groupOfKeys, $isConsistentRead = false)
-    {
-        /** @var string[] $fieldNameMapping */
-        $fieldNameMapping      = $this->itemReflection->getFieldNameMapping();
-        $groupOfTranslatedKeys = [];
-        foreach ($groupOfKeys as $keys) {
-            $translatedKeys = [];
-            foreach ($keys as $k => $v) {
-                if (!isset($fieldNameMapping[$k])) {
-                    throw new ODMException("Cannot find primary index field: $k!");
-                }
-                $k                  = $fieldNameMapping[$k];
-                $translatedKeys[$k] = $v;
-            }
-            $groupOfTranslatedKeys[] = $translatedKeys;
+        $ret = preg_match_all('/#(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)/', $conditions, $matches);
+        if (!$ret) {
+            return [];
         }
-        $resultSet = $this->dynamodbTable->batchGet($groupOfTranslatedKeys, $isConsistentRead);
-        if (is_array($resultSet)) {
-            $ret = [];
-            foreach ($resultSet as $singleResult) {
-                $managed = $this->getManagedObject($singleResult);
-                $obj     = $this->itemReflection->hydrate($singleResult, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $singleResult);
-                }
-                
-                $ret[] = $obj;
-            }
+        
+        $result = [];
+        if (isset($matches['field']) && is_array($matches['field'])) {
+            $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
             
-            return $ret;
-        }
-        else {
-            throw new UnderlyingDatabaseException("Result returned from dynamodb for BatchGet() is not an array!");
-        }
-    }
-    
-    public function get($keys, $isConsistentRead = false)
-    {
-        /** @var string[] $fieldNameMapping */
-        $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-        $translatedKeys   = [];
-        foreach ($keys as $k => $v) {
-            if (!isset($fieldNameMapping[$k])) {
-                throw new ODMException("Cannot find primary index field: $k!");
+            foreach ($matches['field'] as $fieldName) {
+                if (!isset($fieldNameMapping[$fieldName])) {
+                    throw new ODMException("Cannot find field named $fieldName!");
+                }
+                $result["#" . $fieldName] = $fieldNameMapping[$fieldName];
             }
-            $k                  = $fieldNameMapping[$k];
-            $translatedKeys[$k] = $v;
         }
-        $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
-        if (is_array($result)) {
-            $managed = $this->getManagedObject($result);
-            $obj     = $this->itemReflection->hydrate($result, $managed);
-            
-            if (!$managed) {
-                $this->persistFetchedItemData($obj, $result);
-            }
-            
-            return $obj;
-        }
-        elseif ($result === null) {
-            return null;
-        }
-        else {
-            throw new UnderlyingDatabaseException("Result returned from dynamodb is not an array!");
-        }
+        
+        return $result;
     }
     
     protected function getManagedObject($resultData)
@@ -400,27 +422,5 @@ class ItemRepository
             $this->itemManaged[$id]->setItem($obj);
             $this->itemManaged[$id]->setOriginalData($originalData);
         }
-    }
-    
-    protected function getFieldsArray($conditions)
-    {
-        $ret = preg_match_all('/#(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)/', $conditions, $matches);
-        if (!$ret) {
-            return [];
-        }
-        
-        $result = [];
-        if (isset($matches['field']) && is_array($matches['field'])) {
-            $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-            
-            foreach ($matches['field'] as $fieldName) {
-                if (!isset($fieldNameMapping[$fieldName])) {
-                    throw new ODMException("Cannot find field named $fieldName!");
-                }
-                $result["#" . $fieldName] = $fieldNameMapping[$fieldName];
-            }
-        }
-        
-        return $result;
     }
 }

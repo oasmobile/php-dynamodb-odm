@@ -32,6 +32,23 @@ class ManagedItemState
         $this->originalData   = $originalData;
     }
     
+    public function hasDirtyData()
+    {
+        if ($this->state != self::STATE_MANAGED) {
+            return false;
+        }
+        
+        $data = $this->itemReflection->dehydrate($this->item);
+        if (array_diff_assoc($data, $this->originalData)
+            || array_diff_assoc($this->originalData, $data)
+        ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
     /**
      * @return boolean
      */
@@ -46,6 +63,30 @@ class ManagedItemState
     public function isRemoved()
     {
         return $this->state == self::STATE_REMOVED;
+    }
+    
+    public function updateCASTimestamps($timestampOffset = 0)
+    {
+        $now = time() + $timestampOffset;
+        foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
+            if ($casType == Field::CAS_TIMESTAMP) {
+                $this->itemReflection->updateProperty($this->item, $propertyName, $now);
+            }
+        }
+    }
+    
+    /**
+     * @return array
+     */
+    public function getCheckConditionData()
+    {
+        $checkValues = [];
+        foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
+            $fieldName               = $this->itemReflection->getFieldNameByPropertyName($propertyName);
+            $checkValues[$fieldName] = isset($this->originalData[$fieldName]) ? $this->originalData[$fieldName] : null;
+        }
+        
+        return $checkValues;
     }
     
     /**
@@ -91,52 +132,11 @@ class ManagedItemState
     }
     
     /**
-     * @return array
-     */
-    public function getCheckConditionData()
-    {
-        $checkValues = [];
-        foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
-            $fieldName               = $this->itemReflection->getFieldNameByPropertyName($propertyName);
-            $checkValues[$fieldName] = isset($this->originalData[$fieldName]) ? $this->originalData[$fieldName] : null;
-        }
-        
-        return $checkValues;
-    }
-    
-    public function updateCASTimestamps($timestampOffset = 0)
-    {
-        $now = time() + $timestampOffset;
-        foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
-            if ($casType == Field::CAS_TIMESTAMP) {
-                $this->itemReflection->updateProperty($this->item, $propertyName, $now);
-            }
-        }
-    }
-    
-    /**
      * @param int $state
      */
     public function setState($state)
     {
         $this->state = $state;
-    }
-    
-    public function hasDirtyData()
-    {
-        if ($this->state != self::STATE_MANAGED) {
-            return false;
-        }
-        
-        $data = $this->itemReflection->dehydrate($this->item);
-        if (array_diff_assoc($data, $this->originalData)
-            || array_diff_assoc($this->originalData, $data)
-        ) {
-            return true;
-        }
-        else {
-            return false;
-        }
     }
     
     public function setUpdated()
