@@ -147,6 +147,8 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                                 $table->addGlobalSecondaryIndex($idx);
                                 $output->writeln('Done.');
                             }
+                            
+                            return $tableName;
                         };
                     }
                     else {
@@ -171,6 +173,8 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                                     $table->addGlobalSecondaryIndex($idx);
                                     $output->writeln('Done.');
                                 }
+                                
+                                return $tableName;
                             };
                         }
                         
@@ -191,6 +195,8 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                                 $output->writeln('Done.');
                             }
                         };
+                        
+                        return $tableName;
                     }
                 }
             }
@@ -209,8 +215,15 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             \GuzzleHttp\Promise\all($waits)->wait();
             $output->writeln("Done.");
             
+            $changedTables = [];
             foreach ($gsiChanges as $callable) {
-                call_user_func($callable);
+                $tableName       = call_user_func($callable);
+                $changedTables[] = $tableName;
+            }
+            if ($changedTables) {
+                $output->writeln("Waiting for all GSI modifications to be active ...");
+                $dynamoManager->waitForTablesToBeFullyReady($changedTables);
+                $output->writeln("Done.");
             }
         }
     }
