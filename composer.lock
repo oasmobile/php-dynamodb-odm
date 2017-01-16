@@ -375,16 +375,16 @@
         },
         {
             "name": "doctrine/common",
-            "version": "v2.7.1",
+            "version": "v2.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/common.git",
-                "reference": "5954c297e9d93ff84554906c2fbbc2a133c43941"
+                "reference": "930297026c8009a567ac051fd545bf6124150347"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/doctrine/common/5954c297e9d93ff84554906c2fbbc2a133c43941.zip",
-                "reference": "5954c297e9d93ff84554906c2fbbc2a133c43941",
+                "url": "https://packagist.phpcomposer.com/files/doctrine/common/930297026c8009a567ac051fd545bf6124150347.zip",
+                "reference": "930297026c8009a567ac051fd545bf6124150347",
                 "shasum": ""
             },
             "require": {
@@ -444,7 +444,7 @@
                 "persistence",
                 "spl"
             ],
-            "time": "2016-12-03 08:15:01"
+            "time": "2017-01-13 14:02:13"
         },
         {
             "name": "doctrine/inflector",
@@ -915,11 +915,11 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "v2.1.3",
+            "version": "v2.1.4",
             "source": {
                 "type": "git",
                 "url": "../php-aws-wrappers/",
-                "reference": "c78e950bbf149d5c6c47fc203fedad93efc8b269"
+                "reference": "f12565efe9d101b5295b1980da46e427a0bcd366"
             },
             "require": {
                 "aws/aws-sdk-php": "^3.12",
@@ -950,7 +950,7 @@
                 }
             ],
             "description": "Wrappers for AWS SDK",
-            "time": "2017-01-13 12:47:32"
+            "time": "2017-01-16 08:12:05"
         },
         {
             "name": "oasis/event",

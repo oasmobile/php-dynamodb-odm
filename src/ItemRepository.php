@@ -295,7 +295,8 @@ class ItemRepository
                                      $filterExpression = '',
                                      $evaluationLimit = 30,
                                      $isConsistentRead = false,
-                                     $isAscendingOrder = true)
+                                     $isAscendingOrder = true,
+                                     $concurrency = 10)
     {
         if (!is_array($hashKeyValues)) {
             $hashKeyValues = [$hashKeyValues];
@@ -328,7 +329,8 @@ class ItemRepository
             $filterExpression,
             $evaluationLimit,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $concurrency
         );
     }
     
