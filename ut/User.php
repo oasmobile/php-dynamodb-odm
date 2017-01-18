@@ -70,6 +70,11 @@ class User
      * @Field(type="number", name="ts", cas="timestamp")
      */
     protected $lastUpdated;
+    /**
+     * @var
+     * @Field(type="string")
+     */
+    protected $dummy;
     
     public $haha;
     

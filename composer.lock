@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "62acb5f6ecd2d1f0a9321ef78ebb850c",
-    "content-hash": "8056893eb05e779d73eeed9959b9ba41",
+    "hash": "33a419dbbcb7331544f64f45ca955c1b",
+    "content-hash": "f7619fa26736d393c82b8b2fbde55f5d",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.20.13",
+            "version": "3.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "343c6c96468de5087ae5e7df4ccee2668857a5aa"
+                "reference": "ecbec81de6739a0ea278203f14df2b4c90ed4818"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://packagist.phpcomposer.com/files/aws/aws-sdk-php/343c6c96468de5087ae5e7df4ccee2668857a5aa.zip",
-                "reference": "343c6c96468de5087ae5e7df4ccee2668857a5aa",
+                "url": "https://packagist.phpcomposer.com/files/aws/aws-sdk-php/ecbec81de6739a0ea278203f14df2b4c90ed4818.zip",
+                "reference": "ecbec81de6739a0ea278203f14df2b4c90ed4818",
                 "shasum": ""
             },
             "require": {
@@ -85,7 +85,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2017-01-04 18:20:17"
+            "time": "2017-01-17 22:07:42"
         },
         {
             "name": "bramus/ansi-php",
@@ -915,11 +915,11 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "v2.1.5",
+            "version": "v2.1.6",
             "source": {
                 "type": "git",
                 "url": "../php-aws-wrappers/",
-                "reference": "5fadf68bd1131c3578f6bdb0815387695579cea0"
+                "reference": "d435cc5790658df462be043c0eae86c4c0329488"
             },
             "require": {
                 "aws/aws-sdk-php": "^3.12",
@@ -950,7 +950,7 @@
                 }
             ],
             "description": "Wrappers for AWS SDK",
-            "time": "2017-01-16 11:29:01"
+            "time": "2017-01-18 06:07:59"
         },
         {
             "name": "oasis/event",
