@@ -433,10 +433,9 @@ class ItemRepository
             return [];
         }
         
-        $result = [];
+        $result           = [];
+        $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
         if (isset($matches['field']) && is_array($matches['field'])) {
-            $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
-            
             foreach ($matches['field'] as $fieldName) {
                 if (!isset($fieldNameMapping[$fieldName])) {
                     throw new ODMException("Cannot find field named $fieldName!");
