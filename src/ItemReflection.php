@@ -166,10 +166,10 @@ class ItemReflection
     public function getAllPartitionedValues($hashKeyName, $baseValue)
     {
         if (!isset($this->partitionedHashKeys[$hashKeyName])) {
-            throw new NotAnnotatedException(
-                sprintf("The field %s is not declared as a PartitionedHashKey!", $hashKeyName)
-            );
+            // mdebug("The field %s is not declared as a PartitionedHashKey!", $hashKeyName)
+            return [$baseValue];
         }
+        
         $def = $this->partitionedHashKeys[$hashKeyName];
         $ret = [];
         for ($i = 0; $i < $def->size; ++$i) {
