@@ -311,7 +311,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->flush();
     }
     
-    public function testBatchGet()
+    public function testBatchNewWithCASDisabled()
     {
         $base = mt_rand(100, PHP_INT_MAX);
         
@@ -332,13 +332,22 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             $keys[] = ["id" => $id];
         }
         
+        $this->itemManager->setSkipCheckAndSet(true);
         $this->itemManager->flush();
-        $this->itemManager->clear();
+        $this->itemManager->setSkipCheckAndSet(false);
         
+        return $users;
+    }
+    
+    /**
+     * @depends testBatchNewWithCASDisabled
+     *
+     * @param User[] $users
+     */
+    public function testBatchGet($users)
+    {
         $keys[] = ["id" => -PHP_INT_MAX,]; // some non existing key
-        $result = $this->itemManager->getRepository(User::class)->batchGet(
-            $keys
-        );
+        $result = $this->itemManager->getRepository(User::class)->batchGet($keys);
         $this->assertEquals(count($keys), count($result) + 1); // we get all result except the non-existing one
         /** @var User $user */
         foreach ($result as $user) {

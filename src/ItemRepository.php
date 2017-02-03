@@ -97,47 +97,80 @@ class ItemRepository
     
     public function flush()
     {
-        $removed = [];
+        $skipCAS               = $this->itemManager->isSkipCheckAndSet()
+                                 || (count($this->itemReflection->getCasProperties()) == 0);
+        $removed               = [];
+        $batchRemovalKeys      = [];
+        $batchSetItems         = [];
+        $batchNewItemStates    = new \SplStack();
+        $batchUpdateItemStates = new \SplStack();
         foreach ($this->itemManaged as $oid => $managedItemState) {
             $item = $managedItemState->getItem();
             if ($managedItemState->isRemoved()) {
-                $this->dynamodbTable->delete(
-                    $this->itemReflection->getPrimaryKeys($item)
-                );
-                $removed[] = $oid;
+                $batchRemovalKeys[] = $this->itemReflection->getPrimaryKeys($item);
+                $removed[]          = $oid;
             }
             elseif ($managedItemState->isNew()) {
                 $managedItemState->updateCASTimestamps();
                 $managedItemState->updatePartitionedHashKeys();
-                $ret = $this->dynamodbTable->set(
-                    $this->itemReflection->dehydrate($item),
-                    $managedItemState->getCheckConditionData()
-                );
-                if ($ret === false) {
-                    throw new DataConsistencyException(
-                        "Item exists! type = " . $this->itemReflection->getItemClass()
-                    );
+                
+                if ($skipCAS) {
+                    $batchSetItems[] = $this->itemReflection->dehydrate($item);
+                    $batchNewItemStates->push($managedItemState);
                 }
-                $managedItemState->setState(ManagedItemState::STATE_MANAGED);
-                $managedItemState->setUpdated();
+                else {
+                    $ret = $this->dynamodbTable->set(
+                        $this->itemReflection->dehydrate($item),
+                        $managedItemState->getCheckConditionData()
+                    );
+                    if ($ret === false) {
+                        throw new DataConsistencyException(
+                            "Item exists! type = " . $this->itemReflection->getItemClass()
+                        );
+                    }
+                    $managedItemState->setState(ManagedItemState::STATE_MANAGED);
+                    $managedItemState->setUpdated();
+                }
             }
             else {
                 $hasData = $managedItemState->hasDirtyData();
                 if ($hasData) {
                     $managedItemState->updateCASTimestamps();
                     $managedItemState->updatePartitionedHashKeys();
-                    $ret = $this->dynamodbTable->set(
-                        $this->itemReflection->dehydrate($item),
-                        $managedItemState->getCheckConditionData()
-                    );
-                    if (!$ret) {
-                        throw new DataConsistencyException(
-                            "Item upated elsewhere! type = " . $this->itemReflection->getItemClass()
-                        );
+                    if ($skipCAS) {
+                        $batchSetItems[] = $this->itemReflection->dehydrate($item);
+                        $batchUpdateItemStates->push($managedItemState);
                     }
-                    $managedItemState->setUpdated();
+                    else {
+                        
+                        $ret = $this->dynamodbTable->set(
+                            $this->itemReflection->dehydrate($item),
+                            $managedItemState->getCheckConditionData()
+                        );
+                        if (!$ret) {
+                            throw new DataConsistencyException(
+                                "Item upated elsewhere! type = " . $this->itemReflection->getItemClass()
+                            );
+                        }
+                        $managedItemState->setUpdated();
+                    }
                 }
             }
+        }
+        if ($batchRemovalKeys) {
+            $this->dynamodbTable->batchDelete($batchRemovalKeys);
+        }
+        if ($batchSetItems) {
+            $this->dynamodbTable->batchPut($batchSetItems);
+        }
+        /** @var ManagedItemState $managedItemState */
+        foreach ($batchNewItemStates as $managedItemState) {
+            $managedItemState->setState(ManagedItemState::STATE_MANAGED);
+            $managedItemState->setUpdated();
+        }
+        foreach ($batchUpdateItemStates as $managedItemState) {
+            $managedItemState->setState(ManagedItemState::STATE_MANAGED);
+            $managedItemState->setUpdated();
         }
         foreach ($removed as $id) {
             unset($this->itemManaged[$id]);

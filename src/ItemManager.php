@@ -43,6 +43,11 @@ class ItemManager
      */
     protected $reservedAttributeNames = [];
     
+    /**
+     * @var bool
+     */
+    protected $skipCheckAndSet = false;
+    
     public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
         $this->dynamodbConfig     = $dynamodbConfig;
@@ -107,6 +112,14 @@ class ItemManager
         $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
         
         return $item;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isSkipCheckAndSet()
+    {
+        return $this->skipCheckAndSet;
     }
     
     /**
@@ -234,6 +247,14 @@ class ItemManager
     public function setReservedAttributeNames($reservedAttributeNames)
     {
         $this->reservedAttributeNames = $reservedAttributeNames;
+    }
+    
+    /**
+     * @param bool $skipCheckAndSet
+     */
+    public function setSkipCheckAndSet($skipCheckAndSet)
+    {
+        $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
 }
