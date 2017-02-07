@@ -9,6 +9,7 @@
 namespace Oasis\Mlib\ODM\Dynamodb;
 
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
 class ManagedItemState
 {
@@ -39,9 +40,7 @@ class ManagedItemState
         }
         
         $data = $this->itemReflection->dehydrate($this->item);
-        if (array_diff_assoc($data, $this->originalData)
-            || array_diff_assoc($this->originalData, $data)
-        ) {
+        if (!$this->isDataEqual($data, $this->originalData)) {
             return true;
         }
         else {
@@ -159,4 +158,38 @@ class ManagedItemState
         $this->originalData = $this->itemReflection->dehydrate($this->item);
     }
     
+    protected function isDataEqual(&$a, &$b)
+    {
+        if (gettype($a) != gettype($b)) {
+            return false;
+        }
+        
+        switch (true) {
+            case (is_double($a)):
+                return "$a" == "$b";
+                break;
+            case (is_array($a)):
+                if (count($a) !== count($b)) {
+                    return false;
+                }
+                foreach ($a as $k => &$v) {
+                    if (!key_exists($k, $b)) {
+                        return false;
+                    }
+                    if (!$this->isDataEqual($v, $b[$k])) {
+                        return false;
+                    }
+                }
+                
+                // every $k in $a can be found in $b and is equal
+                return true;
+                break;
+            case (is_resource($a)):
+            case (is_object($a)):
+                throw new ODMException("DynamoDb data cannot contain value of resource/object");
+                break;
+            default:
+                return $a === $b;
+        }
+    }
 }
