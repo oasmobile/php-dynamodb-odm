@@ -8,6 +8,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
+use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
@@ -304,7 +305,11 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
                 ':wage'  => 12345,
                 ':idmin' => $base,
                 ':idmax' => $base + 10,
-            ]
+            ],
+            DynamoDbIndex::PRIMARY_INDEX,
+            false,
+            true,
+            5
         );
         self::assertEquals(10, $count);
         

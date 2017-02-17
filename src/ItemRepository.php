@@ -435,28 +435,49 @@ class ItemRepository
                                array $params = [],
                                $indexName = DynamoDbIndex::PRIMARY_INDEX,
                                $isConsistentRead = false,
-                               $isAscendingOrder = true
+                               $isAscendingOrder = true,
+                               $parallel = 1
     )
     {
+        $resultCallback = function ($result) use ($callback) {
+            $managed = $this->getManagedObject($result);
+            $obj     = $this->itemReflection->hydrate($result, $managed);
+            
+            if (!$managed) {
+                $this->persistFetchedItemData($obj, $result);
+            }
+            
+            return call_user_func($callback, $obj);
+        };
+        
         $fields = $this->getFieldsArray($conditions);
-        $this->dynamodbTable->scanAndRun(
-            function ($result) use ($callback) {
-                $managed = $this->getManagedObject($result);
-                $obj     = $this->itemReflection->hydrate($result, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $result);
-                }
-                
-                return call_user_func($callback, $obj);
-            },
-            $conditions,
-            $fields,
-            $params,
-            $indexName,
-            $isConsistentRead,
-            $isAscendingOrder
-        );
+        
+        if ($parallel > 1) {
+            $this->dynamodbTable->parallelScanAndRun(
+                $parallel,
+                $resultCallback,
+                $conditions,
+                $fields,
+                $params,
+                $indexName,
+                $isConsistentRead,
+                $isAscendingOrder
+            );
+        }
+        elseif ($parallel == 1) {
+            $this->dynamodbTable->scanAndRun(
+                $resultCallback,
+                $conditions,
+                $fields,
+                $params,
+                $indexName,
+                $isConsistentRead,
+                $isAscendingOrder
+            );
+        }
+        else {
+            throw new \InvalidArgumentException("Parallel can only be an integer greater than 0");
+        }
     }
     
     protected function getFieldsArray($conditions)
