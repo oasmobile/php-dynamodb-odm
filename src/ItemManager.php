@@ -89,7 +89,9 @@ class ItemManager
     
     public function clear()
     {
-        $this->repositories = [];
+        foreach ($this->repositories as $itemRepository) {
+            $itemRepository->clear();
+        }
     }
     
     public function detach($item)

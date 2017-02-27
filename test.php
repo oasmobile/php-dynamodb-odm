@@ -24,7 +24,21 @@ $consoleHelper = require_once __DIR__ . "/odm-config.php";
 ////var_dump($matches);
 
 $im = $consoleHelper->getItemManager();
+//$game = new Game();
+//$game->setGamecode('narutoen');
+//$game->setFamily('naruto');
+//$game->setLanguage('en');
+//$im->persist($game);
+//$im->flush();
+//exit();
 
+$memory = memory_get_peak_usage();
+for ($i = 0; $i < 100000; ++$i) {
+    $im->get(Game::class, ['gamecode' => 'narutoen']);
+    $current = memory_get_peak_usage();
+    echo sprintf("Delta = %d, max = %dM\n", $current - $memory, memory_get_peak_usage() / 1024 / 1024);
+    $memory = $current;
+}
 //for ($i = 0; $i < 8; ++$i) {
 //    $languages = ["pt", "de"];
 //    $game      = new Game();
@@ -35,13 +49,13 @@ $im = $consoleHelper->getItemManager();
 //}
 //$im->flush();
 //
-$im->getRepository(Game::class)->multiQueryAndRun(
-    function ($item) {
-        var_dump($item);
-    },
-    "languagePartition",
-    ["pt", 'de'],
-    '#lastUpdatedAt < :ts',
-    [':ts' => time()],
-    'language_partition-last_updated_at-index'
-);
+//$im->getRepository(Game::class)->multiQueryAndRun(
+//    function ($item) {
+//        var_dump($item);
+//    },
+//    "languagePartition",
+//    ["pt", 'de'],
+//    '#lastUpdatedAt < :ts',
+//    [':ts' => time()],
+//    'language_partition-last_updated_at-index'
+//);
