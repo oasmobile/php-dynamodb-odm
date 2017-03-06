@@ -56,17 +56,22 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testDoublePersist($id)
     {
-        $id2 = $id+1;
+        $id2  = $id + 1;
         $user = new User();
         $user->setId($id2);
         $user->setName('Howard');
         $this->itemManager->persist($user);
-    
+        
         /** @var User $user2 */
         $user2 = $this->itemManager->get(User::class, ['id' => $id2]);
-    
+        
         self::assertEquals($user, $user2); // user object will be reused when same primary keys are used
         self::assertEquals('Howard', $user2->getName());
+        
+        /** @var User $user3 */
+        $user3 = $this->itemManager->get(User::class, ['id' => $id2], true);
+        
+        $this->assertNull($user3);
     }
     
     /**
