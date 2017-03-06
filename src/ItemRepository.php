@@ -194,6 +194,15 @@ class ItemRepository
             $k                  = $fieldNameMapping[$k];
             $translatedKeys[$k] = $v;
         }
+        
+        // return existing item
+        if (!$isConsistentRead) {
+            $id = $this->itemReflection->getPrimaryIdentifier($translatedKeys);
+            if (isset($this->itemManaged[$id])) {
+                return $this->itemManaged[$id]->getItem();
+            }
+        }
+        
         $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
         if (is_array($result)) {
             $managed = $this->getManagedObject($result);
