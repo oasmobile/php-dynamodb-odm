@@ -43,8 +43,8 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         /** @var User $user2 */
         $user2 = $this->itemManager->get(User::class, ['id' => $id]);
         
-        self::assertEquals($user, $user2); // user object will be reused when same primary keys are used
-        self::assertEquals('Alice', $user2->getName());
+        $this->assertEquals($user, $user2); // user object will be reused when same primary keys are used
+        $this->assertEquals('Alice', $user2->getName());
         
         return $id;
     }
@@ -65,8 +65,8 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         /** @var User $user2 */
         $user2 = $this->itemManager->get(User::class, ['id' => $id2]);
         
-        self::assertEquals($user, $user2); // user object will be reused when same primary keys are used
-        self::assertEquals('Howard', $user2->getName());
+        $this->assertEquals($user, $user2); // user object will be reused when same primary keys are used
+        $this->assertEquals('Howard', $user2->getName());
         
         /** @var User $user3 */
         $user3 = $this->itemManager->get(User::class, ['id' => $id2], true);
@@ -83,8 +83,8 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
     {
         /** @var User $user */
         $user = $this->itemManager->get(User::class, ['id' => $id]);
-        self::assertInstanceOf(User::class, $user);
-        self::assertNotEquals('John', $user->getName());
+        $this->assertInstanceOf(User::class, $user);
+        $this->assertNotEquals('John', $user->getName());
         $user->setName('John');
         $user->haha = 22;
         $this->itemManager->flush();
@@ -93,9 +93,9 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         /** @var User $user2 */
         $user2 = $this->itemManager->get(User::class, ['id' => $id]);
         
-        self::assertInstanceOf(User::class, $user2);
-        self::assertTrue($user != $user2);
-        self::assertEquals('John', $user2->getName());
+        $this->assertInstanceOf(User::class, $user2);
+        $this->assertTrue($user != $user2);
+        $this->assertEquals('John', $user2->getName());
         
         return $id;
     }
@@ -137,7 +137,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         
         $user        = $this->itemManager->get(User::class, ['id' => $id]);
         $lastUpdated = $user->getLastUpdated();
-        self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
+        $this->assertLessThanOrEqual(1, abs($lastUpdated - $time));
         
         return $id;
     }
@@ -200,7 +200,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         sleep(2);
         $this->itemManager->flush();
         $lastUpdated = $user->getLastUpdated();
-        self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
+        $this->assertLessThanOrEqual(1, abs($lastUpdated - $time));
     }
     
     public function testNoDoubleSetWhenInsertedAreFlushedTwice()
@@ -215,7 +215,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         sleep(2);
         $this->itemManager->flush();
         $lastUpdated = $user->getLastUpdated();
-        self::assertLessThanOrEqual(1, abs($lastUpdated - $time));
+        $this->assertLessThanOrEqual(1, abs($lastUpdated - $time));
         
         $this->itemManager->remove($user);
         $this->itemManager->flush();
@@ -234,7 +234,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $user->setWage(888);
         $this->itemManager->refresh($user);
         
-        self::assertEquals(777, $user->getWage());
+        $this->assertEquals(777, $user->getWage());
         
         return $id;
     }
@@ -253,7 +253,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->flush();
         $this->itemManager->clear();
         $user = $this->itemManager->get(User::class, ['id' => $id]);
-        self::assertEquals(777, $user->getWage());
+        $this->assertEquals(777, $user->getWage());
         
         return $id;
     }
@@ -267,7 +267,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
     {
         /** @var User $user */
         $user = $this->itemManager->get(User::class, ['id' => $id]);
-        self::assertInstanceOf(User::class, $user);
+        $this->assertInstanceOf(User::class, $user);
         
         $this->itemManager->remove($user);
         $this->itemManager->flush();
@@ -275,7 +275,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->clear();
         /** @var User $user */
         $user = $this->itemManager->get(User::class, ['id' => $id]);
-        self::assertNull($user);
+        $this->assertNull($user);
     }
     
     public function testQueryAndScan()
@@ -298,12 +298,18 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->flush();
         $this->itemManager->clear();
         
+        $count = $this->itemManager->getRepository(User::class)->queryCount(
+            '#hometown = :hometown AND #age > :age',
+            [':hometown' => 'NY' . $base, ':age' => 45],
+            'hometown-age-index'
+        );
+        $this->assertEquals(5, $count);
         $result = $this->itemManager->getRepository(User::class)->query(
             '#hometown = :hometown AND #age > :age',
             [':hometown' => 'NY' . $base, ':age' => 45],
             'hometown-age-index'
         );
-        self::assertEquals(5, count($result));
+        $this->assertEquals(5, count($result));
         
         $result = [];
         $this->itemManager->getRepository(User::class)->multiQueryAndRun(
@@ -316,9 +322,18 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             [":age" => 48],
             "home-age-gsi"
         );
-        self::assertEquals(4, count($result));
+        $this->assertEquals(4, count($result));
         
         // remove all inserted users
+        $count = $this->itemManager->getRepository(User::class)->scanCount(
+            '#wage = :wage AND #id BETWEEN :idmin AND :idmax ',
+            [
+                ':wage'  => 12345,
+                ':idmin' => $base,
+                ':idmax' => $base + 10,
+            ]
+        );
+        $this->assertEquals(10, $count);
         $count = 0;
         $this->itemManager->getRepository(User::class)->scanAndRun(
             function (User $user) use (&$count) {
@@ -336,7 +351,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             true,
             5
         );
-        self::assertEquals(10, $count);
+        $this->assertEquals(10, $count);
         
         $this->itemManager->flush();
     }

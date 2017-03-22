@@ -351,6 +351,42 @@ class ItemRepository
         return $ret;
     }
     
+    public function scanCount($conditions = '',
+                              array $params = [],
+                              $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                              $isConsistentRead = false,
+                              $parallel = 10)
+    {
+        $fields = $this->getFieldsArray($conditions);
+        
+        return $this->dynamodbTable->scanCount(
+            $conditions,
+            $fields,
+            $params,
+            $indexName,
+            $isConsistentRead,
+            $parallel
+        );
+    }
+    
+    public function queryCount($conditions,
+                               array $params,
+                               $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                               $filterExpression = '',
+                               $isConsistentRead = false)
+    {
+        $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
+        
+        return $this->dynamodbTable->queryCount(
+            $conditions,
+            $fields,
+            $params,
+            $indexName,
+            $filterExpression,
+            $isConsistentRead
+        );
+    }
+    
     public function queryAndRun(callable $callback,
                                 $conditions = '',
                                 array $params = [],
