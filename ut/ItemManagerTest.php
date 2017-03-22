@@ -304,7 +304,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             'hometown-age-index'
         );
         $this->assertEquals(5, $count);
-        $result = $this->itemManager->getRepository(User::class)->query(
+        $result = $this->itemManager->getRepository(User::class)->queryAll(
             '#hometown = :hometown AND #age > :age',
             [':hometown' => 'NY' . $base, ':age' => 45],
             'hometown-age-index'

@@ -351,40 +351,37 @@ class ItemRepository
         return $ret;
     }
     
-    public function scanCount($conditions = '',
-                              array $params = [],
-                              $indexName = DynamoDbIndex::PRIMARY_INDEX,
-                              $isConsistentRead = false,
-                              $parallel = 10)
+    /**
+     * @param string $conditions
+     * @param array  $params
+     * @param bool   $indexName
+     * @param string $filterExpression
+     * @param bool   $isConsistentRead
+     * @param bool   $isAscendingOrder
+     *
+     * @return \SplDoublyLinkedList
+     */
+    public function queryAll($conditions = '',
+                             array $params = [],
+                             $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                             $filterExpression = '',
+                             $isConsistentRead = false,
+                             $isAscendingOrder = true)
     {
-        $fields = $this->getFieldsArray($conditions);
-        
-        return $this->dynamodbTable->scanCount(
+        $ret = new \SplDoublyLinkedList();
+        $this->queryAndRun(
+            function ($item) use ($ret) {
+                $ret->push($item);
+            },
             $conditions,
-            $fields,
-            $params,
-            $indexName,
-            $isConsistentRead,
-            $parallel
-        );
-    }
-    
-    public function queryCount($conditions,
-                               array $params,
-                               $indexName = DynamoDbIndex::PRIMARY_INDEX,
-                               $filterExpression = '',
-                               $isConsistentRead = false)
-    {
-        $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
-        
-        return $this->dynamodbTable->queryCount(
-            $conditions,
-            $fields,
             $params,
             $indexName,
             $filterExpression,
-            $isConsistentRead
+            $isConsistentRead,
+            $isAscendingOrder
         );
+        
+        return $ret;
     }
     
     public function queryAndRun(callable $callback,
@@ -414,6 +411,24 @@ class ItemRepository
             $filterExpression,
             $isConsistentRead,
             $isAscendingOrder
+        );
+    }
+    
+    public function queryCount($conditions,
+                               array $params,
+                               $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                               $filterExpression = '',
+                               $isConsistentRead = false)
+    {
+        $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
+        
+        return $this->dynamodbTable->queryCount(
+            $conditions,
+            $fields,
+            $params,
+            $indexName,
+            $filterExpression,
+            $isConsistentRead
         );
     }
     
@@ -480,6 +495,41 @@ class ItemRepository
         return $ret;
     }
     
+    /**
+     * @param callable $callback
+     * @param string   $conditions
+     * @param array    $params
+     * @param bool     $indexName
+     * @param bool     $isConsistentRead
+     * @param bool     $isAscendingOrder
+     * @param int      $parallel
+     *
+     * @return \SplDoublyLinkedList
+     */
+    public function scanAll(callable $callback,
+                            $conditions = '',
+                            array $params = [],
+                            $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                            $isConsistentRead = false,
+                            $isAscendingOrder = true,
+                            $parallel = 1)
+    {
+        $ret = new \SplDoublyLinkedList();
+        $this->scanAndRun(
+            function ($item) use ($ret) {
+                $ret->push($item);
+            },
+            $conditions,
+            $params,
+            $indexName,
+            $isConsistentRead,
+            $isAscendingOrder,
+            $parallel
+        );
+        
+        return $ret;
+    }
+    
     public function scanAndRun(callable $callback,
                                $conditions = '',
                                array $params = [],
@@ -528,6 +578,24 @@ class ItemRepository
         else {
             throw new \InvalidArgumentException("Parallel can only be an integer greater than 0");
         }
+    }
+    
+    public function scanCount($conditions = '',
+                              array $params = [],
+                              $indexName = DynamoDbIndex::PRIMARY_INDEX,
+                              $isConsistentRead = false,
+                              $parallel = 10)
+    {
+        $fields = $this->getFieldsArray($conditions);
+        
+        return $this->dynamodbTable->scanCount(
+            $conditions,
+            $fields,
+            $params,
+            $indexName,
+            $isConsistentRead,
+            $parallel
+        );
     }
     
     protected function getFieldsArray($conditions)
