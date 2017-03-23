@@ -436,13 +436,14 @@ class ItemRepository
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
             throw new ODMException(
-                "Object detached is not of correct type, expected: " . $this->itemReflection->getItemClass()
+                "Object refreshed is not of correct type, expected: " . $this->itemReflection->getItemClass()
             );
         }
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (!isset($this->itemManaged[$id])) {
             throw new ODMException("Object is not managed: " . print_r($obj, true));
         }
+        $this->itemManaged[$id]->setState(ManagedItemState::STATE_MANAGED);
         
         $this->get($this->itemReflection->getPrimaryKeys($obj, false), true);
     }
@@ -496,18 +497,16 @@ class ItemRepository
     }
     
     /**
-     * @param callable $callback
-     * @param string   $conditions
-     * @param array    $params
-     * @param bool     $indexName
-     * @param bool     $isConsistentRead
-     * @param bool     $isAscendingOrder
-     * @param int      $parallel
+     * @param string $conditions
+     * @param array  $params
+     * @param bool   $indexName
+     * @param bool   $isConsistentRead
+     * @param bool   $isAscendingOrder
+     * @param int    $parallel
      *
      * @return \SplDoublyLinkedList
      */
-    public function scanAll(callable $callback,
-                            $conditions = '',
+    public function scanAll($conditions = '',
                             array $params = [],
                             $indexName = DynamoDbIndex::PRIMARY_INDEX,
                             $isConsistentRead = false,
@@ -637,6 +636,10 @@ class ItemRepository
             $this->itemManaged[$id] = new ManagedItemState($this->itemReflection, $obj, $originalData);
         }
         else {
+            // TODO: refactor getManagedObject() and persistFetchedItemData(), try combine them into one function
+            throw new \RuntimeException("never should here be reached!");
+            
+            /** @noinspection PhpUnreachableStatementInspection */
             if ($this->itemManaged[$id]->isNew()) {
                 throw new ODMException("Newly created item conflicts with fetched remote data: " . print_r($obj, true));
             }

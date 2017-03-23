@@ -263,6 +263,38 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      *
      * @param $id
      */
+    public function testRefreshingNewlyPersistedButExistingObject($id)
+    {
+        $this->itemManager->clear();
+        $user = new User();
+        $user->setId($id);
+        $user->setName('Mary');
+        $user->setWage(999);
+        $this->itemManager->persist($user);
+        $this->itemManager->refresh($user);
+        
+        $this->assertEquals(777, $user->getWage());
+        $this->assertNotEquals('Mary', $user->getName());
+        
+        $this->itemManager->detach($user);
+        $user = new User();
+        $user->setId($id);
+        $user->setName('Mary');
+        $user->setWage(999);
+        $this->itemManager->persist($user);
+        $this->itemManager->refresh($user);
+        
+        $this->assertEquals(777, $user->getWage());
+        $this->assertNotEquals('Mary', $user->getName());
+        
+        return $id;
+    }
+    
+    /**
+     * @depends testRefreshingNewlyPersistedButExistingObject
+     *
+     * @param $id
+     */
     public function testDelete($id)
     {
         /** @var User $user */

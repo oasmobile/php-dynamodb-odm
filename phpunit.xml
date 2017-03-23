@@ -1,7 +1,7 @@
 <!--suppress XmlUnboundNsPrefix -->
 <phpunit
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.5/phpunit.xsd"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.7/phpunit.xsd"
         bootstrap="ut/bootstrap.php"
         backupGlobals="false"
         backupStaticAttributes="false"
