@@ -449,6 +449,32 @@ class ItemRepository
         $this->itemManaged[$id]->setState(ManagedItemState::STATE_REMOVED);
     }
     
+    public function removeAll()
+    {
+        do {
+            $this->clear();
+            $this->scanAndRun(
+                function ($item) {
+                    $this->remove($item);
+                    if (count($this->itemManaged) > 100) {
+                        return false;
+                    }
+                },
+                '',
+                [],
+                DynamoDbIndex::PRIMARY_INDEX,
+                true,
+                true,
+                10
+            );
+            $skipCAS = $this->itemManager->isSkipCheckAndSet();
+            $this->itemManager->setSkipCheckAndSet(true);
+            $this->flush();
+            $this->itemManager->setSkipCheckAndSet($skipCAS);
+        } while (count($this->itemManaged) > 0);
+        
+    }
+    
     public function scan($conditions = '',
                          array $params = [],
                          $indexName = DynamoDbIndex::PRIMARY_INDEX,

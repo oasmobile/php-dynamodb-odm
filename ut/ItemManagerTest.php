@@ -274,6 +274,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         
         $user->setWage(777); // restore to 777 for other tests
         $this->itemManager->flush();
+        
         return $id;
     }
     
@@ -467,10 +468,22 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         foreach ($result as $user) {
             $this->assertArrayHasKey($user->getId(), $users);
             $this->assertEquals($users[$user->getId()]->getName(), $user->getName());
-            
-            $this->itemManager->remove($user);
         }
-        $this->itemManager->flush();
+    }
+    
+    /**
+     * @depends testBatchGet
+     */
+    public function testRemoveAll()
+    {
+        $this->itemManager->getRepository(User::class)->removeAll();
+        $remaining = $this->itemManager->getRepository(User::class)->scanAll(
+            '',
+            [],
+            DynamoDbIndex::PRIMARY_INDEX,
+            true
+        );
+        $this->assertTrue($remaining->isEmpty(), json_encode($remaining));
     }
     
     public function testGetWithAttributeKey()
