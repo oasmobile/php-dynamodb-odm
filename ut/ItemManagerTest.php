@@ -203,6 +203,9 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertLessThanOrEqual(1, abs($lastUpdated - $time));
     }
     
+    /**
+     * @depends testCASTimestamp
+     */
     public function testNoDoubleSetWhenInsertedAreFlushedTwice()
     {
         $id   = mt_rand(1000, PHP_INT_MAX);
@@ -230,13 +233,79 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
     public function testRefresh($id)
     {
         /** @var User $user */
-        $user = $this->itemManager->get(User::class, ['id' => $id]);
+        $user = $this->itemManager->get(User::class, ['id' => $id], true);
         $user->setWage(888);
         $this->itemManager->refresh($user);
         
         $this->assertEquals(777, $user->getWage());
         
+        // unmanaged refresh will work when persist-if-not-managed is set to true
+        $this->itemManager->clear();
+        $user = new User();
+        $user->setId($id);
+        $user->setName('Mary');
+        $user->setWage(999);
+        $this->itemManager->refresh($user, true);
+        
+        $this->assertEquals(777, $user->getWage());
+        $this->assertNotEquals('Mary', $user->getName());
+        
+        // refreshing detached object works too
+        $this->itemManager->detach($user);
+        $user = new User();
+        $user->setId($id);
+        $user->setName('Mary');
+        $user->setWage(999);
+        $this->itemManager->refresh($user, true);
+        
+        $this->assertEquals(777, $user->getWage());
+        $this->assertNotEquals('Mary', $user->getName());
+        
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+        $user = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertEquals(777, $user->getWage());
+        
+        $user->setWage(888);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+        $user = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertEquals(888, $user->getWage());
+        
+        $user->setWage(777); // restore to 777 for other tests
+        $this->itemManager->flush();
         return $id;
+    }
+    
+    /**
+     * @depends testRefresh
+     *
+     * @param $id
+     */
+    public function testRefreshingJustPersistedObject($id)
+    {
+        $this->itemManager->clear();
+        $user = new User();
+        $user->setId($id);
+        $user->setName('Mary');
+        $user->setWage(999);
+        $this->itemManager->persist($user);
+        $this->expectException(ODMException::class);
+        $this->itemManager->refresh($user);
+    }
+    
+    /**
+     * @depends testRefresh
+     *
+     * @param $id
+     */
+    public function testRefreshingJustRemovedObject($id)
+    {
+        $this->itemManager->clear();
+        $user = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->itemManager->remove($user);
+        $this->expectException(ODMException::class);
+        $this->itemManager->refresh($user);
     }
     
     /**
@@ -260,38 +329,6 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
     
     /**
      * @depends testDetach
-     *
-     * @param $id
-     */
-    public function testRefreshingNewlyPersistedButExistingObject($id)
-    {
-        $this->itemManager->clear();
-        $user = new User();
-        $user->setId($id);
-        $user->setName('Mary');
-        $user->setWage(999);
-        $this->itemManager->persist($user);
-        $this->itemManager->refresh($user);
-        
-        $this->assertEquals(777, $user->getWage());
-        $this->assertNotEquals('Mary', $user->getName());
-        
-        $this->itemManager->detach($user);
-        $user = new User();
-        $user->setId($id);
-        $user->setName('Mary');
-        $user->setWage(999);
-        $this->itemManager->persist($user);
-        $this->itemManager->refresh($user);
-        
-        $this->assertEquals(777, $user->getWage());
-        $this->assertNotEquals('Mary', $user->getName());
-        
-        return $id;
-    }
-    
-    /**
-     * @depends testRefreshingNewlyPersistedButExistingObject
      *
      * @param $id
      */

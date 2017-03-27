@@ -63,13 +63,7 @@ class ItemRepository
         if (is_array($resultSet)) {
             $ret = [];
             foreach ($resultSet as $singleResult) {
-                $managed = $this->getManagedObject($singleResult);
-                $obj     = $this->itemReflection->hydrate($singleResult, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $singleResult);
-                }
-                
+                $obj   = $this->persistFetchedItemData($singleResult);
                 $ret[] = $obj;
             }
             
@@ -205,12 +199,7 @@ class ItemRepository
         
         $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
         if (is_array($result)) {
-            $managed = $this->getManagedObject($result);
-            $obj     = $this->itemReflection->hydrate($result, $managed);
-            
-            if (!$managed) {
-                $this->persistFetchedItemData($obj, $result);
-            }
+            $obj = $this->persistFetchedItemData($result);
             
             return $obj;
         }
@@ -247,12 +236,7 @@ class ItemRepository
         $fields = array_merge($this->getFieldsArray($rangeConditions), $this->getFieldsArray($filterExpression));
         $this->dynamodbTable->multiQueryAndRun(
             function ($result) use ($callback) {
-                $managed = $this->getManagedObject($result);
-                $obj     = $this->itemReflection->hydrate($result, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $result);
-                }
+                $obj = $this->persistFetchedItemData($result);
                 
                 return call_user_func($callback, $obj);
             },
@@ -283,12 +267,7 @@ class ItemRepository
         $this->dynamodbTable->parallelScanAndRun(
             $parallel,
             function ($result) use ($callback) {
-                $managed = $this->getManagedObject($result);
-                $obj     = $this->itemReflection->hydrate($result, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $result);
-                }
+                $obj = $this->persistFetchedItemData($result);
                 
                 return call_user_func($callback, $obj);
             },
@@ -339,12 +318,7 @@ class ItemRepository
         );
         $ret     = [];
         foreach ($results as $result) {
-            $managed = $this->getManagedObject($result);
-            $obj     = $this->itemReflection->hydrate($result, $managed);
-            
-            if (!$managed) {
-                $this->persistFetchedItemData($obj, $result);
-            }
+            $obj   = $this->persistFetchedItemData($result);
             $ret[] = $obj;
         }
         
@@ -395,12 +369,7 @@ class ItemRepository
         $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
         $this->dynamodbTable->queryAndRun(
             function ($result) use ($callback) {
-                $managed = $this->getManagedObject($result);
-                $obj     = $this->itemReflection->hydrate($result, $managed);
-                
-                if (!$managed) {
-                    $this->persistFetchedItemData($obj, $result);
-                }
+                $obj = $this->persistFetchedItemData($result);
                 
                 return call_user_func($callback, $obj);
             },
@@ -432,20 +401,37 @@ class ItemRepository
         );
     }
     
-    public function refresh($obj)
+    public function refresh($obj, $persistIfNotManaged = false)
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
             throw new ODMException(
                 "Object refreshed is not of correct type, expected: " . $this->itemReflection->getItemClass()
             );
         }
+        
+        // 2017-03-24: we can refresh something that's not managed
+        //$id = $this->itemReflection->getPrimaryIdentifier($obj);
+        //if (!isset($this->itemManaged[$id])) {
+        //    throw new ODMException("Object is not managed: " . print_r($obj, true));
+        //}
+        // end of change 2017-03-24
+        
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (!isset($this->itemManaged[$id])) {
-            throw new ODMException("Object is not managed: " . print_r($obj, true));
+            if ($persistIfNotManaged) {
+                $this->itemManaged[$id] = new ManagedItemState($this->itemReflection, $obj);
+            }
+            else {
+                throw new ODMException("Object is not managed: " . print_r($obj, true));
+            }
         }
-        $this->itemManaged[$id]->setState(ManagedItemState::STATE_MANAGED);
         
-        $this->get($this->itemReflection->getPrimaryKeys($obj, false), true);
+        $objRefreshed = $this->get($this->itemReflection->getPrimaryKeys($obj, false), true);
+        
+        if (!$objRefreshed && $persistIfNotManaged) {
+            $this->itemManaged[$id]->setState(ManagedItemState::STATE_NEW);
+        }
+        
     }
     
     public function remove($obj)
@@ -484,12 +470,7 @@ class ItemRepository
         );
         $ret     = [];
         foreach ($results as $result) {
-            $managed = $this->getManagedObject($result);
-            $obj     = $this->itemReflection->hydrate($result, $managed);
-            
-            if (!$managed) {
-                $this->persistFetchedItemData($obj, $result);
-            }
+            $obj   = $this->persistFetchedItemData($result);
             $ret[] = $obj;
         }
         
@@ -539,12 +520,7 @@ class ItemRepository
     )
     {
         $resultCallback = function ($result) use ($callback) {
-            $managed = $this->getManagedObject($result);
-            $obj     = $this->itemReflection->hydrate($result, $managed);
-            
-            if (!$managed) {
-                $this->persistFetchedItemData($obj, $result);
-            }
+            $obj = $this->persistFetchedItemData($result);
             
             return call_user_func($callback, $obj);
         };
@@ -618,33 +594,26 @@ class ItemRepository
         return $result;
     }
     
-    protected function getManagedObject($resultData)
+    protected function persistFetchedItemData(array $resultData)
     {
         $id = $this->itemReflection->getPrimaryIdentifier($resultData);
         if (isset($this->itemManaged[$id])) {
-            return $this->itemManaged[$id]->getItem();
-        }
-        else {
-            return null;
-        }
-    }
-    
-    protected function persistFetchedItemData($obj, array $originalData)
-    {
-        $id = $this->itemReflection->getPrimaryIdentifier($obj);
-        if (!isset($this->itemManaged[$id])) {
-            $this->itemManaged[$id] = new ManagedItemState($this->itemReflection, $obj, $originalData);
-        }
-        else {
-            // TODO: refactor getManagedObject() and persistFetchedItemData(), try combine them into one function
-            throw new \RuntimeException("never should here be reached!");
-            
-            /** @noinspection PhpUnreachableStatementInspection */
             if ($this->itemManaged[$id]->isNew()) {
-                throw new ODMException("Newly created item conflicts with fetched remote data: " . print_r($obj, true));
+                throw new ODMException("Conflict! Fetched remote data is also persisted. " . json_encode($resultData));
             }
-            $this->itemManaged[$id]->setItem($obj);
-            $this->itemManaged[$id]->setOriginalData($originalData);
+            elseif ($this->itemManaged[$id]->isRemoved()) {
+                throw new ODMException("Conflict! Fetched remote data is also removed. " . json_encode($resultData));
+            }
+            
+            $obj = $this->itemManaged[$id]->getItem();
+            $this->itemReflection->hydrate($resultData, $obj);
+            $this->itemManaged[$id]->setOriginalData($resultData);
         }
+        else {
+            $obj                    = $this->itemReflection->hydrate($resultData);
+            $this->itemManaged[$id] = new ManagedItemState($this->itemReflection, $obj, $resultData);
+        }
+        
+        return $obj;
     }
 }

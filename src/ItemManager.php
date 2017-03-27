@@ -145,19 +145,13 @@ class ItemManager
         $this->getRepository(get_class($item))->persist($item);
     }
     
-    public function refresh($item)
+    public function refresh($item, $persistIfNotManaged = false)
     {
-        if (!is_object($item)) {
-            throw new ODMException("You can only refresh a managed object!");
-        }
-        $this->getRepository(get_class($item))->refresh($item);
+        $this->getRepository(get_class($item))->refresh($item, $persistIfNotManaged);
     }
     
     public function remove($item)
     {
-        if (!is_object($item)) {
-            throw new ODMException("You can only removed a managed object!");
-        }
         $this->getRepository(get_class($item))->remove($item);
     }
     
