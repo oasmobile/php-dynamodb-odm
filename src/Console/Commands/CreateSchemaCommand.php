@@ -74,12 +74,20 @@ class CreateSchemaCommand extends AbstractSchemaCommand
                     $lsis,
                     $gsis
                 );
-                $waits[] = $dynamoManager->waitForTableCreation(
-                    $tableName,
-                    60,
-                    1,
-                    false
-                );
+                
+                if ($gsis) {
+                    // if there is gsi, we nee to wait before creating next table
+                    $output->writeln("Will wait for GSI creation ...");
+                    $dynamoManager->waitForTablesToBeFullyReady($tableName, 60, 2);
+                }
+                else {
+                    $waits[] = $dynamoManager->waitForTableCreation(
+                        $tableName,
+                        60,
+                        1,
+                        false
+                    );
+                }
                 $output->writeln('Created.');
             }
         }

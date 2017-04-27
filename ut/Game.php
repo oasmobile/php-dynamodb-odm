@@ -21,7 +21,7 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
  *     primaryIndex={"gamecode"},
  *     globalSecondaryIndices={
  *          {"family", "language"},
- *          @Index(hash="languagePartition", range="lastUpdatedAt")
+ *          @Index(hash="languagePartition", range="lastUpdatedAt", name="hellokitty")
  *     }
  * )
  */

@@ -14,11 +14,11 @@ require_once __DIR__ . "/vendor/autoload.php";
 
 /** @var ConsoleHelper $consoleHelper */
 $consoleHelper = require_once __DIR__ . "/odm-config.php";
-//
+
 //$app = new Application();
 //$consoleHelper->addCommands($app);
 //$app->run();
-//
+
 ////$ret = preg_match_all('/#(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)/', '#abca > 10 and #aa in (9, 10)', $matches);
 ////var_dump($ret);
 ////var_dump($matches);

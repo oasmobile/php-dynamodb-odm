@@ -137,7 +137,15 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                     
                     if (!isset($oldGsis[$idx->getName()])) {
                         // new GSI
-                        $gsiChanges[] = function () use ($isDryRun, $output, $class, $tableName, $table, $idx) {
+                        $gsiChanges[] = function () use (
+                            $isDryRun,
+                            $dynamoManager,
+                            $output,
+                            $class,
+                            $tableName,
+                            $table,
+                            $idx
+                        ) {
                             $output->writeln(
                                 "Will add GSI ["
                                 . $idx->getName()
@@ -145,6 +153,9 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                             );
                             if (!$isDryRun) {
                                 $table->addGlobalSecondaryIndex($idx);
+                                // if there is gsi alteration, we nee to wait before continue
+                                $output->writeln("Will wait for creation of GSI " . $idx->getName() . " ...");
+                                $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
                                 $output->writeln('Done.');
                             }
                             
@@ -158,19 +169,32 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                             // nothing to update
                         }
                         else {
-                            $gsiChanges[] = function () use ($isDryRun, $output, $class, $tableName, $table, $idx) {
+                            $gsiChanges[] = function () use (
+                                $isDryRun,
+                                $dynamoManager,
+                                $output,
+                                $class,
+                                $tableName,
+                                $table,
+                                $idx
+                            ) {
                                 $output->writeln(
                                     "Will update GSI ["
                                     . $idx->getName()
                                     . "] on table <info>$tableName</info> for class <info>$class</info> ..."
                                 );
                                 if (!$isDryRun) {
+                                    // if there is gsi alteration, we nee to wait before continue
                                     $table->deleteGlobalSecondaryIndex($idx->getName());
-                                    $output->writeln(
-                                        "Will sleep 3 seconds before creating new GSI. If the creation fails, you can feel free to run update command again."
-                                    );
-                                    sleep(3);
+                                    $output->writeln("Will wait for deletion of GSI " . $idx->getName() . " ...");
+                                    $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
+                                    //$output->writeln(
+                                    //    "Will sleep 3 seconds before creating new GSI. If the creation fails, you can feel free to run update command again."
+                                    //);
+                                    //sleep(3);
                                     $table->addGlobalSecondaryIndex($idx);
+                                    $output->writeln("Will wait for creation of GSI " . $idx->getName() . " ...");
+                                    $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
                                     $output->writeln('Done.');
                                 }
                                 
@@ -184,7 +208,15 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                 if ($oldGsis) {
                     /** @var DynamoDbIndex $removedGsi */
                     foreach ($oldGsis as $removedGsi) {
-                        $gsiChanges[] = function () use ($isDryRun, $output, $class, $tableName, $table, $removedGsi) {
+                        $gsiChanges[] = function () use (
+                            $isDryRun,
+                            $dynamoManager,
+                            $output,
+                            $class,
+                            $tableName,
+                            $table,
+                            $removedGsi
+                        ) {
                             $output->writeln(
                                 "Will remove GSI ["
                                 . $removedGsi->getName()
@@ -192,6 +224,8 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                             );
                             if (!$isDryRun) {
                                 $table->deleteGlobalSecondaryIndex($removedGsi->getName());
+                                $output->writeln("Will wait for deletion of GSI " . $removedGsi->getName() . " ...");
+                                $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
                                 $output->writeln('Done.');
                             }
                             
@@ -227,11 +261,11 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
                     $changedTables[] = $tableName;
                 }
             }
-            if ($changedTables) {
-                $output->writeln("Waiting for all GSI modifications to be active ...");
-                $dynamoManager->waitForTablesToBeFullyReady($changedTables, 180, 5);
-                $output->writeln("Done.");
-            }
+            //if ($changedTables) {
+            //    $output->writeln("Waiting for all GSI modifications to be active ...");
+            //    $dynamoManager->waitForTablesToBeFullyReady($changedTables, 180, 5);
+            //    $output->writeln("Done.");
+            //}
         }
     }
 }

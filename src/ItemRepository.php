@@ -459,6 +459,8 @@ class ItemRepository
                     if (count($this->itemManaged) > 100) {
                         return false;
                     }
+                    
+                    return true;
                 },
                 '',
                 [],
