@@ -35,8 +35,8 @@ $awsConfig     = [
 $tablePrefix   = "odm-";
 $cacheDir      = __DIR__ . "/ut/cache";
 $isDev         = true;
-$itemNamespace = 'Oasis\Mlib\ODM\Dynamodb\Ut';
-$itemSrcDir    = __DIR__ . "/ut";
+$itemNamespace = 'Oasis\Mlib\ODM\Dynamodb\Ut'; // in practice, this usually looks like: My\Root\Namespace\Items
+$itemSrcDir    = __DIR__ . "/ut"; // in practice, this usually points to src/Items directory
 
 $im = new ItemManager(
     $awsConfig,
@@ -61,6 +61,8 @@ cacheDir        | cache direcotry to store metadata | **mandatory**
 isDev           | is development environment or not. Under dev environment, changes to Item class will automatically invalidate cached metadata. Under production environment, this has to be done manually.    | `true`
 itemSrcDir      | a source directory under which Item classes can be found | **mandatory**
 itemNamespace   | the base namespace for the managed Item classes source directory  | **mandatory**
+
+> **NOTE**: an Item class defines a type of item managed by ODM. Some typical examples are: User, Order, GameRoom, and Card
 
 ### Setting Up Command Line Tool
 
