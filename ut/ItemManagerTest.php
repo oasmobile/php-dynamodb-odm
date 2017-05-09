@@ -343,9 +343,20 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->flush();
         
         $this->itemManager->clear();
-        /** @var User $user */
-        $user = $this->itemManager->get(User::class, ['id' => $id]);
-        $this->assertNull($user);
+        /** @var User $user2 */
+        $user2 = $this->itemManager->get(User::class, ['id' => $id]);
+        $this->assertNull($user2);
+        
+        $this->itemManager->persist($user);
+        $this->itemManager->flush();
+        $user2 = $this->itemManager->get(User::class, ['id' => $id]);
+        $this->assertTrue($user2 instanceof User);
+        $this->itemManager->getRepository(User::class)->removeById(['id' => $id]);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+        $user2 = $this->itemManager->get(User::class, ['id' => $id]);
+        $this->assertNull($user2);
+        
     }
     
     public function testQueryAndScan()

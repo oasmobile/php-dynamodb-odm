@@ -477,6 +477,14 @@ class ItemRepository
         
     }
     
+    public function removeById($keys)
+    {
+        $obj = $this->get($keys, true);
+        if ($obj) {
+            $this->remove($obj);
+        }
+    }
+    
     public function scan($conditions = '',
                          array $params = [],
                          $indexName = DynamoDbIndex::PRIMARY_INDEX,
@@ -599,6 +607,17 @@ class ItemRepository
             $isConsistentRead,
             $parallel
         );
+    }
+    
+    /**
+     * @internal    only for advanced user, avoid using the table client directly whenever possible.
+     * @deprecated  this interface might be removed any time in the future
+     *
+     * @return DynamoDbTable
+     */
+    public function getDynamodbTable()
+    {
+        return $this->dynamodbTable;
     }
     
     protected function getFieldsArray($conditions)
