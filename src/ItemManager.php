@@ -64,6 +64,11 @@ class ItemManager
     
     public function addNamespace($namespace, $srcDir)
     {
+        if (!\is_dir($srcDir)) {
+            \mwarning("Directory %s doesn't exist.", $srcDir);
+            
+            return;
+        }
         $finder = new Finder();
         $finder->in($srcDir)
                ->path('/\.php$/');
