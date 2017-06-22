@@ -117,11 +117,20 @@ class ItemManager
     }
     
     /**
+     * @deprecated use shouldSkipCheckAndSet() instead
      * @return bool
      */
     public function isSkipCheckAndSet()
     {
         return $this->skipCheckAndSet;
+    }
+    
+    /**
+     * @param bool $skipCheckAndSet
+     */
+    public function setSkipCheckAndSet($skipCheckAndSet)
+    {
+        $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
     /**
@@ -153,6 +162,14 @@ class ItemManager
     public function remove($item)
     {
         $this->getRepository(get_class($item))->remove($item);
+    }
+    
+    /**
+     * @return bool
+     */
+    public function shouldSkipCheckAndSet()
+    {
+        return $this->skipCheckAndSet;
     }
     
     /**
@@ -243,14 +260,6 @@ class ItemManager
     public function setReservedAttributeNames($reservedAttributeNames)
     {
         $this->reservedAttributeNames = $reservedAttributeNames;
-    }
-    
-    /**
-     * @param bool $skipCheckAndSet
-     */
-    public function setSkipCheckAndSet($skipCheckAndSet)
-    {
-        $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
 }
