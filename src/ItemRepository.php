@@ -96,7 +96,7 @@ class ItemRepository
     
     public function flush()
     {
-        $skipCAS               = $this->itemManager->isSkipCheckAndSet()
+        $skipCAS               = $this->itemManager->shouldSkipCheckAndSet()
                                  || (count($this->itemReflection->getCasProperties()) == 0);
         $removed               = [];
         $batchRemovalKeys      = [];
@@ -252,6 +252,35 @@ class ItemRepository
             $isAscendingOrder,
             $concurrency
         );
+    }
+    
+    public function multiQueryCount($hashKey,
+                                    $hashKeyValues,
+                                    $rangeConditions,
+                                    array $params,
+                                    $indexName,
+                                    $filterExpression = '',
+                                    $isConsistentRead = false,
+                                    $concurrency = 10)
+    {
+        $count = 0;
+        $this->multiQueryAndRun(
+            function () use (&$count) {
+                $count++;
+            },
+            $hashKey,
+            $hashKeyValues,
+            $rangeConditions,
+            $params,
+            $indexName,
+            $filterExpression,
+            10000,
+            $isConsistentRead,
+            true,
+            $concurrency
+        );
+        
+        return $count;
     }
     
     public function parallelScanAndRun($parallel,
@@ -469,7 +498,7 @@ class ItemRepository
                 true,
                 10
             );
-            $skipCAS = $this->itemManager->isSkipCheckAndSet();
+            $skipCAS = $this->itemManager->shouldSkipCheckAndSet();
             $this->itemManager->setSkipCheckAndSet(true);
             $this->flush();
             $this->itemManager->setSkipCheckAndSet($skipCAS);
