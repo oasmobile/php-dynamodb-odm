@@ -94,7 +94,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $user2 = $this->itemManager->get(User::class, ['id' => $id]);
         
         $this->assertInstanceOf(User::class, $user2);
-        $this->assertTrue($user != $user2);
+        $this->assertTrue($user !== $user2);
         $this->assertEquals('John', $user2->getName());
         
         return $id;
@@ -391,6 +391,15 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             'hometown-age-index'
         );
         $this->assertEquals(5, count($result));
+        
+        $count = $this->itemManager->getRepository(User::class)->multiQueryCount(
+            "hometownPartition",
+            "NY" . $base,
+            "#age > :age",
+            [":age" => 48],
+            "home-age-gsi"
+        );
+        $this->assertEquals(4, $count);
         
         $result = [];
         $this->itemManager->getRepository(User::class)->multiQueryAndRun(

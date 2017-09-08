@@ -263,14 +263,26 @@ class ItemRepository
                                     $isConsistentRead = false,
                                     $concurrency = 10)
     {
-        $count = 0;
-        $this->multiQueryAndRun(
+        if (!is_array($hashKeyValues)) {
+            $hashKeyValues = [$hashKeyValues];
+        }
+        $partitionedHashKeyValues = [];
+        foreach ($hashKeyValues as $hashKeyValue) {
+            $partitionedHashKeyValues = array_merge(
+                $partitionedHashKeyValues,
+                $this->itemReflection->getAllPartitionedValues($hashKey, $hashKeyValue)
+            );
+        }
+        $fields = array_merge($this->getFieldsArray($rangeConditions), $this->getFieldsArray($filterExpression));
+        $count  = 0;
+        $this->dynamodbTable->multiQueryAndRun(
             function () use (&$count) {
                 $count++;
             },
             $hashKey,
-            $hashKeyValues,
+            $partitionedHashKeyValues,
             $rangeConditions,
+            $fields,
             $params,
             $indexName,
             $filterExpression,
