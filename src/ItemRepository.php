@@ -497,7 +497,7 @@ class ItemRepository
             $this->scanAndRun(
                 function ($item) {
                     $this->remove($item);
-                    if (count($this->itemManaged) > 100) {
+                    if (count($this->itemManaged) > 1000) {
                         return false;
                     }
                     
@@ -510,11 +510,14 @@ class ItemRepository
                 true,
                 10
             );
+            if (count($this->itemManaged) == 0) {
+                break;
+            }
             $skipCAS = $this->itemManager->shouldSkipCheckAndSet();
             $this->itemManager->setSkipCheckAndSet(true);
             $this->flush();
             $this->itemManager->setSkipCheckAndSet($skipCAS);
-        } while (count($this->itemManaged) > 0);
+        } while (true);
         
     }
     
