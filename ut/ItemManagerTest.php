@@ -612,7 +612,12 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $this->itemManager->persist($game);
         $this->itemManager->flush();
         
+        /** @var BasicGameInfo $basicInfo */
         $basicInfo = $this->itemManager->getRepository(BasicGameInfo::class)->get(['gamecode' => 'narutofr']);
         $this->assertTrue($basicInfo instanceof BasicGameInfo);
+        
+        $basicInfo->setFamily('helll');
+        $this->expectException(ODMException::class);
+        $this->itemManager->flush();
     }
 }

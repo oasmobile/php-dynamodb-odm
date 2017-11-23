@@ -137,6 +137,7 @@ Class annotated with the _@Item_ annotation will be managed by ItemManager. An I
 - **globalSecondaryIndices**: array of global secondary indices; a global secondary index is either an array of keys, or an _@Index_ annotation object
 - **localSecondaryIndices**: array of local secondary indices; a local secondary index is either an array of keys, or an _@Index_ annotation object
 - **repository**: the repository class name; by default, `\Oasis\Mlib\ODM\Dynamodb\ItemRepository` is used
+- **projected**: whether this item is projected only. _Projected Item_ is not updatable (remove action is allowed). And when reading (i.e. get/query/scan) a projected item, only attrbutes for this item will be fetched from DynamoDB.
 
 #### Field
 

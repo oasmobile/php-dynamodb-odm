@@ -115,6 +115,15 @@ class ItemRepository
                 $removed[]          = $oid;
             }
             elseif ($managedItemState->isNew()) {
+                if ($this->itemReflection->getItemDefinition()->projected) {
+                    throw new ODMException(
+                        \sprintf(
+                            "Not possible to create a projected item of type %s, try create the full-featured item instead!",
+                            $this->itemReflection->getItemClass()
+                        )
+                    );
+                }
+                
                 $managedItemState->updateCASTimestamps();
                 $managedItemState->updatePartitionedHashKeys();
                 
@@ -139,6 +148,16 @@ class ItemRepository
             else {
                 $hasData = $managedItemState->hasDirtyData();
                 if ($hasData) {
+                    if ($this->itemReflection->getItemDefinition()->projected) {
+                        throw new ODMException(
+                            \sprintf(
+                                "Not possible to update a projected item of type %s, try updating the full-featured item instead!"
+                                . " You could also detach the modified item to bypass this exception!",
+                                $this->itemReflection->getItemClass()
+                            )
+                        );
+                    }
+                    
                     $managedItemState->updateCASTimestamps();
                     $managedItemState->updatePartitionedHashKeys();
                     if ($skipCAS) {
