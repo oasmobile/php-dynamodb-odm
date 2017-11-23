@@ -59,7 +59,12 @@ class ItemRepository
             }
             $groupOfTranslatedKeys[] = $translatedKeys;
         }
-        $resultSet = $this->dynamodbTable->batchGet($groupOfTranslatedKeys, $isConsistentRead);
+        $resultSet = $this->dynamodbTable->batchGet(
+            $groupOfTranslatedKeys,
+            $isConsistentRead,
+            10,
+            $this->itemReflection->getProjectedAttributes()
+        );
         if (is_array($resultSet)) {
             $ret = [];
             foreach ($resultSet as $singleResult) {
@@ -197,7 +202,11 @@ class ItemRepository
             }
         }
         
-        $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
+        $result = $this->dynamodbTable->get(
+            $translatedKeys,
+            $isConsistentRead,
+            $this->itemReflection->getProjectedAttributes()
+        );
         if (is_array($result)) {
             $obj = $this->persistFetchedItemData($result);
             
@@ -250,7 +259,8 @@ class ItemRepository
             $evaluationLimit,
             $isConsistentRead,
             $isAscendingOrder,
-            $concurrency
+            $concurrency,
+            $this->itemReflection->getProjectedAttributes()
         );
     }
     
@@ -289,7 +299,8 @@ class ItemRepository
             10000,
             $isConsistentRead,
             true,
-            $concurrency
+            $concurrency,
+            $this->itemReflection->getProjectedAttributes()
         );
         
         return $count;
@@ -317,7 +328,8 @@ class ItemRepository
             $params,
             $indexName,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
     }
     
@@ -355,7 +367,8 @@ class ItemRepository
             $lastKey,
             $evaluationLimit,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
         $ret     = [];
         foreach ($results as $result) {
@@ -420,7 +433,8 @@ class ItemRepository
             $indexName,
             $filterExpression,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
     }
     
@@ -546,7 +560,8 @@ class ItemRepository
             $lastKey,
             $evaluationLimit,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
         $ret     = [];
         foreach ($results as $result) {
@@ -616,7 +631,8 @@ class ItemRepository
                 $params,
                 $indexName,
                 $isConsistentRead,
-                $isAscendingOrder
+                $isAscendingOrder,
+                $this->itemReflection->getProjectedAttributes()
             );
         }
         elseif ($parallel == 1) {
@@ -627,7 +643,8 @@ class ItemRepository
                 $params,
                 $indexName,
                 $isConsistentRead,
-                $isAscendingOrder
+                $isAscendingOrder,
+                $this->itemReflection->getProjectedAttributes()
             );
         }
         else {

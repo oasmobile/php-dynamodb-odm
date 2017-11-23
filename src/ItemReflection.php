@@ -264,6 +264,16 @@ class ItemReflection
         return $ret;
     }
     
+    public function getProjectedAttributes()
+    {
+        if ($this->getItemDefinition()->projected) {
+            return \array_keys($this->propertyMapping);
+        }
+        else {
+            return [];
+        }
+    }
+    
     /**
      * @return mixed
      */

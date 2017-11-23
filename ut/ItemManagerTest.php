@@ -600,4 +600,19 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         );
         $this->itemManager->flush();
     }
+    
+    public function testProjectedData()
+    {
+        $this->itemManager->getRepository(Game::class)->removeAll();
+        
+        $game = new Game();
+        $game->setGamecode('narutofr');
+        $game->setFamily('naruto');
+        $game->setLanguage('fr');
+        $this->itemManager->persist($game);
+        $this->itemManager->flush();
+        
+        $basicInfo = $this->itemManager->getRepository(BasicGameInfo::class)->get(['gamecode' => 'narutofr']);
+        $this->assertTrue($basicInfo instanceof BasicGameInfo);
+    }
 }

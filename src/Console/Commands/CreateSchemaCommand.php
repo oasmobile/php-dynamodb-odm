@@ -51,7 +51,12 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         
         $waits = [];
         foreach ($classes as $class => $reflection) {
-            $itemDef          = $reflection->getItemDefinition();
+            $itemDef = $reflection->getItemDefinition();
+            if ($itemDef->projected) {
+                \mnotice("Class %s is projected class, will not create table.", $class);
+                continue;
+            }
+            
             $attributeTypes   = $reflection->getAttributeTypes();
             $fieldNameMapping = $reflection->getFieldNameMapping();
             
