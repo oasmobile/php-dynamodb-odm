@@ -179,7 +179,7 @@ Below is the User class declaration when we add a global secondary index to it:
  * @Item(
  *     table="users",
  *     primaryIndex={"id"},
- *     globalSecondaryIndex={
+ *     globalSecondaryIndices={
  *         @Index(hash="class", range="age", name="class-age-gsi")
  *     }
  * )
