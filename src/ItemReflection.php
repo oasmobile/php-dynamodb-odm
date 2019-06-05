@@ -81,6 +81,9 @@ class ItemReflection
         $array = [];
         foreach ($this->fieldDefinitions as $propertyName => $field) {
             $value       = $this->getPropertyValue($obj, $propertyName);
+            if (\is_null($value) && $field->gsiKey) {
+                continue;
+            }
             $key         = $field->name ? : $propertyName;
             $array[$key] = $value;
         }

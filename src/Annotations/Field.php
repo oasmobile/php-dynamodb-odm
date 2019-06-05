@@ -39,4 +39,15 @@ class Field
      * @Enum(value={"disabled", "enabled", "timestamp"})
      */
     public $cas = self::CAS_DISABLED;
+    /**
+     * Indicate that this field is a GSI key. A GSI key can be null, but null value will be discarded when
+     * inserting/updating the item.
+     *
+     * Introducing this field property will resolve the following bug: an item with null value for a GSI key cannot be
+     * added. However, if the property is discarded from the object being added, the GSI table will not be affected at
+     * all.
+     *
+     * @var bool
+     */
+    public $gsiKey = false;
 }
