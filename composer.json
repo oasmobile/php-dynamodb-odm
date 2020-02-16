@@ -8,8 +8,8 @@
         "oasis/aws-wrappers"  : "^2.10",
         "oasis/logging"       : "^1.0",
         "doctrine/common"     : "^2.7",
-        "symfony/console"     : "^4.3",
-        "symfony/finder"      : "^4.3"
+        "symfony/console"     : "^5.0",
+        "symfony/finder"      : "^5.0"
     },
     "require-dev" : {
         "phpunit/phpunit": "^5.7"
