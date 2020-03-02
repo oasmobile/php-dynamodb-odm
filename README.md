@@ -2,6 +2,8 @@
 
 The oasis/dynamodb-odm is an ODM (object data mapping) library for easy use of AWS' powerful key-value database: DynamoDb.
 
+> **NOTE**: this document assumes you have some understanding of what DynamoDB is and the difference between DynamoDB and traditional RDBMS (e.g. MySQL). Some terms and ideas discussed in this document are DynamoDB specific and will not be explained in this documentation. To study DynamoDB, please refer to the [official dev guide](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide)
+
 ## Installation &amp; Configuration
 
 To get oasis/dynamodb-odm, you can simple require it via `composer`:
@@ -135,6 +137,7 @@ Class annotated with the _@Item_ annotation will be managed by ItemManager. An I
 - **globalSecondaryIndices**: array of global secondary indices; a global secondary index is either an array of keys, or an _@Index_ annotation object
 - **localSecondaryIndices**: array of local secondary indices; a local secondary index is either an array of keys, or an _@Index_ annotation object
 - **repository**: the repository class name; by default, `\Oasis\Mlib\ODM\Dynamodb\ItemRepository` is used
+- **projected**: whether this item is projected only. _Projected Item_ is not updatable (remove action is allowed). And when reading (i.e. get/query/scan) a projected item, only attrbutes for this item will be fetched from DynamoDB.
 
 #### Field
 
@@ -176,7 +179,7 @@ Below is the User class declaration when we add a global secondary index to it:
  * @Item(
  *     table="users",
  *     primaryIndex={"id"},
- *     globalSecondaryIndex={
+ *     globalSecondaryIndices={
  *         @Index(hash="class", range="age", name="class-age-gsi")
  *     }
  * )

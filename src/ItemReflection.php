@@ -81,6 +81,9 @@ class ItemReflection
         $array = [];
         foreach ($this->fieldDefinitions as $propertyName => $field) {
             $value       = $this->getPropertyValue($obj, $propertyName);
+            if (\is_null($value) && $field->gsiKey) {
+                continue;
+            }
             $key         = $field->name ? : $propertyName;
             $array[$key] = $value;
         }
@@ -262,6 +265,16 @@ class ItemReflection
         }
         
         return $ret;
+    }
+    
+    public function getProjectedAttributes()
+    {
+        if ($this->getItemDefinition()->projected) {
+            return \array_keys($this->propertyMapping);
+        }
+        else {
+            return [];
+        }
     }
     
     /**

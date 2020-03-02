@@ -44,7 +44,12 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
         $gsiChanges    = [];
         /** @var ItemReflection $reflection */
         foreach ($classes as $class => $reflection) {
+            if ($reflection->getItemDefinition()->projected) {
+                // will skip projected table
+                continue;
+            }
             $tableName = $im->getDefaultTablePrefix() . $reflection->getTableName();
+
             if (!$dynamoManager->listTables(sprintf("/^%s\$/", preg_quote($tableName, "/")))) {
                 // will create
                 $classCreation[] = function () use (

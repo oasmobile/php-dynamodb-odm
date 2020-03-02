@@ -94,7 +94,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         $user2 = $this->itemManager->get(User::class, ['id' => $id]);
         
         $this->assertInstanceOf(User::class, $user2);
-        $this->assertTrue($user != $user2);
+        $this->assertTrue($user !== $user2);
         $this->assertEquals('John', $user2->getName());
         
         return $id;
@@ -392,6 +392,15 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertEquals(5, count($result));
         
+        $count = $this->itemManager->getRepository(User::class)->multiQueryCount(
+            "hometownPartition",
+            "NY" . $base,
+            "#age > :age",
+            [":age" => 48],
+            "home-age-gsi"
+        );
+        $this->assertEquals(4, $count);
+        
         $result = [];
         $this->itemManager->getRepository(User::class)->multiQueryAndRun(
             function ($item) use (&$result) {
@@ -589,6 +598,26 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
                 ],
             ]
         );
+        $this->itemManager->flush();
+    }
+    
+    public function testProjectedData()
+    {
+        $this->itemManager->getRepository(Game::class)->removeAll();
+        
+        $game = new Game();
+        $game->setGamecode('narutofr');
+        $game->setFamily('naruto');
+        $game->setLanguage('fr');
+        $this->itemManager->persist($game);
+        $this->itemManager->flush();
+        
+        /** @var BasicGameInfo $basicInfo */
+        $basicInfo = $this->itemManager->getRepository(BasicGameInfo::class)->get(['gamecode' => 'narutofr']);
+        $this->assertTrue($basicInfo instanceof BasicGameInfo);
+        
+        $basicInfo->setFamily('helll');
+        $this->expectException(ODMException::class);
         $this->itemManager->flush();
     }
 }

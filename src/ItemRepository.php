@@ -59,7 +59,12 @@ class ItemRepository
             }
             $groupOfTranslatedKeys[] = $translatedKeys;
         }
-        $resultSet = $this->dynamodbTable->batchGet($groupOfTranslatedKeys, $isConsistentRead);
+        $resultSet = $this->dynamodbTable->batchGet(
+            $groupOfTranslatedKeys,
+            $isConsistentRead,
+            10,
+            $this->itemReflection->getProjectedAttributes()
+        );
         if (is_array($resultSet)) {
             $ret = [];
             foreach ($resultSet as $singleResult) {
@@ -96,7 +101,7 @@ class ItemRepository
     
     public function flush()
     {
-        $skipCAS               = $this->itemManager->isSkipCheckAndSet()
+        $skipCAS               = $this->itemManager->shouldSkipCheckAndSet()
                                  || (count($this->itemReflection->getCasProperties()) == 0);
         $removed               = [];
         $batchRemovalKeys      = [];
@@ -110,6 +115,15 @@ class ItemRepository
                 $removed[]          = $oid;
             }
             elseif ($managedItemState->isNew()) {
+                if ($this->itemReflection->getItemDefinition()->projected) {
+                    throw new ODMException(
+                        \sprintf(
+                            "Not possible to create a projected item of type %s, try create the full-featured item instead!",
+                            $this->itemReflection->getItemClass()
+                        )
+                    );
+                }
+                
                 $managedItemState->updateCASTimestamps();
                 $managedItemState->updatePartitionedHashKeys();
                 
@@ -134,6 +148,16 @@ class ItemRepository
             else {
                 $hasData = $managedItemState->hasDirtyData();
                 if ($hasData) {
+                    if ($this->itemReflection->getItemDefinition()->projected) {
+                        throw new ODMException(
+                            \sprintf(
+                                "Not possible to update a projected item of type %s, try updating the full-featured item instead!"
+                                . " You could also detach the modified item to bypass this exception!",
+                                $this->itemReflection->getItemClass()
+                            )
+                        );
+                    }
+                    
                     $managedItemState->updateCASTimestamps();
                     $managedItemState->updatePartitionedHashKeys();
                     if ($skipCAS) {
@@ -197,7 +221,11 @@ class ItemRepository
             }
         }
         
-        $result = $this->dynamodbTable->get($translatedKeys, $isConsistentRead);
+        $result = $this->dynamodbTable->get(
+            $translatedKeys,
+            $isConsistentRead,
+            $this->itemReflection->getProjectedAttributes()
+        );
         if (is_array($result)) {
             $obj = $this->persistFetchedItemData($result);
             
@@ -250,8 +278,51 @@ class ItemRepository
             $evaluationLimit,
             $isConsistentRead,
             $isAscendingOrder,
-            $concurrency
+            $concurrency,
+            $this->itemReflection->getProjectedAttributes()
         );
+    }
+    
+    public function multiQueryCount($hashKey,
+                                    $hashKeyValues,
+                                    $rangeConditions,
+                                    array $params,
+                                    $indexName,
+                                    $filterExpression = '',
+                                    $isConsistentRead = false,
+                                    $concurrency = 10)
+    {
+        if (!is_array($hashKeyValues)) {
+            $hashKeyValues = [$hashKeyValues];
+        }
+        $partitionedHashKeyValues = [];
+        foreach ($hashKeyValues as $hashKeyValue) {
+            $partitionedHashKeyValues = array_merge(
+                $partitionedHashKeyValues,
+                $this->itemReflection->getAllPartitionedValues($hashKey, $hashKeyValue)
+            );
+        }
+        $fields = array_merge($this->getFieldsArray($rangeConditions), $this->getFieldsArray($filterExpression));
+        $count  = 0;
+        $this->dynamodbTable->multiQueryAndRun(
+            function () use (&$count) {
+                $count++;
+            },
+            $hashKey,
+            $partitionedHashKeyValues,
+            $rangeConditions,
+            $fields,
+            $params,
+            $indexName,
+            $filterExpression,
+            10000,
+            $isConsistentRead,
+            true,
+            $concurrency,
+            $this->itemReflection->getProjectedAttributes()
+        );
+        
+        return $count;
     }
     
     public function parallelScanAndRun($parallel,
@@ -276,7 +347,8 @@ class ItemRepository
             $params,
             $indexName,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
     }
     
@@ -314,7 +386,8 @@ class ItemRepository
             $lastKey,
             $evaluationLimit,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
         $ret     = [];
         foreach ($results as $result) {
@@ -379,7 +452,8 @@ class ItemRepository
             $indexName,
             $filterExpression,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
     }
     
@@ -456,7 +530,7 @@ class ItemRepository
             $this->scanAndRun(
                 function ($item) {
                     $this->remove($item);
-                    if (count($this->itemManaged) > 100) {
+                    if (count($this->itemManaged) > 1000) {
                         return false;
                     }
                     
@@ -469,11 +543,14 @@ class ItemRepository
                 true,
                 10
             );
-            $skipCAS = $this->itemManager->isSkipCheckAndSet();
+            if (count($this->itemManaged) == 0) {
+                break;
+            }
+            $skipCAS = $this->itemManager->shouldSkipCheckAndSet();
             $this->itemManager->setSkipCheckAndSet(true);
             $this->flush();
             $this->itemManager->setSkipCheckAndSet($skipCAS);
-        } while (count($this->itemManaged) > 0);
+        } while (true);
         
     }
     
@@ -502,7 +579,8 @@ class ItemRepository
             $lastKey,
             $evaluationLimit,
             $isConsistentRead,
-            $isAscendingOrder
+            $isAscendingOrder,
+            $this->itemReflection->getProjectedAttributes()
         );
         $ret     = [];
         foreach ($results as $result) {
@@ -572,7 +650,8 @@ class ItemRepository
                 $params,
                 $indexName,
                 $isConsistentRead,
-                $isAscendingOrder
+                $isAscendingOrder,
+                $this->itemReflection->getProjectedAttributes()
             );
         }
         elseif ($parallel == 1) {
@@ -583,7 +662,8 @@ class ItemRepository
                 $params,
                 $indexName,
                 $isConsistentRead,
-                $isAscendingOrder
+                $isAscendingOrder,
+                $this->itemReflection->getProjectedAttributes()
             );
         }
         else {

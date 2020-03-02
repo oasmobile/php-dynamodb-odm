@@ -42,6 +42,13 @@ class Item
      */
     public $repository;
     
+    /**
+     * A projected item is read-only
+     *
+     * @var bool
+     */
+    public $projected = false;
+    
     public function __construct($values)
     {
         foreach ($values as $name => $value) {

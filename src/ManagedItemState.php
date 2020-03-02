@@ -160,6 +160,14 @@ class ManagedItemState
     
     protected function isDataEqual(&$a, &$b)
     {
+        // empty string is considered null in dynamodb
+        if (
+            (\is_null($a) && \is_string($b) && $b === '')
+            || (\is_null($b) && \is_string($a) && $a === '')
+        ) {
+            return true;
+        }
+        
         if (gettype($a) != gettype($b)) {
             return false;
         }

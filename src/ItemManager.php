@@ -64,6 +64,11 @@ class ItemManager
     
     public function addNamespace($namespace, $srcDir)
     {
+        if (!\is_dir($srcDir)) {
+            \mwarning("Directory %s doesn't exist.", $srcDir);
+            
+            return;
+        }
         $finder = new Finder();
         $finder->in($srcDir)
                ->path('/\.php$/');
@@ -117,11 +122,20 @@ class ItemManager
     }
     
     /**
+     * @deprecated use shouldSkipCheckAndSet() instead
      * @return bool
      */
     public function isSkipCheckAndSet()
     {
         return $this->skipCheckAndSet;
+    }
+    
+    /**
+     * @param bool $skipCheckAndSet
+     */
+    public function setSkipCheckAndSet($skipCheckAndSet)
+    {
+        $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
     /**
@@ -153,6 +167,14 @@ class ItemManager
     public function remove($item)
     {
         $this->getRepository(get_class($item))->remove($item);
+    }
+    
+    /**
+     * @return bool
+     */
+    public function shouldSkipCheckAndSet()
+    {
+        return $this->skipCheckAndSet;
     }
     
     /**
@@ -243,14 +265,6 @@ class ItemManager
     public function setReservedAttributeNames($reservedAttributeNames)
     {
         $this->reservedAttributeNames = $reservedAttributeNames;
-    }
-    
-    /**
-     * @param bool $skipCheckAndSet
-     */
-    public function setSkipCheckAndSet($skipCheckAndSet)
-    {
-        $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
 }
