@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpStatementHasEmptyBodyInspection */
+
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -16,6 +17,8 @@ use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function GuzzleHttp\Promise\all;
 
 class UpdateSchemaCommand extends AbstractSchemaCommand
 {
@@ -255,7 +258,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             }
             if ($waits) {
                 $output->writeln("Waiting for all created tables to be active ...");
-                \GuzzleHttp\Promise\all($waits)->wait();
+                all($waits)->wait();
                 $output->writeln("Done.");
             }
             

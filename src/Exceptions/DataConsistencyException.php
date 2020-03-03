@@ -8,7 +8,9 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Exceptions;
 
-class DataConsistencyException extends \RuntimeException
+use RuntimeException;
+
+class DataConsistencyException extends RuntimeException
 {
     
 }

@@ -15,6 +15,9 @@ use Doctrine\Common\Cache\FilesystemCache;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Finder\Finder;
 
+use function is_dir;
+use function mwarning;
+
 class ItemManager
 {
     /**
@@ -29,7 +32,7 @@ class ItemManager
     protected $reader;
     /**
      * @var ItemReflection[]
-     * Maps item class to item relfection
+     * Maps item class to item reflection
      */
     protected $itemReflections;
     /**
@@ -64,8 +67,8 @@ class ItemManager
     
     public function addNamespace($namespace, $srcDir)
     {
-        if (!\is_dir($srcDir)) {
-            \mwarning("Directory %s doesn't exist.", $srcDir);
+        if (!is_dir($srcDir)) {
+            mwarning("Directory %s doesn't exist.", $srcDir);
             
             return;
         }
@@ -116,9 +119,7 @@ class ItemManager
     
     public function get($itemClass, array $keys, $consistentRead = false)
     {
-        $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
-        
-        return $item;
+        return $this->getRepository($itemClass)->get($keys, $consistentRead);
     }
     
     /**
@@ -213,7 +214,7 @@ class ItemManager
     }
     
     /**
-     * @return \string[]
+     * @return string[]
      */
     public function getPossibleItemClasses()
     {

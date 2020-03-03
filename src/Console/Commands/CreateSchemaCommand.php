@@ -9,10 +9,14 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Console\Commands;
 
 use Oasis\Mlib\AwsWrappers\DynamoDbManager;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
+use function GuzzleHttp\Promise\all;
+use function mnotice;
 
 class CreateSchemaCommand extends AbstractSchemaCommand
 {
@@ -53,7 +57,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         foreach ($classes as $class => $reflection) {
             $itemDef = $reflection->getItemDefinition();
             if ($itemDef->projected) {
-                \mnotice("Class %s is projected class, will not create table.", $class);
+                mnotice("Class %s is projected class, will not create table.", $class);
                 continue;
             }
             
@@ -61,10 +65,12 @@ class CreateSchemaCommand extends AbstractSchemaCommand
             $fieldNameMapping = $reflection->getFieldNameMapping();
             
             $lsis = [];
+            /** @var Index $localSecondaryIndex */
             foreach ($itemDef->localSecondaryIndices as $localSecondaryIndex) {
                 $lsis[] = $localSecondaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes);
             }
             $gsis = [];
+            /** @var Index $globalSecondaryIndex */
             foreach ($itemDef->globalSecondaryIndices as $globalSecondaryIndex) {
                 $gsis[] = $globalSecondaryIndex->getDynamodbIndex($fieldNameMapping, $attributeTypes);
             }
@@ -99,7 +105,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         
         if (!$dryRun) {
             $output->writeln("Waiting for all tables to be active ...");
-            \GuzzleHttp\Promise\all($waits)->wait();
+            all($waits)->wait();
             $output->writeln("Done.");
         }
     }

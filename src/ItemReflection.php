@@ -15,12 +15,17 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\NotAnnotatedException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
+use ReflectionClass;
+use ReflectionProperty;
+
+use function array_keys;
+use function is_null;
 
 class ItemReflection
 {
     protected $itemClass;
     
-    /** @var  \ReflectionClass */
+    /** @var  ReflectionClass */
     protected $reflectionClass;
     /** @var  Item */
     protected $itemDefinition;
@@ -41,7 +46,7 @@ class ItemReflection
     protected $casProperties;
     /**
      * @var PartitionedHashKey[]
-     * partitioned hash keys, in the format of property name => partioned hash key definition
+     * partitioned hash keys, in the format of property name => partitioned hash key definition
      */
     protected $partitionedHashKeys;
     /**
@@ -50,7 +55,7 @@ class ItemReflection
      */
     protected $fieldDefinitions;
     /**
-     * @var \ReflectionProperty[]
+     * @var ReflectionProperty[]
      * Maps each class property name to its reflection property
      */
     protected $reflectionProperties;
@@ -81,7 +86,7 @@ class ItemReflection
         $array = [];
         foreach ($this->fieldDefinitions as $propertyName => $field) {
             $value       = $this->getPropertyValue($obj, $propertyName);
-            if (\is_null($value) && $field->gsiKey) {
+            if (is_null($value) && $field->gsiKey) {
                 continue;
             }
             $key         = $field->name ? : $propertyName;
@@ -125,7 +130,7 @@ class ItemReflection
     public function parse(Reader $reader)
     {
         // initialize class annotation info
-        $this->reflectionClass = new \ReflectionClass($this->itemClass);
+        $this->reflectionClass = new ReflectionClass($this->itemClass);
         $this->itemDefinition  = $reader->getClassAnnotation($this->reflectionClass, Item::class);
         if (!$this->itemDefinition) {
             throw new NotAnnotatedException("Class " . $this->itemClass . " is not configured as an Item");
@@ -195,11 +200,11 @@ class ItemReflection
                 "Object " . $this->itemClass . " doesn't have a property named: " . $propertyName
             );
         }
-        $relfectionProperty = $this->reflectionProperties[$propertyName];
-        $oldAccessibility   = $relfectionProperty->isPublic();
-        $relfectionProperty->setAccessible(true);
-        $ret = $relfectionProperty->getValue($obj);
-        $relfectionProperty->setAccessible($oldAccessibility);
+        $reflectionProperty = $this->reflectionProperties[$propertyName];
+        $oldAccessibility   = $reflectionProperty->isPublic();
+        $reflectionProperty->setAccessible(true);
+        $ret = $reflectionProperty->getValue($obj);
+        $reflectionProperty->setAccessible($oldAccessibility);
         
         return $ret;
     }
@@ -217,11 +222,11 @@ class ItemReflection
                 "Object " . $this->itemClass . " doesn't have a property named: " . $propertyName
             );
         }
-        $relfectionProperty = $this->reflectionProperties[$propertyName];
-        $oldAccessibility   = $relfectionProperty->isPublic();
-        $relfectionProperty->setAccessible(true);
-        $relfectionProperty->setValue($obj, $value);
-        $relfectionProperty->setAccessible($oldAccessibility);
+        $reflectionProperty = $this->reflectionProperties[$propertyName];
+        $oldAccessibility   = $reflectionProperty->isPublic();
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue($obj, $value);
+        $reflectionProperty->setAccessible($oldAccessibility);
     }
     
     /**
@@ -270,7 +275,7 @@ class ItemReflection
     public function getProjectedAttributes()
     {
         if ($this->getItemDefinition()->projected) {
-            return \array_keys($this->propertyMapping);
+            return array_keys($this->propertyMapping);
         }
         else {
             return [];
@@ -344,7 +349,7 @@ class ItemReflection
     }
     
     /**
-     * @return \ReflectionClass
+     * @return ReflectionClass
      */
     public function getReflectionClass()
     {

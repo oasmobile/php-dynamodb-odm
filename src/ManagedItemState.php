@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpParamsInspection */
+
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -10,6 +11,9 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
+
+use function is_null;
+use function is_string;
 
 class ManagedItemState
 {
@@ -49,7 +53,7 @@ class ManagedItemState
     }
     
     /**
-     * @return boolean
+     * @return bool
      */
     public function isNew()
     {
@@ -57,7 +61,7 @@ class ManagedItemState
     }
     
     /**
-     * @return boolean
+     * @return bool
      */
     public function isRemoved()
     {
@@ -162,8 +166,8 @@ class ManagedItemState
     {
         // empty string is considered null in dynamodb
         if (
-            (\is_null($a) && \is_string($b) && $b === '')
-            || (\is_null($b) && \is_string($a) && $a === '')
+            (is_null($a) && is_string($b) && $b === '')
+            || (is_null($b) && is_string($a) && $a === '')
         ) {
             return true;
         }

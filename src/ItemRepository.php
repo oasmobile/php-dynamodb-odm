@@ -8,11 +8,16 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
+use InvalidArgumentException;
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\UnderlyingDatabaseException;
+use SplDoublyLinkedList;
+use SplStack;
+
+use function sprintf;
 
 class ItemRepository
 {
@@ -106,8 +111,8 @@ class ItemRepository
         $removed               = [];
         $batchRemovalKeys      = [];
         $batchSetItems         = [];
-        $batchNewItemStates    = new \SplStack();
-        $batchUpdateItemStates = new \SplStack();
+        $batchNewItemStates    = new SplStack();
+        $batchUpdateItemStates = new SplStack();
         foreach ($this->itemManaged as $oid => $managedItemState) {
             $item = $managedItemState->getItem();
             if ($managedItemState->isRemoved()) {
@@ -117,7 +122,7 @@ class ItemRepository
             elseif ($managedItemState->isNew()) {
                 if ($this->itemReflection->getItemDefinition()->projected) {
                     throw new ODMException(
-                        \sprintf(
+                        sprintf(
                             "Not possible to create a projected item of type %s, try create the full-featured item instead!",
                             $this->itemReflection->getItemClass()
                         )
@@ -150,7 +155,7 @@ class ItemRepository
                 if ($hasData) {
                     if ($this->itemReflection->getItemDefinition()->projected) {
                         throw new ODMException(
-                            \sprintf(
+                            sprintf(
                                 "Not possible to update a projected item of type %s, try updating the full-featured item instead!"
                                 . " You could also detach the modified item to bypass this exception!",
                                 $this->itemReflection->getItemClass()
@@ -172,7 +177,7 @@ class ItemRepository
                         );
                         if (!$ret) {
                             throw new DataConsistencyException(
-                                "Item upated elsewhere! type = " . $this->itemReflection->getItemClass()
+                                "Item updated elsewhere! type = " . $this->itemReflection->getItemClass()
                             );
                         }
                         $managedItemState->setUpdated();
@@ -227,9 +232,7 @@ class ItemRepository
             $this->itemReflection->getProjectedAttributes()
         );
         if (is_array($result)) {
-            $obj = $this->persistFetchedItemData($result);
-            
-            return $obj;
+            return $this->persistFetchedItemData($result);
         }
         elseif ($result === null) {
             return null;
@@ -355,7 +358,7 @@ class ItemRepository
     public function persist($obj)
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
-            throw new ODMException("Persisting wrong boject, expecting: " . $this->itemReflection->getItemClass());
+            throw new ODMException("Persisting wrong object, expecting: " . $this->itemReflection->getItemClass());
         }
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (isset($this->itemManaged[$id])) {
@@ -406,7 +409,7 @@ class ItemRepository
      * @param bool   $isConsistentRead
      * @param bool   $isAscendingOrder
      *
-     * @return \SplDoublyLinkedList
+     * @return SplDoublyLinkedList
      */
     public function queryAll($conditions = '',
                              array $params = [],
@@ -415,7 +418,7 @@ class ItemRepository
                              $isConsistentRead = false,
                              $isAscendingOrder = true)
     {
-        $ret = new \SplDoublyLinkedList();
+        $ret = new SplDoublyLinkedList();
         $this->queryAndRun(
             function ($item) use ($ret) {
                 $ret->push($item);
@@ -599,7 +602,7 @@ class ItemRepository
      * @param bool   $isAscendingOrder
      * @param int    $parallel
      *
-     * @return \SplDoublyLinkedList
+     * @return SplDoublyLinkedList
      */
     public function scanAll($conditions = '',
                             array $params = [],
@@ -608,7 +611,7 @@ class ItemRepository
                             $isAscendingOrder = true,
                             $parallel = 1)
     {
-        $ret = new \SplDoublyLinkedList();
+        $ret = new SplDoublyLinkedList();
         $this->scanAndRun(
             function ($item) use ($ret) {
                 $ret->push($item);
@@ -667,7 +670,7 @@ class ItemRepository
             );
         }
         else {
-            throw new \InvalidArgumentException("Parallel can only be an integer greater than 0");
+            throw new InvalidArgumentException("Parallel can only be an integer greater than 0");
         }
     }
     

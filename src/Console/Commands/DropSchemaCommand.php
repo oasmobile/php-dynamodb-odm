@@ -13,6 +13,8 @@ use Oasis\Mlib\AwsWrappers\DynamoDbManager;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function GuzzleHttp\Promise\all;
+
 class DropSchemaCommand extends AbstractSchemaCommand
 {
     protected function configure()
@@ -51,8 +53,8 @@ class DropSchemaCommand extends AbstractSchemaCommand
             );
             $output->writeln('Deleted.');
         }
-        $output->writeln("Waiting for all talbes to be inactive");
-        \GuzzleHttp\Promise\all($waits)->wait();
+        $output->writeln("Waiting for all tables to be inactive");
+        all($waits)->wait();
         $output->writeln("Done.");
     }
 }
