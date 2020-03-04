@@ -17,9 +17,9 @@ use function is_string;
 
 class ManagedItemState
 {
-    const STATE_NEW     = 1;
-    const STATE_MANAGED = 2;
-    const STATE_REMOVED = 3;
+    public const STATE_NEW     = 1;
+    public const STATE_MANAGED = 2;
+    public const STATE_REMOVED = 3;
     
     /** @var  ItemReflection */
     protected $itemReflection;
