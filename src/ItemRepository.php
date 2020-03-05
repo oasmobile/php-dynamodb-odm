@@ -11,6 +11,7 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 use InvalidArgumentException;
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Driver;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\UnderlyingDatabaseException;
@@ -47,7 +48,8 @@ class ItemRepository
             $this->itemReflection->getAttributeTypes()
         );
     }
-    
+
+    // todo: need to replace implement with driver
     public function batchGet($groupOfKeys, $isConsistentRead = false)
     {
         /** @var string[] $fieldNameMapping */
@@ -103,7 +105,8 @@ class ItemRepository
         
         unset($this->itemManaged[$id]);
     }
-    
+
+    // todo: need to replace implement with driver
     public function flush()
     {
         $skipCAS               = $this->itemManager->shouldSkipCheckAndSet()
@@ -204,7 +207,8 @@ class ItemRepository
             unset($this->itemManaged[$id]);
         }
     }
-    
+
+    // todo: need to replace implement with driver
     public function get($keys, $isConsistentRead = false)
     {
         /** @var string[] $fieldNameMapping */
@@ -241,7 +245,8 @@ class ItemRepository
             throw new UnderlyingDatabaseException("Result returned from dynamodb is not an array!");
         }
     }
-    
+
+    // todo: need to replace implement with driver
     public function multiQueryAndRun(callable $callback,
                                      $hashKey,
                                      $hashKeyValues,
@@ -285,7 +290,8 @@ class ItemRepository
             $this->itemReflection->getProjectedAttributes()
         );
     }
-    
+
+    // todo: need to replace implement with driver
     public function multiQueryCount($hashKey,
                                     $hashKeyValues,
                                     $rangeConditions,
@@ -327,7 +333,8 @@ class ItemRepository
         
         return $count;
     }
-    
+
+    // todo: need to replace implement with driver
     public function parallelScanAndRun($parallel,
                                        callable $callback,
                                        $conditions = '',
@@ -369,7 +376,8 @@ class ItemRepository
         $managedState->setState(ManagedItemState::STATE_NEW);
         $this->itemManaged[$id] = $managedState;
     }
-    
+
+    // todo: need to replace implement with driver
     public function query($conditions,
                           array $params,
                           $indexName = DynamoDbIndex::PRIMARY_INDEX,
@@ -410,6 +418,7 @@ class ItemRepository
      * @param bool   $isAscendingOrder
      *
      * @return SplDoublyLinkedList
+     *
      */
     public function queryAll($conditions = '',
                              array $params = [],
@@ -433,7 +442,8 @@ class ItemRepository
         
         return $ret;
     }
-    
+
+    // todo: need to replace implement with driver
     public function queryAndRun(callable $callback,
                                 $conditions = '',
                                 array $params = [],
@@ -459,7 +469,8 @@ class ItemRepository
             $this->itemReflection->getProjectedAttributes()
         );
     }
-    
+
+    // todo: need to replace implement with driver
     public function queryCount($conditions,
                                array $params,
                                $indexName = DynamoDbIndex::PRIMARY_INDEX,
@@ -564,7 +575,8 @@ class ItemRepository
             $this->remove($obj);
         }
     }
-    
+
+    // todo: need to replace implement with driver
     public function scan($conditions = '',
                          array $params = [],
                          $indexName = DynamoDbIndex::PRIMARY_INDEX,
@@ -626,7 +638,8 @@ class ItemRepository
         
         return $ret;
     }
-    
+
+    // todo: need to replace implement with driver
     public function scanAndRun(callable $callback,
                                $conditions = '',
                                array $params = [],
@@ -673,7 +686,8 @@ class ItemRepository
             throw new InvalidArgumentException("Parallel can only be an integer greater than 0");
         }
     }
-    
+
+    // todo: need to replace implement with driver
     public function scanCount($conditions = '',
                               array $params = [],
                               $indexName = DynamoDbIndex::PRIMARY_INDEX,
@@ -697,7 +711,10 @@ class ItemRepository
      * @deprecated  this interface might be removed any time in the future
      *
      * @return DynamoDbTable
+     *
+     *
      */
+    // todo: need to replace implement with driver
     public function getDynamodbTable()
     {
         return $this->dynamodbTable;

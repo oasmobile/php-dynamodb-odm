@@ -188,8 +188,17 @@ class ItemManager
     
     /**
      * @return array
+     * @deprecated use getDatabaseConfig() instead
      */
     public function getDynamodbConfig()
+    {
+        return $this->dynamodbConfig;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDatabaseConfig()
     {
         return $this->dynamodbConfig;
     }
@@ -242,6 +251,7 @@ class ItemManager
             $repo                           = new $repoClass(
                 $reflection,
                 $this
+                //todo: set driver here
             );
             $this->repositories[$itemClass] = $repo;
         }
