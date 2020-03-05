@@ -50,7 +50,8 @@ class ItemManager
      * @var bool
      */
     protected $skipCheckAndSet = false;
-    
+
+    /** @noinspection PhpDeprecationInspection */
     public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
         $this->dynamodbConfig     = $dynamodbConfig;
@@ -188,7 +189,7 @@ class ItemManager
     
     /**
      * @return array
-     * @deprecated use getDatabaseConfig() instead
+     * todo: set deprecated and recommend getDatabaseConfig() instead
      */
     public function getDynamodbConfig()
     {

@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpParamsInspection */
+<?php
 
 /**
  * Created by PhpStorm.
@@ -161,7 +161,8 @@ class ManagedItemState
     {
         $this->originalData = $this->itemReflection->dehydrate($this->item);
     }
-    
+
+    /** @noinspection PhpParamsInspection */
     protected function isDataEqual(&$a, &$b)
     {
         // empty string is considered null in dynamodb

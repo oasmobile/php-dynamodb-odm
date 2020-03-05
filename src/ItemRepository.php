@@ -11,7 +11,6 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 use InvalidArgumentException;
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
-use Oasis\Mlib\ODM\Dynamodb\DBAL\Driver;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\UnderlyingDatabaseException;
