@@ -83,7 +83,7 @@ class ItemRepository
             return $ret;
         }
         else {
-            throw new UnderlyingDatabaseException("Result returned from dynamodb for BatchGet() is not an array!");
+            throw new UnderlyingDatabaseException("Result returned from database for BatchGet() is not an array!");
         }
     }
 
@@ -240,7 +240,7 @@ class ItemRepository
             return null;
         }
         else {
-            throw new UnderlyingDatabaseException("Result returned from dynamodb is not an array!");
+            throw new UnderlyingDatabaseException("Result returned from database is not an array!");
         }
     }
 

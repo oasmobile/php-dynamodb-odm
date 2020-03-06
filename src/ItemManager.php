@@ -25,7 +25,7 @@ class ItemManager
      */
     protected $possibleItemClasses = [];
     
-    protected $dynamodbConfig;
+    protected $databaseConfig;
     protected $defaultTablePrefix;
     
     /** @var  AnnotationReader */
@@ -52,9 +52,9 @@ class ItemManager
     protected $skipCheckAndSet = false;
 
     /** @noinspection PhpDeprecationInspection */
-    public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
+    public function __construct(array $dbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
-        $this->dynamodbConfig     = $dynamodbConfig;
+        $this->databaseConfig     = $dbConfig;
         $this->defaultTablePrefix = $defaultTablePrefix;
         
         AnnotationRegistry::registerLoader([$this, 'loadAnnotationClass']);
@@ -201,7 +201,7 @@ class ItemManager
      */
     public function getDatabaseConfig()
     {
-        return $this->dynamodbConfig;
+        return $this->databaseConfig;
     }
     
     /**
