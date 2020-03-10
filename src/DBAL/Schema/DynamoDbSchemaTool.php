@@ -22,7 +22,7 @@ use function GuzzleHttp\Promise\all;
  * Class DynamoDbSchema
  * @package Oasis\Mlib\ODM\Dynamodb\DBAL\Schema
  */
-class DynamoDbSchema extends AbstractSchema
+class DynamoDbSchemaTool extends AbstractSchemaTool
 {
 
     public function createSchema($skipExisting, $dryRun)

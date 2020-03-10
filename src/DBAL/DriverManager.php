@@ -10,8 +10,8 @@ namespace Oasis\Mlib\ODM\Dynamodb\DBAL;
 
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\Connection;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
-use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\AbstractSchema;
-use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\DynamoDbSchema;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\AbstractSchemaTool;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\DynamoDbSchemaTool;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 
 /**
@@ -27,7 +27,7 @@ class DriverManager
     ];
 
     private static $schemaMap = [
-        self::DRIVER_DYNAMODB => DynamoDbSchema::class,
+        self::DRIVER_DYNAMODB => DynamoDbSchemaTool::class,
     ];
 
 
@@ -49,9 +49,9 @@ class DriverManager
      * @param  ItemManager  $im
      * @param  array  $classReflections
      * @param  callable  $outputFunction
-     * @return AbstractSchema
+     * @return AbstractSchemaTool
      */
-    public static function getSchema(ItemManager $im, $classReflections, callable $outputFunction = null)
+    public static function getSchemaTool(ItemManager $im, $classReflections, callable $outputFunction = null)
     {
         $driverName      = self::getDriverName($im->getDatabaseConfig());
         $schemaClassName = self::$schemaMap[$driverName];

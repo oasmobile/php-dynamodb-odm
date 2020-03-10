@@ -33,7 +33,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $isDryRun = $input->getOption('dry-run');
-        $schema   = DriverManager::getSchema(
+        $schema   = DriverManager::getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]

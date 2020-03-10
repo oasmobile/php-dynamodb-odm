@@ -14,7 +14,7 @@ use Oasis\Mlib\ODM\Dynamodb\ItemManager;
  * Class AbstractSchema
  * @package Oasis\Mlib\ODM\Dynamodb\DBAL\Schema
  */
-abstract class AbstractSchema
+abstract class AbstractSchemaTool
 {
     /**
      * @var ItemManager

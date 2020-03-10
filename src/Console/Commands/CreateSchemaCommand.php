@@ -36,7 +36,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         $skipExisting = $input->getOption('skip-existing-table');
         $dryRun       = $input->getOption('dry-run');
 
-        $schema = DriverManager::getSchema(
+        $schema = DriverManager::getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]
