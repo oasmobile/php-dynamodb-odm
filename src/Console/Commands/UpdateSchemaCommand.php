@@ -33,13 +33,13 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $isDryRun = $input->getOption('dry-run');
-        $schema   = DriverManager::getSchemaTool(
+        $schemaTool   = DriverManager::getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]
         );
 
         // create tables
-        $schema->updateSchema($isDryRun);
+        $schemaTool->updateSchema($isDryRun);
     }
 }

@@ -24,13 +24,13 @@ class DropSchemaCommand extends AbstractSchemaCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $schema = DriverManager::getSchemaTool(
+        $schemaTool = DriverManager::getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]
         );
 
         // create tables
-        $schema->dropSchema();
+        $schemaTool->dropSchema();
     }
 }

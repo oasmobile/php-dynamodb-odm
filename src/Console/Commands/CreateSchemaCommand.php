@@ -36,14 +36,14 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         $skipExisting = $input->getOption('skip-existing-table');
         $dryRun       = $input->getOption('dry-run');
 
-        $schema = DriverManager::getSchemaTool(
+        $schemaTool = DriverManager::getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]
         );
 
         // create tables
-        $schema->createSchema($skipExisting, $dryRun);
+        $schemaTool->createSchema($skipExisting, $dryRun);
     }
 
 }
