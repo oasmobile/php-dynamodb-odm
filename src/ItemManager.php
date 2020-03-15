@@ -8,6 +8,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
+use Aws\DynamoDb\DynamoDbClient;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\CachedReader;
@@ -21,8 +22,10 @@ class ItemManager
      * @var string[]
      */
     protected $possibleItemClasses = [];
-    
-    protected $dynamodbConfig;
+
+    /** @var DynamoDbClient */
+    protected $dynamoDbClient;
+
     protected $defaultTablePrefix;
     
     /** @var  AnnotationReader */
@@ -48,9 +51,9 @@ class ItemManager
      */
     protected $skipCheckAndSet = false;
     
-    public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
+    public function __construct(DynamoDbClient $dbClient, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
-        $this->dynamodbConfig     = $dynamodbConfig;
+        $this->dynamoDbClient     = $dbClient;
         $this->defaultTablePrefix = $defaultTablePrefix;
         
         AnnotationRegistry::registerLoader([$this, 'loadAnnotationClass']);
@@ -184,13 +187,10 @@ class ItemManager
     {
         return $this->defaultTablePrefix;
     }
-    
-    /**
-     * @return array
-     */
-    public function getDynamodbConfig()
+
+    public function getDynamoDbClient(): ?DynamoDbClient
     {
-        return $this->dynamodbConfig;
+        return $this->dynamoDbClient;
     }
     
     /**

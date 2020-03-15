@@ -5,7 +5,7 @@
     "require"     : {
         "php"                 : "^7.2",
         "doctrine/annotations": "^1.4",
-        "oasis/aws-wrappers"  : "dev-object-handling",
+        "oasis/aws-wrappers"  : "dev-move-to-using-db-client",
         "oasis/logging"       : "^1.0",
         "doctrine/common"     : "^2.7",
         "symfony/console"     : "^5.0",

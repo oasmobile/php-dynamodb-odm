@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8d8080b0862b2fcb0cf29469c438c98c",
+    "content-hash": "cdd4d3e917b66d2f1a8265c9a273253e",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.133.34",
+            "version": "3.133.36",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "02131fd17c9b62f36993bb2da88dd624ce058179"
+                "reference": "59e824e235220730a8e1d276d036a9f085486512"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/02131fd17c9b62f36993bb2da88dd624ce058179",
-                "reference": "02131fd17c9b62f36993bb2da88dd624ce058179",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/59e824e235220730a8e1d276d036a9f085486512",
+                "reference": "59e824e235220730a8e1d276d036a9f085486512",
                 "shasum": ""
             },
             "require": {
@@ -88,7 +88,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2020-03-11T18:17:17+00:00"
+            "time": "2020-03-13T18:09:32+00:00"
         },
         {
             "name": "bramus/ansi-php",
@@ -1209,16 +1209,16 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "dev-object-handling",
+            "version": "dev-move-to-using-db-client",
             "source": {
                 "type": "git",
                 "url": "https://github.com/victormacko/php-aws-wrappers.git",
-                "reference": "61c972238078168bb7481eb0e017e5eefa77a2b0"
+                "reference": "9f4211da7b4f25a2d6f8d524a4ec838b915f78a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/victormacko/php-aws-wrappers/zipball/61c972238078168bb7481eb0e017e5eefa77a2b0",
-                "reference": "61c972238078168bb7481eb0e017e5eefa77a2b0",
+                "url": "https://api.github.com/repos/victormacko/php-aws-wrappers/zipball/9f4211da7b4f25a2d6f8d524a4ec838b915f78a1",
+                "reference": "9f4211da7b4f25a2d6f8d524a4ec838b915f78a1",
                 "shasum": ""
             },
             "require": {
@@ -1254,9 +1254,9 @@
             ],
             "description": "Wrappers for AWS SDK",
             "support": {
-                "source": "https://github.com/victormacko/php-aws-wrappers/tree/object-handling"
+                "source": "https://github.com/victormacko/php-aws-wrappers/tree/move-to-using-db-client"
             },
-            "time": "2020-03-11T23:58:09+00:00"
+            "time": "2020-03-15T06:47:02+00:00"
         },
         {
             "name": "oasis/event",
