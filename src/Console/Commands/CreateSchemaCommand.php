@@ -37,7 +37,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
         $skipExisting  = $input->getOption('skip-existing-table');
         $dryRun        = $input->getOption('dry-run');
         $im            = $this->getItemManager();
-        $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
+        $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamoDbClient());
         
         $classes = $this->getManagedItemClasses();
         foreach ($classes as $class => $reflection) {

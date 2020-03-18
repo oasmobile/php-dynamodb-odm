@@ -115,6 +115,8 @@ class ItemReflection
             if ($fieldDefinition->type == "string") {
                 // cast to string because dynamo stores "" as null
                 $value = strval($value);
+            } else if($fieldDefinition->type == 'object') {
+                $value = $value ? unserialize(($value)) : null;
             }
             $this->updateProperty($obj, $propertyName, $value);
         }

@@ -37,7 +37,7 @@ class ItemRepository
         // initialize table
         $tableName           = $itemManager->getDefaultTablePrefix() . $this->itemReflection->getTableName();
         $this->dynamodbTable = new DynamoDbTable(
-            $itemManager->getDynamodbConfig(),
+            $itemManager->getDynamoDbClient(),
             $tableName,
             $this->itemReflection->getAttributeTypes()
         );

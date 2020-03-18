@@ -38,7 +38,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
         $isDryRun      = $input->getOption('dry-run');
         $classes       = $this->getManagedItemClasses();
         $im            = $this->getItemManager();
-        $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
+        $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamoDbClient());
         
         $classCreation = [];
         $gsiChanges    = [];
@@ -94,7 +94,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             }
             else {
                 // will update
-                $table = new DynamoDbTable($this->getItemManager()->getDynamodbConfig(), $tableName);
+                $table = new DynamoDbTable($this->getItemManager()->getDynamoDbClient(), $tableName);
                 
                 $itemDef          = $reflection->getItemDefinition();
                 $attributeTypes   = $reflection->getAttributeTypes();

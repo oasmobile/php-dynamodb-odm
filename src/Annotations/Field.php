@@ -29,7 +29,7 @@ class Field
     public $name = null;
     /**
      * @var string
-     * @Enum(value={"string", "number", "binary", "bool", "null", "list", "map"})
+     * @Enum(value={"string", "number", "binary", "bool", "null", "list", "map", "object"})
      */
     public $type = 'string';
     /**
