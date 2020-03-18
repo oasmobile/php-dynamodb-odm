@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpVariableVariableInspection */
+
 /**
  * Created by PhpStorm.
  * User: minhao

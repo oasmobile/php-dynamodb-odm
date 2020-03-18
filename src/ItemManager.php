@@ -15,6 +15,9 @@ use Doctrine\Common\Cache\FilesystemCache;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Finder\Finder;
 
+use function is_dir;
+use function mwarning;
+
 class ItemManager
 {
     /**
@@ -22,14 +25,14 @@ class ItemManager
      */
     protected $possibleItemClasses = [];
     
-    protected $dynamodbConfig;
+    protected $databaseConfig;
     protected $defaultTablePrefix;
     
     /** @var  AnnotationReader */
     protected $reader;
     /**
      * @var ItemReflection[]
-     * Maps item class to item relfection
+     * Maps item class to item reflection
      */
     protected $itemReflections;
     /**
@@ -47,10 +50,11 @@ class ItemManager
      * @var bool
      */
     protected $skipCheckAndSet = false;
-    
-    public function __construct(array $dynamodbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
+
+    /** @noinspection PhpDeprecationInspection */
+    public function __construct(array $dbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
-        $this->dynamodbConfig     = $dynamodbConfig;
+        $this->databaseConfig     = $dbConfig;
         $this->defaultTablePrefix = $defaultTablePrefix;
         
         AnnotationRegistry::registerLoader([$this, 'loadAnnotationClass']);
@@ -64,8 +68,8 @@ class ItemManager
     
     public function addNamespace($namespace, $srcDir)
     {
-        if (!\is_dir($srcDir)) {
-            \mwarning("Directory %s doesn't exist.", $srcDir);
+        if (!is_dir($srcDir)) {
+            mwarning("Directory %s doesn't exist.", $srcDir);
             
             return;
         }
@@ -116,9 +120,7 @@ class ItemManager
     
     public function get($itemClass, array $keys, $consistentRead = false)
     {
-        $item = $this->getRepository($itemClass)->get($keys, $consistentRead);
-        
-        return $item;
+        return $this->getRepository($itemClass)->get($keys, $consistentRead);
     }
     
     /**
@@ -187,10 +189,19 @@ class ItemManager
     
     /**
      * @return array
+     * todo: set deprecated and recommend getDatabaseConfig() instead
      */
     public function getDynamodbConfig()
     {
-        return $this->dynamodbConfig;
+        return $this->getDatabaseConfig();
+    }
+
+    /**
+     * @return array
+     */
+    public function getDatabaseConfig()
+    {
+        return $this->databaseConfig;
     }
     
     /**
@@ -213,7 +224,7 @@ class ItemManager
     }
     
     /**
-     * @return \string[]
+     * @return string[]
      */
     public function getPossibleItemClasses()
     {

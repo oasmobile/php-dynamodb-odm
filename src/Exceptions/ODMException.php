@@ -8,7 +8,9 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Exceptions;
 
-class ODMException extends \RuntimeException
+use RuntimeException;
+
+class ODMException extends RuntimeException
 {
     
 }
