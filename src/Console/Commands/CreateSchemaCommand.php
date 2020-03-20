@@ -8,7 +8,6 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Console\Commands;
 
-use Oasis\Mlib\ODM\Dynamodb\DBAL\DriverManager;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,8 +34,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
     {
         $skipExisting = $input->getOption('skip-existing-table');
         $dryRun       = $input->getOption('dry-run');
-
-        $schemaTool = DriverManager::getSchemaTool(
+        $schemaTool   = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]

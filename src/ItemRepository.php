@@ -10,7 +10,6 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 
 use InvalidArgumentException;
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
-use Oasis\Mlib\ODM\Dynamodb\DBAL\DriverManager;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\Connection;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
@@ -44,11 +43,9 @@ class ItemRepository
 
         // initialize database connection
         $tableName          = $itemManager->getDefaultTablePrefix().$itemReflection->getTableName();
-        $this->dbConnection = DriverManager::getConnection(
-            $tableName,
-            $itemManager->getDatabaseConfig(),
-            $itemReflection->getAttributeTypes()
-        );
+        $this->dbConnection = $itemManager->createDBConnection();
+        $this->dbConnection->setTableName($tableName);
+        $this->dbConnection->setAttributeTypes($itemReflection->getAttributeTypes());
     }
 
     public function batchGet($groupOfKeys, $isConsistentRead = false)

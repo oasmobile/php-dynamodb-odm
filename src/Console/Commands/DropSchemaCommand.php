@@ -8,7 +8,6 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Console\Commands;
 
-use Oasis\Mlib\ODM\Dynamodb\DBAL\DriverManager;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -24,7 +23,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $schemaTool = DriverManager::getSchemaTool(
+        $schemaTool = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]

@@ -8,13 +8,30 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers;
 
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\AbstractSchemaTool;
+use Oasis\Mlib\ODM\Dynamodb\ItemManager;
+
 /**
  * Interface Driver
  * @package Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers
  */
 interface Connection
 {
-    public function __construct($tableName, $dbConfig, $attributeTypes);
+    public function __construct($dbConfig);
+
+    public function getDatabaseConfig();
+
+    /**
+     * @param  ItemManager  $im
+     * @param $classReflections
+     * @param  callable|null  $outputFunction
+     * @return AbstractSchemaTool
+     */
+    public function getSchemaTool(ItemManager $im, $classReflections, callable $outputFunction = null);
+
+    public function setTableName($tableName);
+
+    public function setAttributeTypes($tableName);
 
     public function batchGet(
         array $keys,
