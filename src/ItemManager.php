@@ -308,9 +308,12 @@ class ItemManager
     }
 
     /**
+     *
+     * Get a new database connection
+     *
      * @return Connection
      */
-    public function getDatabaseConnection()
+    public function createDBConnection()
     {
         if ($this->dbConnection instanceof Connection) {
             return clone $this->dbConnection;

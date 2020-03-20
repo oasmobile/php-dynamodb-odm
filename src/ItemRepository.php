@@ -43,7 +43,7 @@ class ItemRepository
 
         // initialize database connection
         $tableName          = $itemManager->getDefaultTablePrefix().$itemReflection->getTableName();
-        $this->dbConnection = $itemManager->getDatabaseConnection();
+        $this->dbConnection = $itemManager->createDBConnection();
         $this->dbConnection->setTableName($tableName);
         $this->dbConnection->setAttributeTypes($itemReflection->getAttributeTypes());
     }

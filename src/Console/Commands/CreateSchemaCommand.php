@@ -34,7 +34,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
     {
         $skipExisting = $input->getOption('skip-existing-table');
         $dryRun       = $input->getOption('dry-run');
-        $schemaTool   = $this->getItemManager()->getDatabaseConnection()->getSchemaTool(
+        $schemaTool   = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]

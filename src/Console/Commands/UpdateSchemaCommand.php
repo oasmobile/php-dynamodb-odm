@@ -32,7 +32,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $isDryRun = $input->getOption('dry-run');
-        $schemaTool = $this->getItemManager()->getDatabaseConnection()->getSchemaTool(
+        $schemaTool = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]

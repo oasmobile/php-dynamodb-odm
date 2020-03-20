@@ -23,7 +23,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $schemaTool = $this->getItemManager()->getDatabaseConnection()->getSchemaTool(
+        $schemaTool = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
             $this->getManagedItemClasses(),
             [$output, "writeln"]
