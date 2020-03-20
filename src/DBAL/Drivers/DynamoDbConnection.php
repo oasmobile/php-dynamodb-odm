@@ -11,26 +11,45 @@ namespace Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers;
 
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\DynamoDbSchemaTool;
+use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
+use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 
 /**
  * Class DynamoDbConnection
  * @package Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers
  */
-class DynamoDbConnection implements Connection
+class DynamoDbConnection extends AbstractDbConnection
 {
     /**
-     * @var  DynamoDbTable
+     * @var DynamoDbTable
      */
-    protected $dynamodbTable;
+    private $dynamodbTable = null;
 
-    public function __construct($tableName, $dbConfig, $attributeTypes)
+    /**
+     * @return DynamoDbTable
+     */
+    protected function getDynamodbTable()
     {
-        // initialize table
+        if ($this->dynamodbTable !== null) {
+            return $this->dynamodbTable;
+        }
+
+        if (empty($this->tableName)) {
+            throw new ODMException("Unknown table name to initialize DynamoDbTable client");
+        }
+
+        if (empty($this->attributeTypes)) {
+            throw new ODMException("Unknown attribute types to initialize DynamoDbTable client");
+        }
+
         $this->dynamodbTable = new DynamoDbTable(
-            $dbConfig,
-            $tableName,
-            $attributeTypes
+            $this->dbConfig,
+            $this->tableName,
+            $this->attributeTypes
         );
+
+        return $this->dynamodbTable;
     }
 
     public function batchGet(
@@ -42,7 +61,7 @@ class DynamoDbConnection implements Connection
         $retryDelay = 0,
         $maxDelay = 15000
     ) {
-        return $this->dynamodbTable->batchGet(
+        return $this->getDynamodbTable()->batchGet(
             $keys,
             $isConsistentRead,
             $concurrency,
@@ -55,22 +74,22 @@ class DynamoDbConnection implements Connection
 
     public function batchDelete(array $objs, $concurrency = 10, $maxDelay = 15000)
     {
-        $this->dynamodbTable->batchDelete($objs, $concurrency, $maxDelay);
+        $this->getDynamodbTable()->batchDelete($objs, $concurrency, $maxDelay);
     }
 
     public function batchPut(array $objs, $concurrency = 10, $maxDelay = 15000)
     {
-        $this->dynamodbTable->batchPut($objs, $concurrency, $maxDelay);
+        $this->getDynamodbTable()->batchPut($objs, $concurrency, $maxDelay);
     }
 
     public function set(array $obj, $checkValues = [])
     {
-        return $this->dynamodbTable->set($obj, $checkValues);
+        return $this->getDynamodbTable()->set($obj, $checkValues);
     }
 
     public function get(array $keys, $is_consistent_read = false, $projectedFields = [])
     {
-        return $this->dynamodbTable->get($keys, $is_consistent_read, $projectedFields);
+        return $this->getDynamodbTable()->get($keys, $is_consistent_read, $projectedFields);
     }
 
     public function query(
@@ -85,7 +104,7 @@ class DynamoDbConnection implements Connection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        return $this->dynamodbTable->query(
+        return $this->getDynamodbTable()->query(
             $keyConditions,
             $fieldsMapping,
             $paramsMapping,
@@ -110,7 +129,7 @@ class DynamoDbConnection implements Connection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        $this->dynamodbTable->queryAndRun(
+        $this->getDynamodbTable()->queryAndRun(
             $callback,
             $keyConditions,
             $fieldsMapping,
@@ -132,7 +151,7 @@ class DynamoDbConnection implements Connection
         $isConsistentRead = false,
         $isAscendingOrder = true
     ) {
-        return $this->dynamodbTable->queryCount(
+        return $this->getDynamodbTable()->queryCount(
             $keyConditions,
             $fieldsMapping,
             $paramsMapping,
@@ -158,7 +177,7 @@ class DynamoDbConnection implements Connection
         $concurrency = 10,
         $projectedFields = []
     ) {
-        $this->dynamodbTable->multiQueryAndRun(
+        $this->getDynamodbTable()->multiQueryAndRun(
             $callback,
             $hashKeyName,
             $hashKeyValues,
@@ -186,7 +205,7 @@ class DynamoDbConnection implements Connection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        return $this->dynamodbTable->scan(
+        return $this->getDynamodbTable()->scan(
             $filterExpression,
             $fieldsMapping,
             $paramsMapping,
@@ -209,7 +228,7 @@ class DynamoDbConnection implements Connection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        $this->dynamodbTable->scanAndRun(
+        $this->getDynamodbTable()->scanAndRun(
             $callback,
             $filterExpression,
             $fieldsMapping,
@@ -232,7 +251,7 @@ class DynamoDbConnection implements Connection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        $this->dynamodbTable->parallelScanAndRun(
+        $this->getDynamodbTable()->parallelScanAndRun(
             $parallel,
             $callback,
             $filterExpression,
@@ -253,7 +272,7 @@ class DynamoDbConnection implements Connection
         $isConsistentRead = false,
         $parallel = 10
     ) {
-        return $this->dynamodbTable->scanCount(
+        return $this->getDynamodbTable()->scanCount(
             $filterExpression,
             $fieldsMapping,
             $paramsMapping,
@@ -261,5 +280,16 @@ class DynamoDbConnection implements Connection
             $isConsistentRead,
             $parallel
         );
+    }
+
+    /**
+     * @param  ItemManager  $im
+     * @param $classReflections
+     * @param  callable|null  $outputFunction
+     * @return DynamoDbSchemaTool
+     */
+    public function getSchemaTool(ItemManager $im, $classReflections, callable $outputFunction = null)
+    {
+        return new DynamoDbSchemaTool($im, $classReflections, $outputFunction);
     }
 }

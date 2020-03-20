@@ -8,10 +8,13 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
+use Doctrine\Common\Annotations\AnnotationException;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Cache\FilesystemCache;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\Connection;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Finder\Finder;
 
@@ -51,10 +54,32 @@ class ItemManager
      */
     protected $skipCheckAndSet = false;
 
-    /** @noinspection PhpDeprecationInspection */
-    public function __construct(array $dbConfig, $defaultTablePrefix, $cacheDir, $isDev = true)
+    /**
+     * @var Connection
+     */
+    protected $dbConnection = null;
+
+
+    /**
+     * ItemManager constructor.
+     *
+     * @param  array|Connection  $dbCnn
+     * @param  string  $defaultTablePrefix
+     * @param  string  $cacheDir
+     * @param  bool  $isDev
+     * @throws AnnotationException
+     *
+     * @noinspection PhpDeprecationInspection
+     */
+    public function __construct($dbCnn, $defaultTablePrefix, $cacheDir, $isDev = true)
     {
-        $this->databaseConfig     = $dbConfig;
+        if ($dbCnn instanceof Connection) {
+            $this->dbConnection = $dbCnn;
+        }
+        else {
+            $this->databaseConfig = $dbCnn;
+        }
+
         $this->defaultTablePrefix = $defaultTablePrefix;
         
         AnnotationRegistry::registerLoader([$this, 'loadAnnotationClass']);
@@ -201,6 +226,10 @@ class ItemManager
      */
     public function getDatabaseConfig()
     {
+        if ($this->dbConnection instanceof Connection) {
+            return $this->dbConnection->getDatabaseConfig();
+        }
+
         return $this->databaseConfig;
     }
     
@@ -277,5 +306,19 @@ class ItemManager
     {
         $this->reservedAttributeNames = $reservedAttributeNames;
     }
-    
+
+    /**
+     * @return Connection
+     */
+    public function getDatabaseConnection()
+    {
+        if ($this->dbConnection instanceof Connection) {
+            return clone $this->dbConnection;
+        }
+        else {
+            // default database connection
+            return new DynamoDbConnection($this->getDatabaseConfig());
+        }
+    }
+
 }
