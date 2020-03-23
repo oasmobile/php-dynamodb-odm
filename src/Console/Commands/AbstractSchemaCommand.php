@@ -8,9 +8,10 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Console\Commands;
 
+use Exception;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\NotAnnotatedException;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
-use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
+use ReflectionException;
 use Symfony\Component\Console\Command\Command;
 
 abstract class AbstractSchemaCommand extends Command
@@ -39,7 +40,7 @@ abstract class AbstractSchemaCommand extends Command
     }
     
     /**
-     * @return ItemReflection[]
+     * @noinspection PhpRedundantCatchClauseInspection
      */
     protected function getManagedItemClasses()
     {
@@ -49,10 +50,10 @@ abstract class AbstractSchemaCommand extends Command
                 $reflection = $this->itemManager->getItemReflection($class);
             } catch (NotAnnotatedException $e) {
                 continue;
-            } catch (\ReflectionException $e) {
+            } catch (ReflectionException $e) {
                 continue;
-            } catch (\Exception $e) {
-                mtrace($e, "Annotation parsing exceptionf found: ", 'error');
+            } catch (Exception $e) {
+                mtrace($e, "Annotation parsing exception found: ", 'error');
                 throw $e;
             }
             $classes[$class] = $reflection;

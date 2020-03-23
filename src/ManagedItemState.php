@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -11,11 +12,14 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
+use function is_null;
+use function is_string;
+
 class ManagedItemState
 {
-    const STATE_NEW     = 1;
-    const STATE_MANAGED = 2;
-    const STATE_REMOVED = 3;
+    public const STATE_NEW     = 1;
+    public const STATE_MANAGED = 2;
+    public const STATE_REMOVED = 3;
     
     /** @var  ItemReflection */
     protected $itemReflection;
@@ -49,7 +53,7 @@ class ManagedItemState
     }
     
     /**
-     * @return boolean
+     * @return bool
      */
     public function isNew()
     {
@@ -57,7 +61,7 @@ class ManagedItemState
     }
     
     /**
-     * @return boolean
+     * @return bool
      */
     public function isRemoved()
     {
@@ -157,13 +161,14 @@ class ManagedItemState
     {
         $this->originalData = $this->itemReflection->dehydrate($this->item);
     }
-    
+
+    /** @noinspection PhpParamsInspection */
     protected function isDataEqual(&$a, &$b)
     {
         // empty string is considered null in dynamodb
         if (
-            (\is_null($a) && \is_string($b) && $b === '')
-            || (\is_null($b) && \is_string($a) && $a === '')
+            (is_null($a) && is_string($b) && $b === '')
+            || (is_null($b) && is_string($a) && $a === '')
         ) {
             return true;
         }

@@ -19,9 +19,9 @@ use Doctrine\Common\Annotations\Annotation\Target;
  */
 class Field
 {
-    const CAS_DISABLED  = 'disabled';
-    const CAS_ENABLED   = 'enabled';
-    const CAS_TIMESTAMP = 'timestamp';
+    public const CAS_DISABLED  = 'disabled';
+    public const CAS_ENABLED   = 'enabled';
+    public const CAS_TIMESTAMP = 'timestamp';
     
     /**
      * @var string

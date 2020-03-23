@@ -9,11 +9,13 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
+use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
+use PHPUnit_Framework_TestCase;
 
-class ItemManagerTest extends \PHPUnit_Framework_TestCase
+class ItemManagerTest extends PHPUnit_Framework_TestCase
 {
     /** @var  ItemManager */
     protected $itemManager;
@@ -27,7 +29,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
             UTConfig::$dynamodbConfig, UTConfig::$tablePrefix, __DIR__ . "/cache", true
         );
         $this->itemManager2 = new ItemManager(
-            UTConfig::$dynamodbConfig, UTConfig::$tablePrefix, __DIR__ . "/cache", true
+            new DynamoDbConnection(UTConfig::$dynamodbConfig), UTConfig::$tablePrefix, __DIR__ . "/cache", true
         );
     }
     
@@ -73,11 +75,12 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
         
         $this->assertNull($user3);
     }
-    
+
     /**
      * @depends testPersistAndGet
      *
      * @param $id
+     * @return string
      */
     public function testEdit($id)
     {
@@ -124,6 +127,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      * @depends testEdit
      *
      * @param $id
+     * @return string
      */
     public function testCASTimestamp($id)
     {
@@ -229,6 +233,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      * @depends testCASTimestamp
      *
      * @param $id
+     * @return string
      */
     public function testRefresh($id)
     {
@@ -313,6 +318,7 @@ class ItemManagerTest extends \PHPUnit_Framework_TestCase
      * @depends testRefresh
      *
      * @param $id
+     * @return string
      */
     public function testDetach($id)
     {
