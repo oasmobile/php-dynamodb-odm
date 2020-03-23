@@ -46,6 +46,7 @@ class ItemRepository
         $this->dbConnection = $itemManager->createDBConnection();
         $this->dbConnection->setTableName($tableName);
         $this->dbConnection->setAttributeTypes($itemReflection->getAttributeTypes());
+        $this->dbConnection->setItemReflection($itemReflection);
     }
 
     public function batchGet($groupOfKeys, $isConsistentRead = false)

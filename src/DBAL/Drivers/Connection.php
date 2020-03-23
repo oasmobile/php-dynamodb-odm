@@ -10,6 +10,7 @@ namespace Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers;
 
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\AbstractSchemaTool;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
+use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
 
 /**
  * Interface Driver
@@ -32,6 +33,8 @@ interface Connection
     public function setTableName($tableName);
 
     public function setAttributeTypes($tableName);
+
+    public function setItemReflection(ItemReflection $itemReflection);
 
     public function batchGet(
         array $keys,
