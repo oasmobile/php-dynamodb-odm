@@ -182,7 +182,7 @@
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.6_
   - [x] 4.8 Checkpoint: 验证 Attribute 单元测试全部通过，commit
 
-- [-] 5. ItemReflection 解析迁移
+- [x] 5. ItemReflection 解析迁移
   - [x] 5.1 适配 `ItemReflection` 单元测试到新 API（RED）
     - 更新 `ut/Unit/ItemReflectionTest.php`：移除 `AnnotationReader` / `Reader` 相关代码
     - 调用 `parse()` 时不传参数（新签名 `parse(): void`）
@@ -202,16 +202,16 @@
     - 执行 `vendor/bin/phpunit --testsuite unit --filter ItemReflectionTest`
     - 确认所有测试从 RED 变为 GREEN
     - _Requirements: 4.1, 4.2, 10.2_
-  - [-] 5.4 Checkpoint: 验证 ItemReflection 单元测试全部通过，commit
+  - [x] 5.4 Checkpoint: 验证 ItemReflection 单元测试全部通过，commit
 
-- [~] 6. ItemManager 构造函数简化
-  - [ ] 6.1 适配 `ItemManager` 单元测试到新 API（RED）
+- [-] 6. ItemManager 构造函数简化
+  - [x] 6.1 适配 `ItemManager` 单元测试到新 API（RED）
     - 更新 `ut/Unit/ItemManagerTest.php`：构造 `ItemManager` 时仅传 2 参数（`$dbCnn` 和 `$prefix`）
     - 移除对 `getReader()` 和 `loadAnnotationClass()` 的测试
     - 新增测试 `getItemReflection()` 调用 `parse()` 无参数
     - 此时测试应 **失败**（RED），因为构造函数仍为 4 参数
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 10.5_
-  - [ ] 6.2 简化 `ItemManager::__construct()` 为 2 参数
+  - [x] 6.2 简化 `ItemManager::__construct()` 为 2 参数
     - 移除 `$cacheDir` 和 `$isDev` 参数
     - 移除 `AnnotationRegistry::registerLoader()`、`CachedReader`、`AnnotationReader`、`FilesystemCache` 相关代码
     - 移除 `$reader` 属性、`getReader()` 方法、`loadAnnotationClass()` 方法
@@ -219,11 +219,11 @@
     - `getItemReflection()` 调用 `$reflection->parse()` 不传参数
     - 使用 constructor promotion 和 union type：`array|Connection $dbCnn`
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
-  - [ ] 6.3 运行 `ItemManager` 单元测试验证全部通过（GREEN）
+  - [x] 6.3 运行 `ItemManager` 单元测试验证全部通过（GREEN）
     - 执行 `vendor/bin/phpunit --testsuite unit --filter ItemManagerTest`
     - 确认所有测试从 RED 变为 GREEN
     - _Requirements: 5.1, 5.2, 10.5_
-  - [ ] 6.4 Checkpoint: 验证 ItemManager 单元测试全部通过，commit
+  - [-] 6.4 Checkpoint: 验证 ItemManager 单元测试全部通过，commit
 
 - [ ] 7. PHP 8.x 语法全面升级
   - [ ] 7.1 升级 `ItemReflection.php` 语法
