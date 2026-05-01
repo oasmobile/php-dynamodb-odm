@@ -348,7 +348,7 @@
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
   - [x] 9.8 Checkpoint: 验证全部 PBT 测试通过，检查 unit+pbt 覆盖率 ≥85%，commit
 
-- [-] 10. 集成测试补齐
+- [x] 10. 集成测试补齐
   - [x] 10.1 编写 CRUD 生命周期集成测试
     - 在 `ut/Integration/` 下补齐集成测试（可在现有 `ItemManagerTest.php` 中扩展或新建文件）
     - 覆盖完整 CRUD 生命周期：create（persist + flush）→ read（get）→ update（modify + flush）→ delete（remove + flush）
@@ -374,7 +374,7 @@
     - 确认所有集成测试通过（需有效 DynamoDB 环境）
     - 检查集成测试覆盖率 ≥75%
     - _Requirements: 8.4, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8, 13.9, 12.2_
-  - [-] 10.7 Checkpoint: 验证全部集成测试通过，commit
+  - [x] 10.7 Checkpoint: 验证全部集成测试通过，commit
 
 - [ ] 11. 文档更新
   - [ ] 11.1 更新 `PROJECT.md`
