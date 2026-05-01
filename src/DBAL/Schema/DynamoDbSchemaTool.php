@@ -25,7 +25,7 @@ use function GuzzleHttp\Promise\all;
 class DynamoDbSchemaTool extends AbstractSchemaTool
 {
 
-    public function createSchema($skipExisting, $dryRun)
+    public function createSchema(bool $skipExisting, bool $dryRun): void
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
 
@@ -102,7 +102,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
     }
 
     /** @noinspection PhpStatementHasEmptyBodyInspection */
-    public function updateSchema($isDryRun)
+    public function updateSchema(bool $isDryRun): void
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         $classes       = $this->getManagedItemClasses();
@@ -250,10 +250,6 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                                     $table->deleteGlobalSecondaryIndex($idx->getName());
                                     $this->outputWrite("Will wait for deletion of GSI ".$idx->getName()." ...");
                                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
-                                    //$output->writeln(
-                                    //    "Will sleep 3 seconds before creating new GSI. If the creation fails, you can feel free to run update command again."
-                                    //);
-                                    //sleep(3);
                                     $table->addGlobalSecondaryIndex($idx);
                                     $this->outputWrite("Will wait for creation of GSI ".$idx->getName()." ...");
                                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
@@ -324,7 +320,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
         }
     }
 
-    public function dropSchema()
+    public function dropSchema(): void
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         $classes       = $this->getManagedItemClasses();

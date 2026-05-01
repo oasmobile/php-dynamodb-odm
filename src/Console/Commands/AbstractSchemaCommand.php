@@ -16,25 +16,16 @@ use Symfony\Component\Console\Command\Command;
 
 abstract class AbstractSchemaCommand extends Command
 {
-    /** @var  ItemManager */
-    protected $itemManager;
+    protected ?ItemManager $itemManager = null;
     
-    /**
-     * @param ItemManager $itemManager
-     *
-     * @return AbstractSchemaCommand
-     */
-    public function withItemManager($itemManager)
+    public function withItemManager(ItemManager $itemManager): static
     {
         $this->itemManager = $itemManager;
         
         return $this;
     }
     
-    /**
-     * @return ItemManager
-     */
-    public function getItemManager()
+    public function getItemManager(): ItemManager
     {
         return $this->itemManager;
     }
@@ -42,7 +33,7 @@ abstract class AbstractSchemaCommand extends Command
     /**
      * @noinspection PhpRedundantCatchClauseInspection
      */
-    protected function getManagedItemClasses()
+    protected function getManagedItemClasses(): array
     {
         $classes = [];
         foreach ($this->itemManager->getPossibleItemClasses() as $class) {

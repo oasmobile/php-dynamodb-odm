@@ -16,48 +16,34 @@ use Oasis\Mlib\ODM\Dynamodb\ItemManager;
  */
 abstract class AbstractSchemaTool
 {
-    /**
-     * @var ItemManager
-     */
-    protected $itemManager;
+    /** @var callable|null */
+    protected mixed $outputFunction;
 
-    /**
-     * @var array
-     */
-    protected $classReflections;
-
-    /**
-     * @var callable
-     */
-    protected $outputFunction;
-
-    public function __construct(ItemManager $im, $classReflections, callable $outputFunction = null)
-    {
-        $this->itemManager      = $im;
-        $this->classReflections = $classReflections;
-        $this->outputFunction   = $outputFunction;
+    public function __construct(
+        protected ItemManager $itemManager,
+        protected array $classReflections,
+        ?callable $outputFunction = null,
+    ) {
+        $this->outputFunction = $outputFunction;
     }
 
-    abstract public function createSchema($skipExisting, $dryRun);
+    abstract public function createSchema(bool $skipExisting, bool $dryRun): void;
 
-    abstract public function updateSchema($isDryRun);
+    abstract public function updateSchema(bool $isDryRun): void;
 
-    abstract public function dropSchema();
+    abstract public function dropSchema(): void;
 
-    /**
-     * @return ItemManager
-     */
-    protected function getItemManager()
+    protected function getItemManager(): ItemManager
     {
         return $this->itemManager;
     }
 
-    protected function getManagedItemClasses()
+    protected function getManagedItemClasses(): array
     {
         return $this->classReflections;
     }
 
-    protected function outputWrite($message)
+    protected function outputWrite(string $message): void
     {
         if (is_callable($this->outputFunction)) {
             $output = $this->outputFunction;

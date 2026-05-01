@@ -20,133 +20,127 @@ interface Connection
 {
     public function __construct($dbConfig);
 
-    public function getDatabaseConfig();
+    public function getDatabaseConfig(): array;
 
-    /**
-     * @param  ItemManager  $im
-     * @param $classReflections
-     * @param  callable|null  $outputFunction
-     * @return AbstractSchemaTool
-     */
-    public function getSchemaTool(ItemManager $im, $classReflections, callable $outputFunction = null);
+    public function getSchemaTool(ItemManager $im, array $classReflections, ?callable $outputFunction = null): AbstractSchemaTool;
 
-    public function setTableName($tableName);
+    public function setTableName(string $tableName): void;
 
-    public function setAttributeTypes($tableName);
+    public function setAttributeTypes(array $attributeTypes): void;
 
-    public function setItemReflection(ItemReflection $itemReflection);
+    public function setItemReflection(ItemReflection $itemReflection): void;
 
     public function batchGet(
         array $keys,
-        $isConsistentRead = false,
-        $concurrency = 10,
-        $projectedFields = [],
-        $keyIsTyped = false,
-        $retryDelay = 0,
-        $maxDelay = 15000
-    );
+        bool $isConsistentRead = false,
+        int $concurrency = 10,
+        array $projectedFields = [],
+        bool $keyIsTyped = false,
+        int $retryDelay = 0,
+        int $maxDelay = 15000
+    ): array;
 
-    public function batchDelete(array $objs, $concurrency = 10, $maxDelay = 15000);
+    public function batchDelete(array $objs, int $concurrency = 10, int $maxDelay = 15000): void;
 
-    public function batchPut(array $objs, $concurrency = 10, $maxDelay = 15000);
+    public function batchPut(array $objs, int $concurrency = 10, int $maxDelay = 15000): void;
 
-    public function set(array $obj, $checkValues = []);
+    public function set(array $obj, array $checkValues = []): bool;
 
-    public function get(array $keys, $is_consistent_read = false, $projectedFields = []);
+    public function get(array $keys, bool $is_consistent_read = false, array $projectedFields = []): ?array;
 
     public function query(
-        $keyConditions,
+        string $keyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = true,
-        $filterExpression = '',
-        &$lastKey = null,
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    );
+        string|bool $indexName = true,
+        string $filterExpression = '',
+        mixed &$lastKey = null,
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): array;
 
     public function queryAndRun(
         callable $callback,
-        $keyConditions,
+        string $keyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = true,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    );
+        string|bool $indexName = true,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): void;
 
     public function queryCount(
-        $keyConditions,
+        string $keyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = true,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    );
+        string|bool $indexName = true,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): int;
 
     public function multiQueryAndRun(
         callable $callback,
-        $hashKeyName,
-        $hashKeyValues,
-        $rangeKeyConditions,
+        string $hashKeyName,
+        array $hashKeyValues,
+        string $rangeKeyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = true,
-        $filterExpression = '',
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $concurrency = 10,
-        $projectedFields = []
-    );
+        string|bool $indexName = true,
+        string $filterExpression = '',
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        int $concurrency = 10,
+        array $projectedFields = []
+    ): void;
 
     public function scan(
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = true,
-        &$lastKey = null,
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    );
+        string|bool $indexName = true,
+        mixed &$lastKey = null,
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): array;
 
     public function scanAndRun(
         callable $callback,
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = true,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    );
+        string|bool $indexName = true,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): void;
 
     public function parallelScanAndRun(
-        $parallel,
+        int $parallel,
         callable $callback,
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = true,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    );
+        string|bool $indexName = true,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): void;
 
     public function scanCount(
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = true,
-        $isConsistentRead = false,
-        $parallel = 10
-    );
+        string|bool $indexName = true,
+        bool $isConsistentRead = false,
+        int $parallel = 10
+    ): int;
 
 }

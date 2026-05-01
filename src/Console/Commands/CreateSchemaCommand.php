@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CreateSchemaCommand extends AbstractSchemaCommand
 {
 
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 

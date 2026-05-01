@@ -64,7 +64,6 @@ class CreateSchemaCommandTest extends TestCase
         ];
         // Use reflection to access possibleItemClasses
         $refProp = new \ReflectionProperty($im, 'possibleItemClasses');
-        $refProp->setAccessible(true);
         $refProp->setValue($im, $modelClasses);
 
         $cmd = new CreateSchemaCommand();
@@ -72,7 +71,6 @@ class CreateSchemaCommandTest extends TestCase
 
         // Use reflection to call protected method
         $method = new \ReflectionMethod($cmd, 'getManagedItemClasses');
-        $method->setAccessible(true);
 
         $classes = $method->invoke($cmd);
 

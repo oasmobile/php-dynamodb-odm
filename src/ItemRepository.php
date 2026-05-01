@@ -21,26 +21,18 @@ use function sprintf;
 
 class ItemRepository
 {
-    /** @var  ItemManager */
-    protected $itemManager;
-    /** @var ItemReflection */
-    protected $itemReflection;
-    /**
-     * @var Connection
-     */
-    protected $dbConnection = null;
+    protected Connection $dbConnection;
 
     /**
-     * @var ManagedItemState[]
      * Maps object id to managed object
+     * @var ManagedItemState[]
      */
-    protected $itemManaged = [];
+    protected array $itemManaged = [];
 
-    public function __construct(ItemReflection $itemReflection, ItemManager $itemManager)
-    {
-        $this->itemManager    = $itemManager;
-        $this->itemReflection = $itemReflection;
-
+    public function __construct(
+        protected ItemReflection $itemReflection,
+        protected ItemManager $itemManager,
+    ) {
         // initialize database connection
         $tableName          = $itemManager->getDefaultTablePrefix().$itemReflection->getTableName();
         $this->dbConnection = $itemManager->createDBConnection();
@@ -49,7 +41,7 @@ class ItemRepository
         $this->dbConnection->setItemReflection($itemReflection);
     }
 
-    public function batchGet($groupOfKeys, $isConsistentRead = false)
+    public function batchGet(array $groupOfKeys, bool $isConsistentRead = false): array
     {
         /** @var string[] $fieldNameMapping */
         $fieldNameMapping      = $this->itemReflection->getFieldNameMapping();
@@ -85,12 +77,12 @@ class ItemRepository
         }
     }
 
-    public function clear()
+    public function clear(): void
     {
         $this->itemManaged = [];
     }
 
-    public function detach($obj)
+    public function detach(object $obj): void
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
             throw new ODMException(
@@ -105,7 +97,7 @@ class ItemRepository
         unset($this->itemManaged[$id]);
     }
 
-    public function flush()
+    public function flush(): void
     {
         $skipCAS               = $this->itemManager->shouldSkipCheckAndSet()
             || (count($this->itemReflection->getCasProperties()) == 0);
@@ -205,7 +197,7 @@ class ItemRepository
         }
     }
 
-    public function get($keys, $isConsistentRead = false)
+    public function get(array $keys, bool $isConsistentRead = false): ?object
     {
         /** @var string[] $fieldNameMapping */
         $fieldNameMapping = $this->itemReflection->getFieldNameMapping();
@@ -244,17 +236,17 @@ class ItemRepository
 
     public function multiQueryAndRun(
         callable $callback,
-        $hashKey,
-        $hashKeyValues,
-        $rangeConditions,
+        string $hashKey,
+        array|string $hashKeyValues,
+        string $rangeConditions,
         array $params,
-        $indexName,
-        $filterExpression = '',
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $concurrency = 10
-    ) {
+        string $indexName,
+        string $filterExpression = '',
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        int $concurrency = 10
+    ): void {
         if (!is_array($hashKeyValues)) {
             $hashKeyValues = [$hashKeyValues];
         }
@@ -288,15 +280,15 @@ class ItemRepository
     }
 
     public function multiQueryCount(
-        $hashKey,
-        $hashKeyValues,
-        $rangeConditions,
+        string $hashKey,
+        array|string $hashKeyValues,
+        string $rangeConditions,
         array $params,
-        $indexName,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $concurrency = 10
-    ) {
+        string $indexName,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        int $concurrency = 10
+    ): int {
         if (!is_array($hashKeyValues)) {
             $hashKeyValues = [$hashKeyValues];
         }
@@ -331,14 +323,14 @@ class ItemRepository
     }
 
     public function parallelScanAndRun(
-        $parallel,
+        int $parallel,
         callable $callback,
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): void {
         $fields = $this->getFieldsArray($conditions);
         $this->dbConnection->parallelScanAndRun(
             $parallel,
@@ -357,7 +349,7 @@ class ItemRepository
         );
     }
 
-    public function persist($obj)
+    public function persist(object $obj): void
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
             throw new ODMException("Persisting wrong object, expecting: ".$this->itemReflection->getItemClass());
@@ -373,15 +365,15 @@ class ItemRepository
     }
 
     public function query(
-        $conditions,
+        string $conditions,
         array $params,
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        &$lastKey = null,
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        mixed &$lastKey = null,
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): array {
         $fields  = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
         $results = $this->dbConnection->query(
             $conditions,
@@ -404,25 +396,14 @@ class ItemRepository
         return $ret;
     }
 
-    /**
-     * @param  string  $conditions
-     * @param  array  $params
-     * @param  bool  $indexName
-     * @param  string  $filterExpression
-     * @param  bool  $isConsistentRead
-     * @param  bool  $isAscendingOrder
-     *
-     * @return SplDoublyLinkedList
-     *
-     */
     public function queryAll(
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): SplDoublyLinkedList {
         $ret = new SplDoublyLinkedList();
         $this->queryAndRun(
             function ($item) use ($ret) {
@@ -441,13 +422,13 @@ class ItemRepository
 
     public function queryAndRun(
         callable $callback,
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): void {
         $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
         $this->dbConnection->queryAndRun(
             function ($result) use ($callback) {
@@ -467,12 +448,12 @@ class ItemRepository
     }
 
     public function queryCount(
-        $conditions,
+        string $conditions,
         array $params,
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        $isConsistentRead = false
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        bool $isConsistentRead = false
+    ): int {
         $fields = array_merge($this->getFieldsArray($conditions), $this->getFieldsArray($filterExpression));
 
         return $this->dbConnection->queryCount(
@@ -485,20 +466,13 @@ class ItemRepository
         );
     }
 
-    public function refresh($obj, $persistIfNotManaged = false)
+    public function refresh(object $obj, bool $persistIfNotManaged = false): void
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
             throw new ODMException(
                 "Object refreshed is not of correct type, expected: ".$this->itemReflection->getItemClass()
             );
         }
-
-        // 2017-03-24: we can refresh something that's not managed
-        //$id = $this->itemReflection->getPrimaryIdentifier($obj);
-        //if (!isset($this->itemManaged[$id])) {
-        //    throw new ODMException("Object is not managed: " . print_r($obj, true));
-        //}
-        // end of change 2017-03-24
 
         $id = $this->itemReflection->getPrimaryIdentifier($obj);
         if (!isset($this->itemManaged[$id])) {
@@ -517,7 +491,7 @@ class ItemRepository
         }
     }
 
-    public function remove($obj)
+    public function remove(object $obj): void
     {
         if (!$this->itemReflection->getReflectionClass()->isInstance($obj)) {
             throw new ODMException(
@@ -532,7 +506,7 @@ class ItemRepository
         $this->itemManaged[$id]->setState(ManagedItemState::STATE_REMOVED);
     }
 
-    public function removeAll()
+    public function removeAll(): void
     {
         do {
             $this->clear();
@@ -562,7 +536,7 @@ class ItemRepository
         } while (true);
     }
 
-    public function removeById($keys)
+    public function removeById(array $keys): void
     {
         $obj = $this->get($keys, true);
         if ($obj) {
@@ -571,14 +545,14 @@ class ItemRepository
     }
 
     public function scan(
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        &$lastKey = null,
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        mixed &$lastKey = null,
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): array {
         $fields  = $this->getFieldsArray($conditions);
         $results = $this->dbConnection->scan(
             $conditions,
@@ -600,24 +574,14 @@ class ItemRepository
         return $ret;
     }
 
-    /**
-     * @param  string  $conditions
-     * @param  array  $params
-     * @param  bool  $indexName
-     * @param  bool  $isConsistentRead
-     * @param  bool  $isAscendingOrder
-     * @param  int  $parallel
-     *
-     * @return SplDoublyLinkedList
-     */
     public function scanAll(
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $parallel = 1
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        int $parallel = 1
+    ): SplDoublyLinkedList {
         $ret = new SplDoublyLinkedList();
         $this->scanAndRun(
             function ($item) use ($ret) {
@@ -636,13 +600,13 @@ class ItemRepository
 
     public function scanAndRun(
         callable $callback,
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $parallel = 1
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        int $parallel = 1
+    ): void {
         $resultCallback = function ($result) use ($callback) {
             $obj = $this->persistFetchedItemData($result);
 
@@ -682,12 +646,12 @@ class ItemRepository
     }
 
     public function scanCount(
-        $conditions = '',
+        string $conditions = '',
         array $params = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $parallel = 10
-    ) {
+        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        int $parallel = 10
+    ): int {
         $fields = $this->getFieldsArray($conditions);
 
         return $this->dbConnection->scanCount(
@@ -708,12 +672,12 @@ class ItemRepository
      *
      * @internal    only for advanced user, avoid using the table client directly whenever possible.
      */
-    public function getDynamodbTable()
+    public function getDynamodbTable(): Connection
     {
         return $this->dbConnection;
     }
 
-    protected function getFieldsArray($conditions)
+    protected function getFieldsArray(string $conditions): array
     {
         $ret = preg_match_all('/#(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)/', $conditions, $matches);
         if (!$ret) {
@@ -734,7 +698,7 @@ class ItemRepository
         return $result;
     }
 
-    protected function persistFetchedItemData(array $resultData)
+    protected function persistFetchedItemData(array $resultData): object
     {
         $id = $this->itemReflection->getPrimaryIdentifier($resultData);
         if (isset($this->itemManaged[$id])) {

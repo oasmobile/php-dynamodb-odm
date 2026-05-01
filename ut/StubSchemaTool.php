@@ -10,19 +10,19 @@ use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\AbstractSchemaTool;
 class StubSchemaTool extends AbstractSchemaTool
 {
     /** @var array Record of method calls for verification */
-    public $calls = [];
+    public array $calls = [];
 
-    public function createSchema($skipExisting, $dryRun)
+    public function createSchema(bool $skipExisting, bool $dryRun): void
     {
         $this->calls[] = ['createSchema', $skipExisting, $dryRun];
     }
 
-    public function updateSchema($isDryRun)
+    public function updateSchema(bool $isDryRun): void
     {
         $this->calls[] = ['updateSchema', $isDryRun];
     }
 
-    public function dropSchema()
+    public function dropSchema(): void
     {
         $this->calls[] = ['dropSchema'];
     }

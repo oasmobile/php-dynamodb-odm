@@ -21,15 +21,9 @@ use Oasis\Mlib\ODM\Dynamodb\ItemManager;
  */
 class DynamoDbConnection extends AbstractDbConnection
 {
-    /**
-     * @var DynamoDbTable
-     */
-    private $dynamodbTable = null;
+    private ?DynamoDbTable $dynamodbTable = null;
 
-    /**
-     * @return DynamoDbTable
-     */
-    protected function getDynamodbTable()
+    protected function getDynamodbTable(): DynamoDbTable
     {
         if ($this->dynamodbTable !== null) {
             return $this->dynamodbTable;
@@ -54,13 +48,13 @@ class DynamoDbConnection extends AbstractDbConnection
 
     public function batchGet(
         array $keys,
-        $isConsistentRead = false,
-        $concurrency = 10,
-        $projectedFields = [],
-        $keyIsTyped = false,
-        $retryDelay = 0,
-        $maxDelay = 15000
-    ) {
+        bool $isConsistentRead = false,
+        int $concurrency = 10,
+        array $projectedFields = [],
+        bool $keyIsTyped = false,
+        int $retryDelay = 0,
+        int $maxDelay = 15000
+    ): array {
         return $this->getDynamodbTable()->batchGet(
             $keys,
             $isConsistentRead,
@@ -72,38 +66,38 @@ class DynamoDbConnection extends AbstractDbConnection
         );
     }
 
-    public function batchDelete(array $objs, $concurrency = 10, $maxDelay = 15000)
+    public function batchDelete(array $objs, int $concurrency = 10, int $maxDelay = 15000): void
     {
         $this->getDynamodbTable()->batchDelete($objs, $concurrency, $maxDelay);
     }
 
-    public function batchPut(array $objs, $concurrency = 10, $maxDelay = 15000)
+    public function batchPut(array $objs, int $concurrency = 10, int $maxDelay = 15000): void
     {
         $this->getDynamodbTable()->batchPut($objs, $concurrency, $maxDelay);
     }
 
-    public function set(array $obj, $checkValues = [])
+    public function set(array $obj, array $checkValues = []): bool
     {
         return $this->getDynamodbTable()->set($obj, $checkValues);
     }
 
-    public function get(array $keys, $is_consistent_read = false, $projectedFields = [])
+    public function get(array $keys, bool $is_consistent_read = false, array $projectedFields = []): ?array
     {
         return $this->getDynamodbTable()->get($keys, $is_consistent_read, $projectedFields);
     }
 
     public function query(
-        $keyConditions,
+        string $keyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        &$lastKey = null,
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        mixed &$lastKey = null,
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): array {
         return $this->getDynamodbTable()->query(
             $keyConditions,
             $fieldsMapping,
@@ -120,15 +114,15 @@ class DynamoDbConnection extends AbstractDbConnection
 
     public function queryAndRun(
         callable $callback,
-        $keyConditions,
+        string $keyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): void {
         $this->getDynamodbTable()->queryAndRun(
             $callback,
             $keyConditions,
@@ -143,14 +137,14 @@ class DynamoDbConnection extends AbstractDbConnection
     }
 
     public function queryCount(
-        $keyConditions,
+        string $keyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        $isConsistentRead = false,
-        $isAscendingOrder = true
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true
+    ): int {
         return $this->getDynamodbTable()->queryCount(
             $keyConditions,
             $fieldsMapping,
@@ -164,19 +158,19 @@ class DynamoDbConnection extends AbstractDbConnection
 
     public function multiQueryAndRun(
         callable $callback,
-        $hashKeyName,
-        $hashKeyValues,
-        $rangeKeyConditions,
+        string $hashKeyName,
+        array $hashKeyValues,
+        string $rangeKeyConditions,
         array $fieldsMapping,
         array $paramsMapping,
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $filterExpression = '',
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $concurrency = 10,
-        $projectedFields = []
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string $filterExpression = '',
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        int $concurrency = 10,
+        array $projectedFields = []
+    ): void {
         $this->getDynamodbTable()->multiQueryAndRun(
             $callback,
             $hashKeyName,
@@ -195,16 +189,16 @@ class DynamoDbConnection extends AbstractDbConnection
     }
 
     public function scan(
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        &$lastKey = null,
-        $evaluationLimit = 30,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        mixed &$lastKey = null,
+        int $evaluationLimit = 30,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): array {
         return $this->getDynamodbTable()->scan(
             $filterExpression,
             $fieldsMapping,
@@ -220,14 +214,14 @@ class DynamoDbConnection extends AbstractDbConnection
 
     public function scanAndRun(
         callable $callback,
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): void {
         $this->getDynamodbTable()->scanAndRun(
             $callback,
             $filterExpression,
@@ -241,16 +235,16 @@ class DynamoDbConnection extends AbstractDbConnection
     }
 
     public function parallelScanAndRun(
-        $parallel,
+        int $parallel,
         callable $callback,
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $isAscendingOrder = true,
-        $projectedFields = []
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        bool $isAscendingOrder = true,
+        array $projectedFields = []
+    ): void {
         $this->getDynamodbTable()->parallelScanAndRun(
             $parallel,
             $callback,
@@ -265,13 +259,13 @@ class DynamoDbConnection extends AbstractDbConnection
     }
 
     public function scanCount(
-        $filterExpression = '',
+        string $filterExpression = '',
         array $fieldsMapping = [],
         array $paramsMapping = [],
-        $indexName = DynamoDbIndex::PRIMARY_INDEX,
-        $isConsistentRead = false,
-        $parallel = 10
-    ) {
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        bool $isConsistentRead = false,
+        int $parallel = 10
+    ): int {
         return $this->getDynamodbTable()->scanCount(
             $filterExpression,
             $fieldsMapping,
@@ -282,13 +276,7 @@ class DynamoDbConnection extends AbstractDbConnection
         );
     }
 
-    /**
-     * @param  ItemManager  $im
-     * @param $classReflections
-     * @param  callable|null  $outputFunction
-     * @return DynamoDbSchemaTool
-     */
-    public function getSchemaTool(ItemManager $im, $classReflections, callable $outputFunction = null)
+    public function getSchemaTool(ItemManager $im, array $classReflections, ?callable $outputFunction = null): DynamoDbSchemaTool
     {
         return new DynamoDbSchemaTool($im, $classReflections, $outputFunction);
     }

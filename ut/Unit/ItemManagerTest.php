@@ -271,7 +271,7 @@ class ItemManagerTest extends TestCase
         $stubCnn = new StubConnection();
         $im      = new ItemManager($stubCnn);
 
-        $this->expectException(\Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException::class);
+        $this->expectException(\TypeError::class);
         $im->detach('not an object');
     }
 

@@ -455,7 +455,7 @@ class ItemReflectionTest extends TestCase
         $ref = new ItemReflection(User::class, []);
         $ref->parse();
 
-        $this->expectException(ODMException::class);
+        $this->expectException(\TypeError::class);
         $ref->dehydrate('not an object');
     }
 
@@ -484,7 +484,7 @@ class ItemReflectionTest extends TestCase
         $ref = new ItemReflection(User::class, []);
         $ref->parse();
 
-        $this->expectException(ODMException::class);
+        $this->expectException(\TypeError::class);
         $ref->hydrate(['uid' => 1], 'not an object');
     }
 

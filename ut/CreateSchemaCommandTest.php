@@ -65,7 +65,6 @@ class CreateSchemaCommandTest extends PHPUnit_Framework_TestCase
 
         // Use reflection to call protected method
         $method = new \ReflectionMethod($cmd, 'getManagedItemClasses');
-        $method->setAccessible(true);
 
         $classes = $method->invoke($cmd);
 

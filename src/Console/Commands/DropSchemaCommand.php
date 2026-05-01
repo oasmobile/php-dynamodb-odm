@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class DropSchemaCommand extends AbstractSchemaCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 

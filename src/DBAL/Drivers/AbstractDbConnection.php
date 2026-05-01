@@ -11,25 +11,13 @@ use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
  */
 abstract class AbstractDbConnection implements Connection
 {
-    /**
-     * @var array
-     */
-    protected $dbConfig;
+    protected array $dbConfig;
 
-    /**
-     * @var string
-     */
-    protected $tableName = '';
+    protected string $tableName = '';
 
-    /**
-     * @var array
-     */
-    protected $attributeTypes = [];
+    protected array $attributeTypes = [];
 
-    /**
-     * @var ItemReflection
-     */
-    protected $itemReflection = null;
+    protected ?ItemReflection $itemReflection = null;
 
     /**
      * AbstractDbConnection constructor.
@@ -40,22 +28,22 @@ abstract class AbstractDbConnection implements Connection
         $this->dbConfig = $dbConfig;
     }
 
-    public function getDatabaseConfig()
+    public function getDatabaseConfig(): array
     {
         return $this->dbConfig;
     }
 
-    public function setTableName($tableName)
+    public function setTableName(string $tableName): void
     {
         $this->tableName = $tableName;
     }
 
-    public function setAttributeTypes($attributeTypes)
+    public function setAttributeTypes(array $attributeTypes): void
     {
         $this->attributeTypes = $attributeTypes;
     }
 
-    public function setItemReflection(ItemReflection $itemReflection)
+    public function setItemReflection(ItemReflection $itemReflection): void
     {
         $this->itemReflection = $itemReflection;
     }
