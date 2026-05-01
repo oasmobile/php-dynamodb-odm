@@ -98,8 +98,8 @@
     - _Requirements: 12.1_
   - [x] 1.10 Checkpoint: 验证旧环境下全部单元测试通过（`php74 vendor/bin/phpunit`），commit
 
-- [ ] 2. 依赖升级与测试基础设施搭建
-  - [ ] 2.1 更新 `composer.json` 依赖版本
+- [-] 2. 依赖升级与测试基础设施搭建
+  - [x] 2.1 更新 `composer.json` 依赖版本
     - 将 `php` 改为 `>=8.5`
     - 将 `phpunit/phpunit` 改为 `^13.0`
     - 将 `symfony/console` 改为 `^7.0`，`symfony/finder` 改为 `^7.0`
@@ -108,16 +108,16 @@
     - 在 `require-dev` 中新增 `giorgiosironi/eris: ^1.0`
     - 运行 `composer update` 确认依赖解析无冲突
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
-  - [ ] 2.2 更新 `phpunit.xml` 为 PHPUnit 13 schema 并配置三个 test suite
+  - [x] 2.2 更新 `phpunit.xml` 为 PHPUnit 13 schema 并配置三个 test suite
     - 使用 PHPUnit 13 兼容的 XML schema
     - 定义 `unit` suite 指向 `ut/Unit/`，`integration` suite 指向 `ut/Integration/`，`pbt` suite 指向 `ut/PBT/`
     - 配置 `<source>` 覆盖率包含 `src/` 目录
     - 创建 `ut/Unit/`、`ut/Integration/`、`ut/PBT/` 目录（含 `.gitkeep`）
     - 创建 `ut/Unit/Attributes/`、`ut/Unit/Console/Commands/`、`ut/Unit/Exceptions/` 子目录
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.8_
-  - [ ] 2.3 Checkpoint: 验证 `composer install` 成功且 `vendor/bin/phpunit --version` 报告 13.x，commit
+  - [-] 2.3 Checkpoint: 验证 `composer install` 成功且 `vendor/bin/phpunit --version` 报告 13.x，commit
 
-- [ ] 3. 测试适配 PHPUnit 13
+- [~] 3. 测试适配 PHPUnit 13
   - [ ] 3.1 将 Phase 0 的单元测试迁移到 `ut/Unit/` 目录并适配 PHPUnit 13 API
     - 将 `ut/FieldTest.php` → `ut/Unit/Attributes/FieldTest.php`
     - 将 `ut/ItemTest.php` → `ut/Unit/Attributes/ItemTest.php`
