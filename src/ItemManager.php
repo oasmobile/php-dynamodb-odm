@@ -8,11 +8,6 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Doctrine\Common\Annotations\AnnotationException;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\Common\Annotations\CachedReader;
-use Doctrine\Common\Cache\FilesystemCache;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\Connection;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
@@ -31,8 +26,6 @@ class ItemManager
     protected $databaseConfig;
     protected $defaultTablePrefix;
     
-    /** @var  AnnotationReader */
-    protected $reader;
     /**
      * @var ItemReflection[]
      * Maps item class to item reflection
@@ -59,19 +52,13 @@ class ItemManager
      */
     protected $dbConnection = null;
 
-
     /**
      * ItemManager constructor.
      *
      * @param  array|Connection  $dbCnn
      * @param  string  $defaultTablePrefix
-     * @param  string  $cacheDir
-     * @param  bool  $isDev
-     * @throws AnnotationException
-     *
-     * @noinspection PhpDeprecationInspection
      */
-    public function __construct($dbCnn, $defaultTablePrefix, $cacheDir, $isDev = true)
+    public function __construct($dbCnn, $defaultTablePrefix = '')
     {
         if ($dbCnn instanceof Connection) {
             $this->dbConnection = $dbCnn;
@@ -81,14 +68,6 @@ class ItemManager
         }
 
         $this->defaultTablePrefix = $defaultTablePrefix;
-        
-        AnnotationRegistry::registerLoader([$this, 'loadAnnotationClass']);
-        
-        $this->reader = new CachedReader(
-            new AnnotationReader(),
-            new FilesystemCache($cacheDir),
-            $isDev
-        );
     }
     
     public function addNamespace($namespace, $srcDir)
@@ -165,22 +144,6 @@ class ItemManager
         $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
-    /**
-     * @param $className
-     *
-     * @internal
-     * @return bool
-     */
-    public function loadAnnotationClass($className)
-    {
-        if (class_exists($className)) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    
     public function persist($item)
     {
         $this->getRepository(get_class($item))->persist($item);
@@ -242,7 +205,7 @@ class ItemManager
     {
         if (!isset($this->itemReflections[$itemClass])) {
             $reflection = new ItemReflection($itemClass, $this->reservedAttributeNames);
-            $reflection->parse($this->reader);
+            $reflection->parse();
             $this->itemReflections[$itemClass] = $reflection;
         }
         else {
@@ -258,14 +221,6 @@ class ItemManager
     public function getPossibleItemClasses()
     {
         return $this->possibleItemClasses;
-    }
-    
-    /**
-     * @return AnnotationReader
-     */
-    public function getReader()
-    {
-        return $this->reader;
     }
     
     /**

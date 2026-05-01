@@ -13,45 +13,30 @@ use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
 
-/**
- * Class Game
- *
- * @Item(
- *     table="games",
- *     primaryIndex={"gamecode"},
- *     globalSecondaryIndices={
- *          {"family", "language"},
- *          @Index(hash="languagePartition", range="lastUpdatedAt", name="hellokitty")
- *     }
- * )
- */
+#[Item(
+    table: 'games',
+    primaryIndex: new Index(hash: 'gamecode'),
+    globalSecondaryIndices: [
+        new Index(hash: 'family', range: 'language'),
+        new Index(hash: 'languagePartition', range: 'lastUpdatedAt', name: 'hellokitty'),
+    ],
+)]
 class Game
 {
-    /**
-     * @var string
-     * @Field()
-     */
+    #[Field()]
     protected $gamecode;
-    /**
-     * @var string
-     * @Field()
-     */
+
+    #[Field()]
     protected $language;
-    /**
-     * @var string
-     * @Field()
-     * @PartitionedHashKey(baseField="language", hashField="gamecode", size=4)
-     */
+
+    #[Field()]
+    #[PartitionedHashKey(baseField: 'language', hashField: 'gamecode', size: 4)]
     protected $languagePartition;
-    /**
-     * @var string
-     * @Field()
-     */
+
+    #[Field()]
     protected $family;
-    /**
-     * @var int
-     * @Field(type="number", cas="timestamp")
-     */
+
+    #[Field(type: 'number', cas: Field::CAS_TIMESTAMP)]
     protected $lastUpdatedAt;
     
     /**

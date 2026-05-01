@@ -1,81 +1,42 @@
-<?php /** @noinspection PhpVariableVariableInspection */
-
-/**
- * Created by PhpStorm.
- * User: minhao
- * Date: 2016-09-03
- * Time: 18:00
- */
+<?php
 
 namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
 
-use Doctrine\Common\Annotations\Annotation\Required;
-use Doctrine\Common\Annotations\Annotation\Target;
+use Attribute;
 
-/**
- * Class Item
- *
- * @Annotation
- * @Target("CLASS")
- */
+#[Attribute(Attribute::TARGET_CLASS)]
 class Item
 {
-    /**
-     * @var string
-     * @Required()
-     */
-    public $table;
-    /**
-     * @var array|Index
-     * @Required()
-     */
-    public $primaryIndex = null;
-    /**
-     * @var array[]|Index[]
-     */
-    public $globalSecondaryIndices = [];
-    /**
-     * @var array[]|Index[]
-     */
-    public $localSecondaryIndices = [];
-    /**
-     * @var string
-     */
-    public $repository;
-    
-    /**
-     * A projected item is read-only
-     *
-     * @var bool
-     */
-    public $projected = false;
-    
-    public function __construct($values)
-    {
-        foreach ($values as $name => $value) {
-            if (property_exists(self::class, $name)) {
-                
-                switch ($name) {
-                    case 'primaryIndex':
-                        if (!$value instanceof Index) {
-                            $value = new Index($value);
-                        }
-                        break;
-                    case 'globalSecondaryIndices':
-                    case 'localSecondaryIndices':
-                        $orig  = $value;
-                        $value = [];
-                        foreach ($orig as $indexValue) {
-                            if (!$indexValue instanceof Index) {
-                                $indexValue = new Index($indexValue);
-                            }
-                            $value[] = $indexValue;
-                        }
-                        break;
-                }
-                
-                $this->$name = $value;
-            }
-        }
+    public readonly string $table;
+    public readonly Index $primaryIndex;
+    /** @var Index[] */
+    public readonly array $globalSecondaryIndices;
+    /** @var Index[] */
+    public readonly array $localSecondaryIndices;
+    public readonly ?string $repository;
+    public readonly bool $projected;
+
+    public function __construct(
+        string $table,
+        array|Index $primaryIndex,
+        array $globalSecondaryIndices = [],
+        array $localSecondaryIndices = [],
+        ?string $repository = null,
+        bool $projected = false,
+    ) {
+        $this->table = $table;
+        $this->primaryIndex = $primaryIndex instanceof Index
+            ? $primaryIndex
+            : new Index(...$primaryIndex);
+        $this->globalSecondaryIndices = array_map(
+            fn($idx) => $idx instanceof Index ? $idx : new Index(...$idx),
+            $globalSecondaryIndices,
+        );
+        $this->localSecondaryIndices = array_map(
+            fn($idx) => $idx instanceof Index ? $idx : new Index(...$idx),
+            $localSecondaryIndices,
+        );
+        $this->repository = $repository;
+        $this->projected = $projected;
     }
 }

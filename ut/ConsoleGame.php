@@ -9,38 +9,25 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 
-/**
- * Class ConsoleGame
- *
- * @Item(
- *     table="console_games",
- *     primaryIndex={"gamecode"},
- *     globalSecondaryIndices={
- *          {"family", "language"}
- *     }
- * )
- * @package Oasis\Mlib\ODM\Dynamodb\Ut
- */
+#[Item(
+    table: 'console_games',
+    primaryIndex: new Index(hash: 'gamecode'),
+    globalSecondaryIndices: [
+        new Index(hash: 'family', range: 'language'),
+    ],
+)]
 class ConsoleGame extends Game
 {
-    /**
-     * @var string
-     * @Field()
-     */
+    #[Field()]
     protected $platform;
     
-    /**
-     * @var array
-     * @Field(type="map")
-     */
+    #[Field(type: 'map')]
     protected $achievements;
     
-    /**
-     * @var array
-     * @Field(type="list")
-     */
+    #[Field(type: 'list')]
     protected $authors;
     
     /**

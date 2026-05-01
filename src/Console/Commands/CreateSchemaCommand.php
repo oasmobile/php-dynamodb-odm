@@ -30,7 +30,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $skipExisting = $input->getOption('skip-existing-table');
         $dryRun       = $input->getOption('dry-run');
@@ -42,6 +42,8 @@ class CreateSchemaCommand extends AbstractSchemaCommand
 
         // create tables
         $schemaTool->createSchema($skipExisting, $dryRun);
+
+        return 0;
     }
 
 }

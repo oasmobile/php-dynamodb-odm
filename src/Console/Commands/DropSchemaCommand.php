@@ -21,7 +21,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
             ->setDescription('Drop the schema tables');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $schemaTool = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
@@ -31,5 +31,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
 
         // create tables
         $schemaTool->dropSchema();
+
+        return 0;
     }
 }

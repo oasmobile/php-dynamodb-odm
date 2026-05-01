@@ -8,7 +8,6 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Doctrine\Common\Annotations\Reader;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
 use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
@@ -127,46 +126,49 @@ class ItemReflection
         return $obj;
     }
     
-    public function parse(Reader $reader)
+    public function parse(): void
     {
-        // initialize class annotation info
         $this->reflectionClass = new ReflectionClass($this->itemClass);
-        $this->itemDefinition  = $reader->getClassAnnotation($this->reflectionClass, Item::class);
-        if (!$this->itemDefinition) {
-            throw new NotAnnotatedException("Class " . $this->itemClass . " is not configured as an Item");
+
+        // Read class-level Attribute
+        $itemAttrs = $this->reflectionClass->getAttributes(Item::class);
+        if (empty($itemAttrs)) {
+            throw new NotAnnotatedException("Class {$this->itemClass} is not configured as an Item");
         }
-        
-        // initialize property annotation info
+        $this->itemDefinition = $itemAttrs[0]->newInstance();
+
+        // Read property-level Attributes
         $this->propertyMapping      = [];
         $this->fieldDefinitions     = [];
         $this->reflectionProperties = [];
         $this->attributeTypes       = [];
         $this->casProperties        = [];
         $this->partitionedHashKeys  = [];
+
         foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             if ($reflectionProperty->isStatic()) {
                 continue;
             }
-            $propertyName                              = $reflectionProperty->getName();
+            $propertyName = $reflectionProperty->getName();
             $this->reflectionProperties[$propertyName] = $reflectionProperty;
-            
-            /** @var Field $field */
-            $field = $reader->getPropertyAnnotation($reflectionProperty, Field::class);
-            if (!$field) {
+
+            $fieldAttrs = $reflectionProperty->getAttributes(Field::class);
+            if (empty($fieldAttrs)) {
                 continue;
             }
-            $fieldName                             = $field->name ? : $propertyName;
+            /** @var Field $field */
+            $field = $fieldAttrs[0]->newInstance();
+            $fieldName = $field->name ?? $propertyName;
             $this->propertyMapping[$fieldName]     = $propertyName;
             $this->fieldDefinitions[$propertyName] = $field;
             $this->attributeTypes[$fieldName]      = $field->type;
-            if ($field->cas != Field::CAS_DISABLED) {
+            if ($field->cas !== Field::CAS_DISABLED) {
                 $this->casProperties[$propertyName] = $field->cas;
             }
-            
-            /** @var PartitionedHashKey $partitionedHashKeyDef */
-            $partitionedHashKeyDef = $reader->getPropertyAnnotation($reflectionProperty, PartitionedHashKey::class);
-            if ($partitionedHashKeyDef) {
-                $this->partitionedHashKeys[$propertyName] = $partitionedHashKeyDef;
+
+            $phkAttrs = $reflectionProperty->getAttributes(PartitionedHashKey::class);
+            if (!empty($phkAttrs)) {
+                $this->partitionedHashKeys[$propertyName] = $phkAttrs[0]->newInstance();
             }
         }
     }

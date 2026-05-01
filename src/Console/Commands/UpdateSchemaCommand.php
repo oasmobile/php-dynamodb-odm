@@ -29,7 +29,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $isDryRun = $input->getOption('dry-run');
         $schemaTool = $this->getItemManager()->createDBConnection()->getSchemaTool(
@@ -40,5 +40,7 @@ class UpdateSchemaCommand extends AbstractSchemaCommand
 
         // create tables
         $schemaTool->updateSchema($isDryRun);
+
+        return 0;
     }
 }
