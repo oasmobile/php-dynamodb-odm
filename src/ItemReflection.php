@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -283,7 +284,7 @@ class ItemReflection
     {
         $id = '';
         foreach ($this->getPrimaryKeys($obj) as $key => $value) {
-            $id .= md5($value);
+            $id .= md5((string) $value);
         }
         
         return md5($id);

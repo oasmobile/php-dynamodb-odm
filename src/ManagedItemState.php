@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * Created by PhpStorm.
@@ -63,7 +64,7 @@ class ManagedItemState
             if (is_callable($hashFunction)) {
                 $hashSource = call_user_func($hashFunction, $hashSource);
             }
-            $hashNumber    = hexdec(substr(md5($hashSource), 0, 8));
+            $hashNumber    = hexdec(substr(md5((string) $hashSource), 0, 8));
             $hashRemainder = dechex($hashNumber % $def->size);
             $hashResult    = sprintf("%s-%s", $baseValue, $hashRemainder);
             $this->itemReflection->updateProperty($this->item, $partitionedHashKey, $hashResult);

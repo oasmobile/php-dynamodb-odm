@@ -515,6 +515,9 @@ class ItemManagerTest extends TestCase
         $this->itemManager->flush();
         $this->itemManager->clear();
 
+        // Wait for GSI eventual consistency
+        sleep(2);
+
         // Query GSI (hometown-age) with filter on wage
         $repo = $this->itemManager->getRepository(User::class);
 
@@ -567,6 +570,9 @@ class ItemManagerTest extends TestCase
         $this->itemManager->flush();
         $this->itemManager->setSkipCheckAndSet(false);
         $this->itemManager->clear();
+
+        // Wait for GSI eventual consistency
+        sleep(2);
 
         $repo = $this->itemManager->getRepository(User::class);
 
