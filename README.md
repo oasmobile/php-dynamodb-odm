@@ -35,16 +35,12 @@ $awsConfig     = [
     "region"  => "ap-northeast-1"
 ];
 $tablePrefix   = "odm-";
-$cacheDir      = __DIR__ . "/ut/cache";
-$isDev         = true;
 $itemNamespace = 'Oasis\Mlib\ODM\Dynamodb\Ut'; // in practice, this usually looks like: My\Root\Namespace\Items
 $itemSrcDir    = __DIR__ . "/ut"; // in practice, this usually points to src/Items directory
 
 $im = new ItemManager(
     $awsConfig,
     $tablePrefix,
-    $cacheDir,
-    $isDev
 );
 $im->addNamespace(
     $itemNamespace,
@@ -57,10 +53,8 @@ The explanation of each argument can be found below:
 
 argument        | description                   | default value
 ---             | ---                           | ---
-awsConfig       | configuration array for aws SDK, `profile` and `region` are mandatory.    | **mandatory**
-tablePrefix     | a prefix to table names       | **mandatory**
-cacheDir        | cache direcotry to store metadata | **mandatory**
-isDev           | is development environment or not. Under dev environment, changes to Item class will automatically invalidate cached metadata. Under production environment, this has to be done manually.    | `true`
+awsConfig       | configuration array for aws SDK, `profile` and `region` are mandatory. Can also be a `Connection` instance.    | **mandatory**
+tablePrefix     | a prefix to table names       | `''`
 itemSrcDir      | a source directory under which Item classes can be found | **mandatory**
 itemNamespace   | the base namespace for the managed Item classes source directory  | **mandatory**
 
@@ -94,48 +88,41 @@ Detailed usage can be found in later [section](#using-the-command-line-tool)
 
 ## Mapping
 
-The fundamental functionality of an ODM library is to map object models (i.e. classes) to database sctructure. DynamoDb ODM provides a handy way to establish this mapping with the help of annotations:
+The fundamental functionality of an ODM library is to map object models (i.e. classes) to database sctructure. DynamoDb ODM provides a handy way to establish this mapping with the help of PHP 8 Attributes:
 
 ```php
 <?php
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
 
-/**
- * @Item(
- *     table="users",
- *     primaryIndex={"id"}
- * )
- */
+#[Item(
+    table: 'users',
+    primaryIndex: new Index(hash: 'id'),
+)]
 class User
 {
-    /**
-     * @var int
-     * @Field(type="number")
-     */
-    protected $id;
+    #[Field(type: 'number')]
+    protected int $id = 0;
 
-    /**
-     * @var string
-     * @Field(type="string")
-     */
-    protected $name;
+    #[Field(type: 'string')]
+    protected ?string $name = null;
 }
 
 ```
 
-The class above declares a simple User model, wich will be mapped to DynamoDb table "users" (possibly with a prefix). The annotations are explained below:
+The class above declares a simple User model, wich will be mapped to DynamoDb table "users" (possibly with a prefix). The Attributes are explained below:
 
 #### Item
 
 Every PHP object that you want to save to database using ODM is referred to as an "Item". To describe an object as an item, we have to describe the class of this object.
 
-Class annotated with the _@Item_ annotation will be managed by ItemManager. An Item accepts the following attributes:
+Class annotated with the `#[Item]` Attribute will be managed by ItemManager. An Item accepts the following attributes:
 
 - **table**: table name of the object
-- **primaryIndex**: primary index, wich can be either an array of keys, or an [_@Index_](#index) annotation object
-- **globalSecondaryIndices**: array of global secondary indices; a global secondary index is either an array of keys, or an _@Index_ annotation object
-- **localSecondaryIndices**: array of local secondary indices; a local secondary index is either an array of keys, or an _@Index_ annotation object
+- **primaryIndex**: primary index, which can be either an array of keys, or an `Index` object (e.g. `new Index(hash: 'id')`)
+- **globalSecondaryIndices**: array of global secondary indices; each element is either an array of keys, or an `Index` object
+- **localSecondaryIndices**: array of local secondary indices; each element is either an array of keys, or an `Index` object
 - **repository**: the repository class name; by default, `\Oasis\Mlib\ODM\Dynamodb\ItemRepository` is used
 - **projected**: whether this item is projected only. _Projected Item_ is not updatable (remove action is allowed). And when reading (i.e. get/query/scan) a projected item, only attrbutes for this item will be fetched from DynamoDB.
 
@@ -143,7 +130,7 @@ Class annotated with the _@Item_ annotation will be managed by ItemManager. An I
 
 The next step after making a PHP class an Item is mapping its properties to attributes in DynamoDb.
 
-We use _@Field_ annotation to describe class properties which are DynamoDb attributes. The _@Field_ annotation supports following attributes:
+We use `#[Field]` Attribute to describe class properties which are DynamoDb attributes. The `#[Field]` Attribute supports following attributes:
 
 - **type**: the type of the attribute, which can be one of the following:
     - string (default)
@@ -159,7 +146,7 @@ We use _@Field_ annotation to describe class properties which are DynamoDb attri
 
 A partitioned hash key is an extension to fields used as hash key in queries. There are circumstances that you only want to query on a single value (or very few values) for that field. The nature of DynamoDB will only utilize a fraction of the read capacity assigned, and therefore limit your system performance. However, by using a partitioned hash key for that field, each value of the originial field will have a group of mapped values in the partitioned hash key field. By querying those partitioned values parallelly (see [Multi Query](#by-using-multi-query-on-partitioned-hash-key)), your query performace should be significantly improved in this use case.
 
-We use _@PartitionedHashKey_ annotation to describe the partitioned hash key field. The supported attributes are:
+We use `#[PartitionedHashKey]` Attribute to describe the partitioned hash key field. The supported attributes are:
 
 - **baseField**: the original field name
 - **hashField**: the field whose value is used as a hashing source, always use a well distributed field as hash field (e.g. unqiue ID for the item) 
@@ -167,7 +154,7 @@ We use _@PartitionedHashKey_ annotation to describe the partitioned hash key fie
 
 #### Index
 
-When declaring different indexes, we can use the _@Index_ annotation to make the docblock more readable. An _@Index_ is composited with two keys:
+When declaring different indexes, we can use the `Index` class to make the Attribute declaration more readable. An `Index` is composited with two keys:
 - **hash**: the hash key name
 - **range**: the range key name, leave empty if no range key for this index
 - **name**: the name of the index, leave empty if you would like ODM to automatically generate one for you. (**NOTE**: a primary index doesn't need a name)
@@ -175,43 +162,35 @@ When declaring different indexes, we can use the _@Index_ annotation to make the
 Below is the User class declaration when we add a global secondary index to it:
 
 ```php
-/**
- * @Item(
- *     table="users",
- *     primaryIndex={"id"},
- *     globalSecondaryIndices={
- *         @Index(hash="class", range="age", name="class-age-gsi")
- *     }
- * )
- */
+#[Item(
+    table: 'users',
+    primaryIndex: new Index(hash: 'id'),
+    globalSecondaryIndices: [
+        new Index(hash: 'class', range: 'age', name: 'class-age-gsi'),
+    ],
+)]
 class User
 {
     // ...
 
-    /**
-     * @var string
-     * @Field()
-     */
-    protected $class;
+    #[Field]
+    protected ?string $class = null;
 
-    /**
-     * @var int
-     * @Field(type="number")
-     */
-    protected $age;
+    #[Field(type: 'number')]
+    protected int $age = 0;
 }
 ```
 
 #### Check and Set
 
-A field and be declared as a check-and-set field, using the "cas" attribute of the _@Field_ annotation.
+A field can be declared as a check-and-set field, using the `cas` attribute of the `#[Field]` Attribute.
 
 A check-and-set field is a field ODM uses to make sure no single item is updated/inserted more than once by different workers at the same time.
 
-The value of the "cas" property can be one of the following:
-- _disabled_: this is the default value, and the field with "cas" disabled will not be checked when updating/inserting item
-- _enabled_: the old value of this field will be checked when updating the item. When inserting an item, this field must either posses a NULL value, or be absent.
-- _timestamp_: this is a special type of enabled cas property. Every time an item is updated/inserted, the value of this field will automatically be set to the current timestamp.
+The value of the `cas` property can be one of the following:
+- `Field::CAS_DISABLED`: this is the default value, and the field with "cas" disabled will not be checked when updating/inserting item
+- `Field::CAS_ENABLED`: the old value of this field will be checked when updating the item. When inserting an item, this field must either posses a NULL value, or be absent.
+- `Field::CAS_TIMESTAMP`: this is a special type of enabled cas property. Every time an item is updated/inserted, the value of this field will automatically be set to the current timestamp.
 
 > **NOTE**: Check-and-set validation is done only when you call `ItemManger#flush()`. Failure to meet the check and set condition(s) will lead to an `Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException` being thrown.
 
