@@ -30,13 +30,15 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
 
-        $classes = $this->getManagedItemClasses();
+        $classes        = $this->getManagedItemClasses();
+        $existingTables = [];
         foreach ($classes as $class => $reflection) {
             $tableName = $this->itemManager->getDefaultTablePrefix().$reflection->getTableName();
             if ($dynamoManager->listTables(sprintf("/^%s\$/", preg_quote($tableName, "/")))) {
                 if (!$skipExisting && !$dryRun) {
                     throw new ODMException("Table ".$tableName." already exists!");
                 }
+                $existingTables[$tableName] = true;
             }
         }
 
@@ -68,6 +70,11 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
             }
 
             $tableName = $this->itemManager->getDefaultTablePrefix().$reflection->getTableName();
+
+            if ($skipExisting && isset($existingTables[$tableName])) {
+                $this->outputWrite("Table <info>$tableName</info> already exists, skipping.");
+                continue;
+            }
 
             $this->outputWrite("Will create table <info>$tableName</info> for class <info>$class</info> ...");
             if (!$dryRun) {

@@ -170,7 +170,7 @@ class ItemManagerTest extends TestCase
         $user->setAlias('pope');
         $time = time();
         $this->itemManager->flush();
-        sleep(2);
+        sleep(1);
         $this->itemManager->flush();
         $lastUpdated = $user->getLastUpdated();
         $this->assertLessThanOrEqual(1, abs($lastUpdated - $time));
@@ -185,7 +185,7 @@ class ItemManagerTest extends TestCase
         $this->itemManager->persist($user);
         $time = time();
         $this->itemManager->flush();
-        sleep(2);
+        sleep(1);
         $this->itemManager->flush();
         $lastUpdated = $user->getLastUpdated();
         $this->assertLessThanOrEqual(1, abs($lastUpdated - $time));
@@ -416,12 +416,22 @@ class ItemManagerTest extends TestCase
         $this->itemManager->flush();
         $this->itemManager->setSkipCheckAndSet(false);
         
+        // Verify at least one item was persisted correctly
+        $this->itemManager->clear();
+        $sample = $this->itemManager->get(User::class, ['id' => $base], true);
+        $this->assertInstanceOf(User::class, $sample);
+        $this->assertEquals('Batch #1', $sample->getName());
+        
         return $users;
     }
     #[Depends('testBatchNewWithCASDisabled')]
     public function testBatchGet($users)
     {
-        $keys[] = ["id" => -PHP_INT_MAX,]; // some non existing key
+        $keys = [];
+        foreach ($users as $id => $user) {
+            $keys[] = ["id" => $id];
+        }
+        $keys[] = ["id" => -PHP_INT_MAX]; // one non-existing key
         $result = $this->itemManager->getRepository(User::class)->batchGet($keys);
         $this->assertEquals(count($keys), count($result) + 1); // we get all result except the non-existing one
         /** @var User $user */
@@ -516,7 +526,7 @@ class ItemManagerTest extends TestCase
         $this->itemManager->clear();
 
         // Wait for GSI eventual consistency
-        sleep(2);
+        sleep(1);
 
         // Query GSI (hometown-age) with filter on wage
         $repo = $this->itemManager->getRepository(User::class);
@@ -572,7 +582,7 @@ class ItemManagerTest extends TestCase
         $this->itemManager->clear();
 
         // Wait for GSI eventual consistency
-        sleep(2);
+        sleep(1);
 
         $repo = $this->itemManager->getRepository(User::class);
 
@@ -714,7 +724,7 @@ class ItemManagerTest extends TestCase
         $this->assertLessThanOrEqual(2, abs($fetched->getLastUpdated() - $timeBefore));
 
         // Update and verify timestamp changes
-        sleep(2);
+        sleep(1);
         $fetched->setWage(200);
         $timeBeforeUpdate = time();
         $this->itemManager->flush();
@@ -891,8 +901,9 @@ class ItemManagerTest extends TestCase
     
     public function testMapAndListData()
     {
+        $gamecode = 'ps4koi-' . time();
         $game = new ConsoleGame();
-        $game->setGamecode('ps4koi-' . time());
+        $game->setGamecode($gamecode);
         $game->setFamily('ps4');
         $game->setLanguage('en');
         $game->setAchievements(
@@ -914,16 +925,28 @@ class ItemManagerTest extends TestCase
         );
         $this->itemManager->persist($game);
         $this->itemManager->flush();
+        $this->itemManager->clear();
         
-        $game->setAuthors(
+        /** @var ConsoleGame $fetched */
+        $fetched = $this->itemManager->get(ConsoleGame::class, ['gamecode' => $gamecode], true);
+        $this->assertInstanceOf(ConsoleGame::class, $fetched);
+        $this->assertEquals(["james", "curry", "love"], $fetched->getAuthors());
+        $this->assertEquals(10, $fetched->getAchievements()["all"]);
+        
+        $fetched->setAuthors(
             [
                 "durant",
                 "green",
             ]
         );
         $this->itemManager->flush();
+        $this->itemManager->clear();
         
-        $game->setAchievements(
+        /** @var ConsoleGame $fetched2 */
+        $fetched2 = $this->itemManager->get(ConsoleGame::class, ['gamecode' => $gamecode], true);
+        $this->assertEquals(["durant", "green"], $fetched2->getAuthors());
+        
+        $fetched2->setAchievements(
             [
                 "all"   => 10,
                 "hello" => 30,
@@ -934,6 +957,12 @@ class ItemManagerTest extends TestCase
             ]
         );
         $this->itemManager->flush();
+        $this->itemManager->clear();
+        
+        /** @var ConsoleGame $fetched3 */
+        $fetched3 = $this->itemManager->get(ConsoleGame::class, ['gamecode' => $gamecode], true);
+        $this->assertArrayNotHasKey("b", $fetched3->getAchievements()["deep"]);
+        $this->assertEquals("xyz", $fetched3->getAchievements()["deep"]["a"]);
     }
     
     public function testProjectedData()
