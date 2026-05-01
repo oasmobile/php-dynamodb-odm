@@ -392,7 +392,7 @@
     - _Requirements: 14.7, 14.8, 14.9_
   - [x] 11.3 Checkpoint: 验证文档内容准确，commit
 
-- [-] 12. 手工测试
+- [x] 12. 手工测试
   - [x] 12.1 Increment alpha tag
     - 查询已有 `v2.0.0-alpha.*` tag，取最大序号 +1，打新 tag（如 `v2.0.0-alpha.1`）
   - [x] 12.2 验证 `composer install` 在 PHP 8.5 环境下成功
@@ -409,11 +409,11 @@
     - unit + pbt 行覆盖率 ≥85%
     - integration 行覆盖率 ≥75%
     - _Requirements: 12.1, 12.2, 12.3_
-  - [-] 12.6 Checkpoint: 手工测试全部通过，commit
+  - [x] 12.6 Checkpoint: 手工测试全部通过，commit
 
-- [~] 13. Code Review
-  - [ ] 13.1 委托给 code-reviewer sub-agent 对本 release 分支的全部变更执行 Code Review，发现问题直接修复
-  - [ ] 13.2 Checkpoint: Code Review 完成，所有问题已修复，commit
+- [x] 13. Code Review
+  - [x] 13.1 委托给 code-reviewer sub-agent 对本 release 分支的全部变更执行 Code Review，发现问题直接修复
+  - [x] 13.2 Checkpoint: Code Review 完成，所有问题已修复，commit
 
 ## Issues
 
