@@ -299,7 +299,7 @@
     - _Requirements: 7.6, 7.7, 7.8_
   - [x] 8.4 Checkpoint: 验证测试模型类语法正确且单元测试全部通过，commit
 
-- [-] 9. Property-Based Testing（PBT）
+- [x] 9. Property-Based Testing（PBT）
   - [x] 9.1 编写 Property 1: Hydrate/Dehydrate Round-Trip 测试
     - 在 `ut/PBT/HydrateDehydrateRoundTripTest.php` 创建测试
     - 使用 Eris 生成覆盖 DynamoDB 全部数据类型（S/N/B/BOOL/NULL/L/M/SS/NS/BS）的 field data 数组
@@ -346,35 +346,35 @@
     - 执行 `vendor/bin/phpunit --testsuite pbt`
     - 确认所有 PBT 测试通过
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
-  - [-] 9.8 Checkpoint: 验证全部 PBT 测试通过，检查 unit+pbt 覆盖率 ≥85%，commit
+  - [x] 9.8 Checkpoint: 验证全部 PBT 测试通过，检查 unit+pbt 覆盖率 ≥85%，commit
 
-- [~] 10. 集成测试补齐
-  - [ ] 10.1 编写 CRUD 生命周期集成测试
+- [-] 10. 集成测试补齐
+  - [x] 10.1 编写 CRUD 生命周期集成测试
     - 在 `ut/Integration/` 下补齐集成测试（可在现有 `ItemManagerTest.php` 中扩展或新建文件）
     - 覆盖完整 CRUD 生命周期：create（persist + flush）→ read（get）→ update（modify + flush）→ delete（remove + flush）
     - _Requirements: 13.1_
-  - [ ] 10.2 编写 Query、Scan、BatchGet 集成测试
+  - [x] 10.2 编写 Query、Scan、BatchGet 集成测试
     - 测试 Query 操作：使用 GSI 和 filter expressions
     - 测试 Scan 操作：包括 parallel scan
     - 测试 BatchGet 操作
     - _Requirements: 13.2, 13.3, 13.4_
-  - [ ] 10.3 编写 CAS 相关集成测试
+  - [x] 10.3 编写 CAS 相关集成测试
     - 测试 CAS 冲突检测：两个 ItemManager 并发修改同一 item，flush 抛出 `DataConsistencyException`
     - 测试 CAS 时间戳自动更新行为
     - _Requirements: 13.5, 13.6_
-  - [ ] 10.4 编写 PartitionedHashKey 和 Projected Item 集成测试
+  - [x] 10.4 编写 PartitionedHashKey 和 Projected Item 集成测试
     - 测试 PartitionedHashKey 的 multi-query 操作
     - 测试 projected Item 只读强制（修改后 flush 抛出 `ODMException`）
     - _Requirements: 13.7, 13.8_
-  - [ ] 10.5 编写 Schema 工具集成测试
+  - [x] 10.5 编写 Schema 工具集成测试
     - 测试 `DynamoDbSchemaTool` 的 create、update、drop 操作
     - _Requirements: 13.9_
-  - [ ] 10.6 运行全部集成测试验证通过
+  - [x] 10.6 运行全部集成测试验证通过
     - 执行 `vendor/bin/phpunit --testsuite integration`
     - 确认所有集成测试通过（需有效 DynamoDB 环境）
     - 检查集成测试覆盖率 ≥75%
     - _Requirements: 8.4, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8, 13.9, 12.2_
-  - [ ] 10.7 Checkpoint: 验证全部集成测试通过，commit
+  - [-] 10.7 Checkpoint: 验证全部集成测试通过，commit
 
 - [ ] 11. 文档更新
   - [ ] 11.1 更新 `PROJECT.md`

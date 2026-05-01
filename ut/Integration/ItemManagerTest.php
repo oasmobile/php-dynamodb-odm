@@ -517,6 +517,373 @@ class ItemManagerTest extends TestCase
         $this->assertTrue($remaining->isEmpty(), json_encode($remaining));
     }
     
+    /**
+     * Self-contained CRUD lifecycle test:
+     * create (persist + flush) → read (get) → update (modify + flush) → delete (remove + flush)
+     */
+    public function testCrudLifecycle()
+    {
+        $id   = mt_rand(1000, PHP_INT_MAX);
+        $user = new User();
+        $user->setId($id);
+        $user->setName('CrudTest');
+        $user->setHometown('Seattle');
+        $user->setAge(30);
+        $user->setWage(50000);
+
+        // CREATE: persist + flush
+        $this->itemManager->persist($user);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // READ: get with consistent read
+        /** @var User $fetched */
+        $fetched = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertInstanceOf(User::class, $fetched);
+        $this->assertEquals('CrudTest', $fetched->getName());
+        $this->assertEquals('Seattle', $fetched->getHometown());
+        $this->assertEquals(30, $fetched->getAge());
+        $this->assertEquals(50000, $fetched->getWage());
+
+        // UPDATE: modify + flush
+        $fetched->setName('CrudTestUpdated');
+        $fetched->setWage(60000);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Verify update
+        /** @var User $updated */
+        $updated = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertInstanceOf(User::class, $updated);
+        $this->assertEquals('CrudTestUpdated', $updated->getName());
+        $this->assertEquals(60000, $updated->getWage());
+
+        // DELETE: remove + flush
+        $this->itemManager->remove($updated);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Verify deletion
+        $deleted = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertNull($deleted);
+    }
+
+    /**
+     * Test Query with GSI and filter expressions.
+     */
+    public function testQueryWithGsiAndFilterExpression()
+    {
+        $base = mt_rand(100, PHP_INT_MAX);
+        $town = 'FilterTown' . $base;
+
+        // Insert 10 users: ages 20-29, alternating wages 100/200
+        for ($i = 0; $i < 10; ++$i) {
+            $user = new User();
+            $user->setId($base + $i);
+            $user->setName('FilterUser' . $i);
+            $user->setHometown($town);
+            $user->setAge(20 + $i);
+            $user->setWage(($i % 2 === 0) ? 100 : 200);
+            $this->itemManager->persist($user);
+        }
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Query GSI (hometown-age) with filter on wage
+        $repo = $this->itemManager->getRepository(User::class);
+
+        // Query: hometown = $town AND age >= 20, filter: wage = 200
+        $result = $repo->queryAll(
+            '#hometown = :hometown AND #age >= :age',
+            [':hometown' => $town, ':age' => 20, ':wage' => 200],
+            'hometown-age-index',
+            '#wage = :wage',
+        );
+        // Filter for wage=200: indices 1,3,5,7,9 → 5 users
+        $this->assertEquals(5, count($result));
+
+        // Query count with filter: ages 25-29 with wage=200 → indices 5,7,9 → 3 users
+        $count = $repo->queryCount(
+            '#hometown = :hometown AND #age >= :age',
+            [':hometown' => $town, ':age' => 25, ':wage' => 200],
+            'hometown-age-index',
+            '#wage = :wage',
+        );
+        $this->assertEquals(3, $count);
+
+        // Cleanup
+        for ($i = 0; $i < 10; ++$i) {
+            $repo->removeById(['id' => $base + $i]);
+        }
+        $this->itemManager->flush();
+    }
+
+    /**
+     * Test Scan operations including parallel scan.
+     */
+    public function testScanAndParallelScan()
+    {
+        $base  = mt_rand(100, PHP_INT_MAX);
+        $marker = 'ScanMarker' . $base;
+
+        // Insert 10 users with a unique marker in alias
+        for ($i = 0; $i < 10; ++$i) {
+            $user = new User();
+            $user->setId($base + $i);
+            $user->setName('ScanUser' . $i);
+            $user->setAlias($marker);
+            $user->setHometown('ScanTown');
+            $user->setAge(30 + $i);
+            $user->setWage(99999);
+            $this->itemManager->persist($user);
+        }
+        $this->itemManager->setSkipCheckAndSet(true);
+        $this->itemManager->flush();
+        $this->itemManager->setSkipCheckAndSet(false);
+        $this->itemManager->clear();
+
+        $repo = $this->itemManager->getRepository(User::class);
+
+        // Scan with filter
+        $scanCount = $repo->scanCount(
+            '#alias = :alias',
+            [':alias' => $marker],
+        );
+        $this->assertEquals(10, $scanCount);
+
+        // Parallel scan (parallel > 1 triggers parallelScanAndRun)
+        $parallelResults = [];
+        $repo->scanAndRun(
+            function (User $user) use (&$parallelResults) {
+                $parallelResults[] = $user;
+            },
+            '#alias = :alias',
+            [':alias' => $marker],
+            DynamoDbIndex::PRIMARY_INDEX,
+            true,
+            true,
+            3  // parallel = 3
+        );
+        $this->assertEquals(10, count($parallelResults));
+
+        // Cleanup
+        foreach ($parallelResults as $user) {
+            $this->itemManager->remove($user);
+        }
+        $this->itemManager->setSkipCheckAndSet(true);
+        $this->itemManager->flush();
+        $this->itemManager->setSkipCheckAndSet(false);
+    }
+
+    /**
+     * Test BatchGet with multiple keys including non-existing ones.
+     */
+    public function testBatchGetMultipleKeys()
+    {
+        $base = mt_rand(100, PHP_INT_MAX);
+
+        // Insert 5 users
+        $keys = [];
+        for ($i = 0; $i < 5; ++$i) {
+            $user = new User();
+            $user->setId($base + $i);
+            $user->setName('BatchUser' . $i);
+            $user->setHometown('BatchTown');
+            $user->setAge(40 + $i);
+            $user->setWage(10000 + $i);
+            $this->itemManager->persist($user);
+            $keys[] = ['id' => $base + $i];
+        }
+        $this->itemManager->setSkipCheckAndSet(true);
+        $this->itemManager->flush();
+        $this->itemManager->setSkipCheckAndSet(false);
+        $this->itemManager->clear();
+
+        // Add non-existing keys
+        $keys[] = ['id' => -1];
+        $keys[] = ['id' => -2];
+
+        $repo   = $this->itemManager->getRepository(User::class);
+        $result = $repo->batchGet($keys);
+
+        // Should get 5 results (non-existing keys are silently skipped)
+        $this->assertCount(5, $result);
+
+        // Verify all returned items are User instances
+        foreach ($result as $item) {
+            $this->assertInstanceOf(User::class, $item);
+        }
+
+        // Cleanup
+        foreach ($result as $user) {
+            $this->itemManager->remove($user);
+        }
+        $this->itemManager->setSkipCheckAndSet(true);
+        $this->itemManager->flush();
+        $this->itemManager->setSkipCheckAndSet(false);
+    }
+
+    /**
+     * Test CAS conflict detection: two ItemManagers modify the same item concurrently,
+     * the second flush throws DataConsistencyException.
+     */
+    public function testCasConflictDetection()
+    {
+        $id   = mt_rand(1000, PHP_INT_MAX);
+        $user = new User();
+        $user->setId($id);
+        $user->setName('CasConflictOriginal');
+        $this->itemManager->persist($user);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Both managers read the same item
+        /** @var User $user1 */
+        $user1 = $this->itemManager->get(User::class, ['id' => $id], true);
+        /** @var User $user2 */
+        $user2 = $this->itemManager2->get(User::class, ['id' => $id], true);
+
+        // First manager modifies and flushes successfully
+        $user1->setName('CasConflictManager1');
+        $this->itemManager->flush();
+
+        // Second manager modifies and flush should throw DataConsistencyException
+        $user2->setName('CasConflictManager2');
+        $this->expectException(DataConsistencyException::class);
+        $this->itemManager2->flush();
+    }
+
+    /**
+     * Test CAS timestamp auto-update: after flush, the CAS_TIMESTAMP field
+     * is automatically updated to approximately the current time.
+     */
+    public function testCasTimestampAutoUpdate()
+    {
+        $id   = mt_rand(1000, PHP_INT_MAX);
+        $user = new User();
+        $user->setId($id);
+        $user->setName('CasTimestampTest');
+        $user->setWage(100);
+
+        $this->itemManager->persist($user);
+        $timeBefore = time();
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Read back and verify timestamp was set
+        /** @var User $fetched */
+        $fetched = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertNotNull($fetched->getLastUpdated());
+        $this->assertLessThanOrEqual(2, abs($fetched->getLastUpdated() - $timeBefore));
+
+        // Update and verify timestamp changes
+        sleep(2);
+        $fetched->setWage(200);
+        $timeBeforeUpdate = time();
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        /** @var User $updated */
+        $updated = $this->itemManager->get(User::class, ['id' => $id], true);
+        $this->assertLessThanOrEqual(2, abs($updated->getLastUpdated() - $timeBeforeUpdate));
+        // Timestamp should have advanced
+        $this->assertGreaterThanOrEqual($timeBefore + 1, $updated->getLastUpdated());
+
+        // Cleanup
+        $this->itemManager->remove($updated);
+        $this->itemManager->flush();
+    }
+
+    /**
+     * Test PartitionedHashKey-based multi-query operations.
+     * Uses Game model which has a PartitionedHashKey on languagePartition.
+     */
+    public function testPartitionedHashKeyMultiQuery()
+    {
+        $repo = $this->itemManager->getRepository(Game::class);
+        $repo->removeAll();
+
+        $suffix = time();
+
+        // Insert games with same language but different gamecodes
+        $codes = [];
+        for ($i = 0; $i < 5; ++$i) {
+            $game = new Game();
+            $code = 'phk-game-' . $suffix . '-' . $i;
+            $game->setGamecode($code);
+            $game->setFamily('action');
+            $game->setLanguage('en');
+            $this->itemManager->persist($game);
+            $codes[] = $code;
+        }
+        // Insert games with different language
+        for ($i = 0; $i < 3; ++$i) {
+            $game = new Game();
+            $game->setGamecode('phk-other-' . $suffix . '-' . $i);
+            $game->setFamily('rpg');
+            $game->setLanguage('fr');
+            $this->itemManager->persist($game);
+        }
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Multi-query using PartitionedHashKey (languagePartition is partitioned by gamecode, base=language)
+        $count = $repo->multiQueryCount(
+            'languagePartition',
+            'en',
+            '#lastUpdatedAt > :ts',
+            [':ts' => 0],
+            'hellokitty',
+        );
+        $this->assertEquals(5, $count);
+
+        $results = [];
+        $repo->multiQueryAndRun(
+            function ($item) use (&$results) {
+                $results[] = $item;
+            },
+            'languagePartition',
+            'en',
+            '#lastUpdatedAt > :ts',
+            [':ts' => 0],
+            'hellokitty',
+        );
+        $this->assertCount(5, $results);
+
+        // Cleanup
+        $repo->removeAll();
+    }
+
+    /**
+     * Test projected Item read-only enforcement:
+     * modifying a projected item and flushing throws ODMException.
+     */
+    public function testProjectedItemReadOnlyEnforcement()
+    {
+        // Ensure a Game exists for the projected BasicGameInfo to read
+        $repo = $this->itemManager->getRepository(Game::class);
+        $repo->removeAll();
+
+        $game = new Game();
+        $game->setGamecode('projected-test');
+        $game->setFamily('puzzle');
+        $game->setLanguage('ja');
+        $this->itemManager->persist($game);
+        $this->itemManager->flush();
+        $this->itemManager->clear();
+
+        // Read as projected item
+        /** @var BasicGameInfo $basicInfo */
+        $basicInfo = $this->itemManager->getRepository(BasicGameInfo::class)->get(['gamecode' => 'projected-test']);
+        $this->assertInstanceOf(BasicGameInfo::class, $basicInfo);
+        $this->assertEquals('puzzle', $basicInfo->getFamily());
+
+        // Modify projected item and attempt flush — should throw ODMException
+        $basicInfo->setFamily('modified');
+        $this->expectException(ODMException::class);
+        $this->itemManager->flush();
+    }
+
     public function testGetWithAttributeKey()
     {
         self::expectException(ODMException::class);
