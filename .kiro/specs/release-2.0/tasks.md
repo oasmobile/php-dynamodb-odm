@@ -98,7 +98,7 @@
     - _Requirements: 12.1_
   - [x] 1.10 Checkpoint: 验证旧环境下全部单元测试通过（`php74 vendor/bin/phpunit`），commit
 
-- [-] 2. 依赖升级与测试基础设施搭建
+- [x] 2. 依赖升级与测试基础设施搭建
   - [x] 2.1 更新 `composer.json` 依赖版本
     - 将 `php` 改为 `>=8.5`
     - 将 `phpunit/phpunit` 改为 `^13.0`
@@ -115,10 +115,10 @@
     - 创建 `ut/Unit/`、`ut/Integration/`、`ut/PBT/` 目录（含 `.gitkeep`）
     - 创建 `ut/Unit/Attributes/`、`ut/Unit/Console/Commands/`、`ut/Unit/Exceptions/` 子目录
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.8_
-  - [-] 2.3 Checkpoint: 验证 `composer install` 成功且 `vendor/bin/phpunit --version` 报告 13.x，commit
+  - [x] 2.3 Checkpoint: 验证 `composer install` 成功且 `vendor/bin/phpunit --version` 报告 13.x，commit
 
-- [~] 3. 测试适配 PHPUnit 13
-  - [ ] 3.1 将 Phase 0 的单元测试迁移到 `ut/Unit/` 目录并适配 PHPUnit 13 API
+- [x] 3. 测试适配 PHPUnit 13
+  - [x] 3.1 将 Phase 0 的单元测试迁移到 `ut/Unit/` 目录并适配 PHPUnit 13 API
     - 将 `ut/FieldTest.php` → `ut/Unit/Attributes/FieldTest.php`
     - 将 `ut/ItemTest.php` → `ut/Unit/Attributes/ItemTest.php`
     - 将 `ut/IndexTest.php` → `ut/Unit/Attributes/IndexTest.php`
@@ -137,13 +137,13 @@
     - 适配 PHPUnit 13 的断言 API 变更（如有）
     - **注意**：此时 `ItemReflectionTest` 仍使用旧 `parse(Reader $reader)` API，`ItemManagerTest` 仍使用旧 4 参数构造函数——这些将在后续 Task 5、6 中随源码迁移一起适配
     - _Requirements: 8.1, 8.2_
-  - [ ] 3.2 运行 `vendor/bin/phpunit --testsuite unit` 验证迁移后的测试全部通过
+  - [x] 3.2 运行 `vendor/bin/phpunit --testsuite unit` 验证迁移后的测试全部通过
     - 确认所有单元测试在 PHPUnit 13 下通过
     - _Requirements: 9.5_
-  - [ ] 3.3 Checkpoint: 验证全部单元测试在 PHPUnit 13 下通过，commit
+  - [x] 3.3 Checkpoint: 验证全部单元测试在 PHPUnit 13 下通过，commit
 
-- [ ] 4. Attribute 类迁移（目录重命名 + 四个类改写）
-  - [ ] 4.1 适配 Attribute 单元测试到新 API（RED）
+- [x] 4. Attribute 类迁移（目录重命名 + 四个类改写）
+  - [x] 4.1 适配 Attribute 单元测试到新 API（RED）
     - 更新 `ut/Unit/Attributes/FieldTest.php`：测试 constructor promotion 风格的 `Field`（`new Field(name: 'uid', type: 'number')`）
     - 更新 `ut/Unit/Attributes/ItemTest.php`：测试 `readonly` 属性、`array|Index` 兼容处理
     - 更新 `ut/Unit/Attributes/IndexTest.php`：测试 constructor promotion 风格（`new Index(hash: 'id')`），移除 positional array 构造测试
@@ -151,46 +151,46 @@
     - 更新 import 从 `Oasis\Mlib\ODM\Dynamodb\Annotations\*` 到 `Oasis\Mlib\ODM\Dynamodb\Attributes\*`
     - 此时测试应 **失败**（RED），因为 Attribute 类尚未迁移
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.6_
-  - [ ] 4.2 使用 `git mv src/Annotations src/Attributes` 重命名目录，更新命名空间和所有引用
+  - [x] 4.2 使用 `git mv src/Annotations src/Attributes` 重命名目录，更新命名空间和所有引用
     - 执行 `git mv src/Annotations src/Attributes`
     - 将四个类的 `namespace` 从 `Oasis\Mlib\ODM\Dynamodb\Annotations` 改为 `Oasis\Mlib\ODM\Dynamodb\Attributes`
     - 更新所有 `src/` 文件中的 `use Oasis\Mlib\ODM\Dynamodb\Annotations\*` 为 `use Oasis\Mlib\ODM\Dynamodb\Attributes\*`（涉及 `ItemReflection.php`、`ManagedItemState.php`、`DynamoDbSchemaTool.php`、`AbstractSchemaCommand.php`）
     - 移除所有 `Doctrine\Common\Annotations` 引用
     - _Requirements: 3.9, 3.10_
-  - [ ] 4.3 改写 `Field` 类为 PHP 8 Attribute
+  - [x] 4.3 改写 `Field` 类为 PHP 8 Attribute
     - 添加 `#[Attribute(Attribute::TARGET_PROPERTY)]`
     - 使用 constructor promotion 声明属性：`?string $name = null`、`string $type = 'string'`、`string $cas = self::CAS_DISABLED`、`bool $gsiKey = false`
     - 保留 `CAS_DISABLED`、`CAS_ENABLED`、`CAS_TIMESTAMP` 常量
     - _Requirements: 3.1, 3.5_
-  - [ ] 4.4 改写 `Item` 类为 PHP 8 Attribute
+  - [x] 4.4 改写 `Item` 类为 PHP 8 Attribute
     - 添加 `#[Attribute(Attribute::TARGET_CLASS)]`
     - 属性声明为 `readonly`
     - 构造函数保留 `array|Index` 兼容处理，使用 `array_map` + 箭头函数转换 GSI/LSI
     - _Requirements: 3.2, 3.6, 6.4_
-  - [ ] 4.5 改写 `Index` 类（不声明 `#[Attribute]`，作为嵌套参数）
+  - [x] 4.5 改写 `Index` 类（不声明 `#[Attribute]`，作为嵌套参数）
     - 使用 constructor promotion：`string $hash = ''`、`string $range = ''`、`string $name = ''`
     - 空 hash 时抛出 `AnnotationParsingException`
     - 保留 `getKeys()` 和 `getDynamodbIndex()` 方法
     - _Requirements: 3.3, 3.8_
-  - [ ] 4.6 改写 `PartitionedHashKey` 类为 PHP 8 Attribute
+  - [x] 4.6 改写 `PartitionedHashKey` 类为 PHP 8 Attribute
     - 添加 `#[Attribute(Attribute::TARGET_PROPERTY)]`
     - 使用 constructor promotion：`string $hashField`、`string $baseField`、`int $size = 16`
     - _Requirements: 3.4, 3.7_
-  - [ ] 4.7 运行 Attribute 单元测试验证全部通过（GREEN）
+  - [x] 4.7 运行 Attribute 单元测试验证全部通过（GREEN）
     - 执行 `vendor/bin/phpunit --testsuite unit --filter Attributes`
     - 确认所有 Attribute 测试从 RED 变为 GREEN
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.6_
-  - [ ] 4.8 Checkpoint: 验证 Attribute 单元测试全部通过，commit
+  - [x] 4.8 Checkpoint: 验证 Attribute 单元测试全部通过，commit
 
-- [ ] 5. ItemReflection 解析迁移
-  - [ ] 5.1 适配 `ItemReflection` 单元测试到新 API（RED）
+- [-] 5. ItemReflection 解析迁移
+  - [x] 5.1 适配 `ItemReflection` 单元测试到新 API（RED）
     - 更新 `ut/Unit/ItemReflectionTest.php`：移除 `AnnotationReader` / `Reader` 相关代码
     - 调用 `parse()` 时不传参数（新签名 `parse(): void`）
     - 更新 import 从 `Annotations\*` 到 `Attributes\*`
     - **注意**：此时测试模型类（User、Game 等）仍使用旧 docblock 注解，需要在测试中使用已迁移到 Attribute 的临时测试模型，或在此 task 中先将测试所用的模型类迁移到 Attribute 语法
     - 此时测试应 **失败**（RED），因为 `parse()` 仍接受 `Reader` 参数
     - _Requirements: 3.11, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 10.2_
-  - [ ] 5.2 重写 `ItemReflection::parse()` 方法
+  - [x] 5.2 重写 `ItemReflection::parse()` 方法
     - 移除 `Reader $reader` 参数，改为无参数 `parse(): void`
     - 使用 `ReflectionClass::getAttributes(Item::class)` 读取类级 Attribute
     - 使用 `ReflectionProperty::getAttributes(Field::class)` 和 `getAttributes(PartitionedHashKey::class)` 读取属性级 Attribute
@@ -198,13 +198,13 @@
     - 移除所有 `Doctrine\Common\Annotations\Reader` 引用
     - 更新 import 从 `Annotations\*` 到 `Attributes\*`
     - _Requirements: 3.11, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8_
-  - [ ] 5.3 运行 `ItemReflection` 单元测试验证全部通过（GREEN）
+  - [x] 5.3 运行 `ItemReflection` 单元测试验证全部通过（GREEN）
     - 执行 `vendor/bin/phpunit --testsuite unit --filter ItemReflectionTest`
     - 确认所有测试从 RED 变为 GREEN
     - _Requirements: 4.1, 4.2, 10.2_
-  - [ ] 5.4 Checkpoint: 验证 ItemReflection 单元测试全部通过，commit
+  - [-] 5.4 Checkpoint: 验证 ItemReflection 单元测试全部通过，commit
 
-- [ ] 6. ItemManager 构造函数简化
+- [~] 6. ItemManager 构造函数简化
   - [ ] 6.1 适配 `ItemManager` 单元测试到新 API（RED）
     - 更新 `ut/Unit/ItemManagerTest.php`：构造 `ItemManager` 时仅传 2 参数（`$dbCnn` 和 `$prefix`）
     - 移除对 `getReader()` 和 `loadAnnotationClass()` 的测试
