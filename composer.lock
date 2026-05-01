@@ -750,16 +750,16 @@
         },
         {
             "name": "oasis/aws-wrappers",
-            "version": "v3.0.1",
+            "version": "v3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/oasmobile/php-aws-wrappers.git",
-                "reference": "766158711416f0c595c21636d2b13b985c783ad5"
+                "reference": "f1f8e5ea102f8bdeda0e34d3e3201e8ed2eed03a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oasmobile/php-aws-wrappers/zipball/766158711416f0c595c21636d2b13b985c783ad5",
-                "reference": "766158711416f0c595c21636d2b13b985c783ad5",
+                "url": "https://api.github.com/repos/oasmobile/php-aws-wrappers/zipball/f1f8e5ea102f8bdeda0e34d3e3201e8ed2eed03a",
+                "reference": "f1f8e5ea102f8bdeda0e34d3e3201e8ed2eed03a",
                 "shasum": ""
             },
             "require": {
@@ -796,9 +796,9 @@
             "description": "Wrappers for AWS SDK",
             "support": {
                 "issues": "https://github.com/oasmobile/php-aws-wrappers/issues",
-                "source": "https://github.com/oasmobile/php-aws-wrappers/tree/v3.0.1"
+                "source": "https://github.com/oasmobile/php-aws-wrappers/tree/v3.0.2"
             },
-            "time": "2026-05-01T07:36:22+00:00"
+            "time": "2026-05-01T14:45:48+00:00"
         },
         {
             "name": "oasis/event",
