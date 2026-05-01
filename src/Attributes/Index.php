@@ -27,7 +27,7 @@ class Index
         $ret = [
             $this->hash,
         ];
-        if ($this->range) {
+        if ($this->range !== '') {
             $ret[] = $this->range;
         }
 
