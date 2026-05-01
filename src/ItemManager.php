@@ -78,7 +78,6 @@ class ItemManager
                 $splFileInfo->getBasename(".php")
             );
             $classname = preg_replace('#\\\\+#', '\\', $classname);
-            //mdebug("Class name is %s", $classname);
             $this->possibleItemClasses[] = $classname;
         }
     }
@@ -153,8 +152,7 @@ class ItemManager
     }
     
     /**
-     * @return array
-     * todo: set deprecated and recommend getDatabaseConfig() instead
+     * @deprecated use getDatabaseConfig() instead
      */
     public function getDynamodbConfig(): array
     {

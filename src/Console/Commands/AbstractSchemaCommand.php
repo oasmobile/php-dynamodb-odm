@@ -45,7 +45,7 @@ abstract class AbstractSchemaCommand extends Command
             } catch (ReflectionException $e) {
                 continue;
             } catch (Exception $e) {
-                mtrace($e, "Annotation parsing exception found: ", 'error');
+                mtrace($e, "Attribute parsing exception found: ", 'error');
                 throw $e;
             }
             $classes[$class] = $reflection;

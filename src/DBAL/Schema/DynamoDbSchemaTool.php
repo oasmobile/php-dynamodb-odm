@@ -86,7 +86,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                 );
 
                 if ($gsis) {
-                    // if there is gsi, we nee to wait before creating next table
+                    // if there is gsi, we need to wait before creating next table
                     $this->outputWrite("Will wait for GSI creation ...");
                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 60, 2);
                 }
@@ -224,7 +224,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                             );
                             if (!$isDryRun) {
                                 $table->addGlobalSecondaryIndex($idx);
-                                // if there is gsi alteration, we nee to wait before continue
+                                // if there is gsi alteration, we need to wait before continue
                                 $this->outputWrite("Will wait for creation of GSI ".$idx->getName()." ...");
                                 $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
                                 $this->outputWrite('Done.');
@@ -254,7 +254,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                                     ."] on table <info>$tableName</info> for class <info>$class</info> ..."
                                 );
                                 if (!$isDryRun) {
-                                    // if there is gsi alteration, we nee to wait before continue
+                                    // if there is gsi alteration, we need to wait before continue
                                     $table->deleteGlobalSecondaryIndex($idx->getName());
                                     $this->outputWrite("Will wait for deletion of GSI ".$idx->getName()." ...");
                                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);

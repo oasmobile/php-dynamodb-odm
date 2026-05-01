@@ -86,7 +86,7 @@ class ManagedItemState
         $checkValues = [];
         foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
             $fieldName               = $this->itemReflection->getFieldNameByPropertyName($propertyName);
-            $checkValues[$fieldName] = isset($this->originalData[$fieldName]) ? $this->originalData[$fieldName] : null;
+            $checkValues[$fieldName] = $this->originalData[$fieldName] ?? null;
         }
         
         return $checkValues;
@@ -114,12 +114,7 @@ class ManagedItemState
     
     public function getOriginalValue(string $key): mixed
     {
-        if (isset($this->originalData[$key])) {
-            return $this->originalData[$key];
-        }
-        else {
-            return null;
-        }
+        return $this->originalData[$key] ?? null;
     }
     
     public function setState(int $state): void

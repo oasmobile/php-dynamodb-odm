@@ -171,7 +171,6 @@ class ItemReflection
     public function getAllPartitionedValues(string $hashKeyName, mixed $baseValue): array
     {
         if (!isset($this->partitionedHashKeys[$hashKeyName])) {
-            // mdebug("The field %s is not declared as a PartitionedHashKey!", $hashKeyName)
             return [$baseValue];
         }
         
