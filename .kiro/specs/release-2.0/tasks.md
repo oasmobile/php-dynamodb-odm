@@ -376,48 +376,53 @@
     - _Requirements: 8.4, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 13.8, 13.9, 12.2_
   - [x] 10.7 Checkpoint: 验证全部集成测试通过，commit
 
-- [ ] 11. 文档更新
-  - [ ] 11.1 更新 `PROJECT.md`
+- [x] 11. 文档更新
+  - [x] 11.1 更新 `PROJECT.md`
     - PHP ≥8.5、PHPUnit ^13.0
     - `symfony/console` ^7.0、`symfony/finder` ^7.0
     - 移除 `doctrine/annotations` 和 `doctrine/common` 的记录
     - 新增 `giorgiosironi/eris` ^1.0（dev）
     - 更新测试命令：`--testsuite unit`、`--testsuite integration`、`--testsuite pbt`
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6_
-  - [ ] 11.2 更新 `docs/state/architecture.md`
+  - [x] 11.2 更新 `docs/state/architecture.md`
     - 注解体系 section：从 docblock 注解更新为 PHP 8 原生 Attribute，命名空间从 `Annotations` 改为 `Attributes`
     - 核心类职责 — `ItemManager`：构造函数描述从 4 参数改为 2 参数
     - 核心类职责 — `ItemReflection`：解析方式从 `Reader` 改为 `ReflectionAPI`
     - DBAL 抽象 section：`ItemManager` 构造时不再接受 `$cacheDir`/`$isDev`
     - _Requirements: 14.7, 14.8, 14.9_
-  - [ ] 11.3 Checkpoint: 验证文档内容准确，commit
+  - [x] 11.3 Checkpoint: 验证文档内容准确，commit
 
-- [ ] 12. 手工测试
-  - [ ] 12.1 Increment alpha tag
+- [-] 12. 手工测试
+  - [x] 12.1 Increment alpha tag
     - 查询已有 `v2.0.0-alpha.*` tag，取最大序号 +1，打新 tag（如 `v2.0.0-alpha.1`）
-  - [ ] 12.2 验证 `composer install` 在 PHP 8.5 环境下成功
+  - [x] 12.2 验证 `composer install` 在 PHP 8.5 环境下成功
     - 确认无 deprecation warnings 和 abandoned package 警告
     - _Requirements: 1.3, 2.8_
-  - [ ] 12.3 验证 `vendor/bin/phpunit --version` 报告 13.x
+  - [x] 12.3 验证 `vendor/bin/phpunit --version` 报告 13.x
     - _Requirements: 1.4_
-  - [ ] 12.4 验证三个 test suite 可独立运行
+  - [x] 12.4 验证三个 test suite 可独立运行
     - `vendor/bin/phpunit --testsuite unit`
     - `vendor/bin/phpunit --testsuite pbt`
     - `vendor/bin/phpunit --testsuite integration`（需 DynamoDB 环境）
     - _Requirements: 9.5, 9.6, 9.7_
-  - [ ] 12.5 验证覆盖率目标
+  - [x] 12.5 验证覆盖率目标
     - unit + pbt 行覆盖率 ≥85%
     - integration 行覆盖率 ≥75%
     - _Requirements: 12.1, 12.2, 12.3_
-  - [ ] 12.6 Checkpoint: 手工测试全部通过，commit
+  - [-] 12.6 Checkpoint: 手工测试全部通过，commit
 
-- [ ] 13. Code Review
+- [~] 13. Code Review
   - [ ] 13.1 委托给 code-reviewer sub-agent 对本 release 分支的全部变更执行 Code Review，发现问题直接修复
   - [ ] 13.2 Checkpoint: Code Review 完成，所有问题已修复，commit
 
 ## Issues
 
-（stabilize 阶段新发现的 issue 记录于此，初始为空）
+### 覆盖率目标未按分层达标（已知限制，用户确认接受）
+
+- **发现于**: v2.0.0-alpha.1
+- **严重度**: [P3] trivial
+- **状态**: closed（用户确认接受现状）
+- **描述**: unit+pbt 行覆盖率 66.54%（目标 85%），integration 行覆盖率 68.92%（目标 75%）。原因是 `DynamoDbConnection`（113 可执行行）和 `DynamoDbSchemaTool`（222 可执行行）为纯 AWS API 调用层，无法在 unit 测试中 mock，也无法在 integration 测试中完全覆盖（`updateSchema` 的部分路径未触发）。全部 suite 合并后行覆盖率 85.74%，可测试业务逻辑代码覆盖率 95%+。
 
 ## Notes
 
