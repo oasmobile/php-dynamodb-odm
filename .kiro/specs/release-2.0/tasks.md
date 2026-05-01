@@ -11,7 +11,7 @@
 
 ## Tasks
 
-- [-] 1. Phase 0: 旧环境单元测试补齐
+- [x] 1. Phase 0: 旧环境单元测试补齐
   - [x] 1.1 编写 Annotation 类单元测试（Field / Item / Index / PartitionedHashKey）
     - 在 `ut/` 根目录下创建 `FieldTest.php`、`ItemTest.php`、`IndexTest.php`、`PartitionedHashKeyTest.php`
     - 使用旧 doctrine 注解 API 和 `PHPUnit_Framework_TestCase`
@@ -96,7 +96,7 @@
     - 使用 `php74 vendor/bin/phpunit` 运行全部新增单元测试
     - 确认所有测试通过，记录覆盖率基线数据
     - _Requirements: 12.1_
-  - [-] 1.10 Checkpoint: 验证旧环境下全部单元测试通过（`php74 vendor/bin/phpunit`），commit
+  - [x] 1.10 Checkpoint: 验证旧环境下全部单元测试通过（`php74 vendor/bin/phpunit`），commit
 
 - [ ] 2. 依赖升级与测试基础设施搭建
   - [ ] 2.1 更新 `composer.json` 依赖版本

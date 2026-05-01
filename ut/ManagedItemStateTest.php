@@ -330,4 +330,121 @@ class ManagedItemStateTest extends PHPUnit_Framework_TestCase
         // name is "" in object but null in original data — should be considered equal
         $this->assertFalse($state->hasDirtyData());
     }
+
+    // --- PartitionedHashKey with custom hash function ---
+
+    public function testUpdatePartitionedHashKeysWithCustomHashFunction()
+    {
+        $user = new User();
+        $user->setId(42);
+        $user->setHometown('LA');
+
+        $state = new ManagedItemState($this->userReflection, $user);
+        $state->updatePartitionedHashKeys(function ($source) {
+            return strtoupper($source);
+        });
+
+        $partitionValue = $this->userReflection->getPropertyValue($user, 'hometownPartition');
+        $this->assertNotNull($partitionValue);
+        $this->assertStringStartsWith('LA-', $partitionValue);
+    }
+
+    // --- Dirty check with double values ---
+
+    public function testDirtyCheckWithDoubleValues()
+    {
+        // Use ConsoleGame which has map/list fields
+        $reader = new AnnotationReader();
+        $ref    = new ItemReflection(ConsoleGame::class, []);
+        $ref->parse($reader);
+
+        $game = new ConsoleGame();
+        $game->setGamecode('test');
+        $game->setLanguage('en');
+        $game->setFamily('ps4');
+
+        $data  = $ref->dehydrate($game);
+        $state = new ManagedItemState($ref, $game, $data);
+
+        $this->assertFalse($state->hasDirtyData());
+    }
+
+    // --- Dirty check with array data (map/list) ---
+
+    public function testDirtyCheckWithArrayData()
+    {
+        $reader = new AnnotationReader();
+        $ref    = new ItemReflection(ConsoleGame::class, []);
+        $ref->parse($reader);
+
+        $game = new ConsoleGame();
+        $game->setGamecode('test');
+        $game->setLanguage('en');
+        $game->setFamily('ps4');
+        $game->setAchievements(['a' => 1, 'b' => 2]);
+        $game->setAuthors(['alice', 'bob']);
+
+        $data  = $ref->dehydrate($game);
+        $state = new ManagedItemState($ref, $game, $data);
+
+        $this->assertFalse($state->hasDirtyData());
+
+        // Modify array data
+        $game->setAchievements(['a' => 1, 'b' => 3]);
+        $this->assertTrue($state->hasDirtyData());
+    }
+
+    public function testDirtyCheckWithArrayCountMismatch()
+    {
+        $reader = new AnnotationReader();
+        $ref    = new ItemReflection(ConsoleGame::class, []);
+        $ref->parse($reader);
+
+        $game = new ConsoleGame();
+        $game->setGamecode('test');
+        $game->setLanguage('en');
+        $game->setFamily('ps4');
+        $game->setAuthors(['alice', 'bob']);
+
+        $data  = $ref->dehydrate($game);
+        $state = new ManagedItemState($ref, $game, $data);
+
+        // Change array length
+        $game->setAuthors(['alice']);
+        $this->assertTrue($state->hasDirtyData());
+    }
+
+    public function testDirtyCheckWithArrayKeyMismatch()
+    {
+        $reader = new AnnotationReader();
+        $ref    = new ItemReflection(ConsoleGame::class, []);
+        $ref->parse($reader);
+
+        $game = new ConsoleGame();
+        $game->setGamecode('test');
+        $game->setLanguage('en');
+        $game->setFamily('ps4');
+        $game->setAchievements(['a' => 1, 'b' => 2]);
+
+        $data  = $ref->dehydrate($game);
+        $state = new ManagedItemState($ref, $game, $data);
+
+        // Change array keys
+        $game->setAchievements(['a' => 1, 'c' => 2]);
+        $this->assertTrue($state->hasDirtyData());
+    }
+
+    public function testDirtyCheckWithTypeMismatch()
+    {
+        $user = new User();
+        $user->setId(1);
+        $user->setAge(30);
+
+        $data  = $this->userReflection->dehydrate($user);
+        $state = new ManagedItemState($this->userReflection, $user, $data);
+
+        // Change type: number to string
+        $user->setAge('thirty');
+        $this->assertTrue($state->hasDirtyData());
+    }
 }

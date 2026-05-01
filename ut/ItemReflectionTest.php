@@ -518,4 +518,54 @@ class ItemReflectionTest extends PHPUnit_Framework_TestCase
         $this->expectException(ODMException::class);
         $ref->updateProperty($game, 'id', 1);
     }
+
+    // --- Additional coverage tests ---
+
+    public function testGetPropertyValueNonExistentPropertyThrowsException()
+    {
+        $ref = new ItemReflection(User::class, []);
+        $ref->parse($this->reader);
+
+        $user = new User();
+        $this->expectException(ODMException::class);
+        $ref->getPropertyValue($user, 'nonExistentProperty');
+    }
+
+    public function testUpdatePropertyNonExistentPropertyThrowsException()
+    {
+        $ref = new ItemReflection(User::class, []);
+        $ref->parse($this->reader);
+
+        $user = new User();
+        $this->expectException(ODMException::class);
+        $ref->updateProperty($user, 'nonExistentProperty', 'value');
+    }
+
+    public function testHydrateSkipsUnknownAttributes()
+    {
+        // Suppress mwarning output from hydrate
+        \Oasis\Mlib\Logging\MLogging::getLogger()->pushHandler(new \Monolog\Handler\NullHandler());
+
+        $ref = new ItemReflection(User::class, []);
+        $ref->parse($this->reader);
+
+        $data = [
+            'uid'             => 42,
+            'name'            => 'Alice',
+            'unknown_field'   => 'should be skipped',
+        ];
+
+        $user = $ref->hydrate($data);
+        $this->assertSame(42, $user->getId());
+        $this->assertSame('Alice', $user->getName());
+    }
+
+    public function testGetPrimaryKeysFromIncompleteArrayThrowsException()
+    {
+        $ref = new ItemReflection(User::class, []);
+        $ref->parse($this->reader);
+
+        $this->expectException(ODMException::class);
+        $ref->getPrimaryKeys(['name' => 'Alice']); // missing 'uid' key
+    }
 }

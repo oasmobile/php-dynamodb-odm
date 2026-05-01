@@ -82,6 +82,9 @@ class ItemManagerUnitTest extends PHPUnit_Framework_TestCase
 
     public function testAddNamespaceWithNonExistentDir()
     {
+        // Suppress mwarning output from ItemManager::addNamespace()
+        \Oasis\Mlib\Logging\MLogging::getLogger()->pushHandler(new \Monolog\Handler\NullHandler());
+
         $stubCnn = new StubConnection(['region' => 'us-east-1']);
         $im      = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
 
@@ -212,5 +215,114 @@ class ItemManagerUnitTest extends PHPUnit_Framework_TestCase
 
         /** @noinspection PhpDeprecationInspection */
         $this->assertSame($im->getDatabaseConfig(), $im->getDynamodbConfig());
+    }
+
+    // --- Delegation via ItemManager public API ---
+
+    public function testGetDelegatesToRepository()
+    {
+        $stubCnn = new StubConnection(['region' => 'us-east-1']);
+        $stubCnn->setReturnValue('get', [
+            'uid' => 42, 'name' => 'Alice', 'alias' => '', 'age' => 30,
+            'salary' => 50000, 'hometown' => 'LA', 'ts' => 0, 'dummy' => null,
+        ]);
+
+        $im   = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
+        $user = $im->get(User::class, ['id' => 42]);
+
+        $this->assertInstanceOf(User::class, $user);
+        $this->assertSame(42, $user->getId());
+    }
+
+    public function testRemoveDelegatesToRepository()
+    {
+        $stubCnn = new StubConnection(['region' => 'us-east-1']);
+        $stubCnn->setReturnValue('get', [
+            'uid' => 42, 'name' => 'Alice', 'alias' => '', 'age' => 30,
+            'salary' => 50000, 'hometown' => 'LA', 'ts' => 0, 'dummy' => null,
+        ]);
+
+        $im   = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
+        $user = $im->get(User::class, ['id' => 42]);
+
+        $im->remove($user);
+        $this->assertTrue(true);
+    }
+
+    public function testFlushDelegatesToAllRepositories()
+    {
+        $stubCnn = new StubConnection(['region' => 'us-east-1']);
+        $stubCnn->setReturnValue('set', true);
+
+        $im   = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
+        $user = new User();
+        $user->setId(1);
+        $user->setName('Alice');
+
+        $im->persist($user);
+        $im->flush();
+        $this->assertTrue(true);
+    }
+
+    public function testRefreshDelegatesToRepository()
+    {
+        $stubCnn = new StubConnection(['region' => 'us-east-1']);
+        $stubCnn->setReturnValue('get', [
+            'uid' => 42, 'name' => 'Refreshed', 'alias' => '', 'age' => 30,
+            'salary' => 50000, 'hometown' => 'LA', 'ts' => 0, 'dummy' => null,
+        ]);
+
+        $im   = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
+        $user = $im->get(User::class, ['id' => 42]);
+
+        $user->setName('Modified');
+        $im->refresh($user);
+        $this->assertSame('Refreshed', $user->getName());
+    }
+
+    public function testDetachNonObjectThrowsException()
+    {
+        $stubCnn = new StubConnection();
+        $im      = new ItemManager($stubCnn, '', $this->createCacheDir(), true);
+
+        $this->expectException(\Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException::class);
+        $im->detach('not an object');
+    }
+
+    public function testLoadAnnotationClassReturnsTrueForExistingClass()
+    {
+        $stubCnn = new StubConnection();
+        $im      = new ItemManager($stubCnn, '', $this->createCacheDir(), true);
+
+        $this->assertTrue($im->loadAnnotationClass(User::class));
+    }
+
+    public function testLoadAnnotationClassReturnsFalseForNonExistingClass()
+    {
+        $stubCnn = new StubConnection();
+        $im      = new ItemManager($stubCnn, '', $this->createCacheDir(), true);
+
+        $this->assertFalse($im->loadAnnotationClass('NonExistent\\Class\\Name'));
+    }
+
+    public function testIsSkipCheckAndSetDeprecated()
+    {
+        $stubCnn = new StubConnection();
+        $im      = new ItemManager($stubCnn, '', $this->createCacheDir(), true);
+
+        /** @noinspection PhpDeprecationInspection */
+        $this->assertFalse($im->isSkipCheckAndSet());
+        $im->setSkipCheckAndSet(true);
+        /** @noinspection PhpDeprecationInspection */
+        $this->assertTrue($im->isSkipCheckAndSet());
+    }
+
+    public function testSetReservedAttributeNames()
+    {
+        $stubCnn = new StubConnection();
+        $im      = new ItemManager($stubCnn, '', $this->createCacheDir(), true);
+
+        $im->setReservedAttributeNames(['a', 'b']);
+        $this->assertSame(['a', 'b'], $im->getReservedAttributeNames());
     }
 }

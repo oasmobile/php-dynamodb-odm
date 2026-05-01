@@ -3,7 +3,6 @@
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\AbstractDbConnection;
-use Oasis\Mlib\ODM\Dynamodb\DBAL\Schema\AbstractSchemaTool;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 
 /**
@@ -16,6 +15,12 @@ class StubConnection extends AbstractDbConnection
     /** @var array Configurable return values for method calls */
     private $returnValues = [];
 
+    /** @var array Queued return values (for methods called multiple times) */
+    private $returnQueue = [];
+
+    /** @var array Data rows for callback-based methods (queryAndRun, scanAndRun, etc.) */
+    private $callbackData = [];
+
     public function __construct($dbConfig = [])
     {
         parent::__construct($dbConfig);
@@ -26,14 +31,43 @@ class StubConnection extends AbstractDbConnection
         $this->returnValues[$method] = $value;
     }
 
+    /**
+     * Queue multiple return values for a method. Each call pops one value.
+     * When the queue is exhausted, falls back to setReturnValue or default.
+     */
+    public function queueReturnValues($method, array $values)
+    {
+        $this->returnQueue[$method] = $values;
+    }
+
+    /**
+     * Set data rows that callback-based methods will iterate over.
+     */
+    public function setCallbackData($method, array $rows)
+    {
+        $this->callbackData[$method] = $rows;
+    }
+
     private function getReturnValue($method, $default = null)
     {
+        if (isset($this->returnQueue[$method]) && !empty($this->returnQueue[$method])) {
+            return array_shift($this->returnQueue[$method]);
+        }
         return isset($this->returnValues[$method]) ? $this->returnValues[$method] : $default;
+    }
+
+    private function getCallbackData($method)
+    {
+        return isset($this->callbackData[$method]) ? $this->callbackData[$method] : [];
     }
 
     public function getSchemaTool(ItemManager $im, $classReflections, callable $outputFunction = null)
     {
-        return $this->getReturnValue('getSchemaTool');
+        $val = $this->getReturnValue('getSchemaTool');
+        if ($val !== null) {
+            return $val;
+        }
+        return new StubSchemaTool($im, $classReflections, $outputFunction);
     }
 
     public function batchGet(
@@ -94,7 +128,12 @@ class StubConnection extends AbstractDbConnection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        return $this->getReturnValue('queryAndRun');
+        foreach ($this->getCallbackData('queryAndRun') as $row) {
+            $result = call_user_func($callback, $row);
+            if ($result === false) {
+                break;
+            }
+        }
     }
 
     public function queryCount(
@@ -124,7 +163,12 @@ class StubConnection extends AbstractDbConnection
         $concurrency = 10,
         $projectedFields = []
     ) {
-        return $this->getReturnValue('multiQueryAndRun');
+        foreach ($this->getCallbackData('multiQueryAndRun') as $row) {
+            $result = call_user_func($callback, $row);
+            if ($result === false) {
+                break;
+            }
+        }
     }
 
     public function scan(
@@ -151,7 +195,12 @@ class StubConnection extends AbstractDbConnection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        return $this->getReturnValue('scanAndRun');
+        foreach ($this->getCallbackData('scanAndRun') as $row) {
+            $result = call_user_func($callback, $row);
+            if ($result === false) {
+                break;
+            }
+        }
     }
 
     public function parallelScanAndRun(
@@ -165,7 +214,12 @@ class StubConnection extends AbstractDbConnection
         $isAscendingOrder = true,
         $projectedFields = []
     ) {
-        return $this->getReturnValue('parallelScanAndRun');
+        foreach ($this->getCallbackData('parallelScanAndRun') as $row) {
+            $result = call_user_func($callback, $row);
+            if ($result === false) {
+                break;
+            }
+        }
     }
 
     public function scanCount(

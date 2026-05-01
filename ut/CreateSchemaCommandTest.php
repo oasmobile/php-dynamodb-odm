@@ -5,6 +5,7 @@ namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 use Oasis\Mlib\ODM\Dynamodb\Console\Commands\CreateSchemaCommand;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 use PHPUnit_Framework_TestCase;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class CreateSchemaCommandTest extends PHPUnit_Framework_TestCase
 {
@@ -74,5 +75,34 @@ class CreateSchemaCommandTest extends PHPUnit_Framework_TestCase
         foreach ($classes as $className => $reflection) {
             $this->assertNotNull($reflection);
         }
+    }
+
+    public function testExecute()
+    {
+        $stubCnn = new StubConnection(['region' => 'us-east-1']);
+        $im      = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
+
+        $cmd = new CreateSchemaCommand();
+        $cmd->withItemManager($im);
+
+        $tester = new CommandTester($cmd);
+        $tester->execute([]);
+
+        // Command should complete without error
+        $this->assertTrue(true);
+    }
+
+    public function testExecuteWithDryRun()
+    {
+        $stubCnn = new StubConnection(['region' => 'us-east-1']);
+        $im      = new ItemManager($stubCnn, 'test_', $this->createCacheDir(), true);
+
+        $cmd = new CreateSchemaCommand();
+        $cmd->withItemManager($im);
+
+        $tester = new CommandTester($cmd);
+        $tester->execute(['--dry-run' => true]);
+
+        $this->assertTrue(true);
     }
 }
