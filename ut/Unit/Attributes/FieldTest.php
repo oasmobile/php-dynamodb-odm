@@ -2,7 +2,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut\Unit\Attributes;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
 use PHPUnit\Framework\TestCase;
 
 class FieldTest extends TestCase

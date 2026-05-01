@@ -1,6 +1,6 @@
 <?php
 
-namespace Oasis\Mlib\ODM\Dynamodb\Annotations;
+namespace Oasis\Mlib\ODM\Dynamodb\Attributes;
 
 use Attribute;
 

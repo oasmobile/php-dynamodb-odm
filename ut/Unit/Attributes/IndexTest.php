@@ -2,7 +2,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut\Unit\Attributes;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
 use PHPUnit\Framework\TestCase;
 

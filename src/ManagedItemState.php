@@ -9,7 +9,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
 use function is_null;

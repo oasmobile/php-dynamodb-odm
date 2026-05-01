@@ -2,7 +2,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut\Unit\Attributes;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\PartitionedHashKey;
 use PHPUnit\Framework\TestCase;
 
 class PartitionedHashKeyTest extends TestCase

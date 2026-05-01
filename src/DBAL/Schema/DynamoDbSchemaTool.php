@@ -12,7 +12,7 @@ use Aws\DynamoDb\Exception\DynamoDbException;
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbManager;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
 

@@ -8,9 +8,9 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\PartitionedHashKey;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\NotAnnotatedException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
