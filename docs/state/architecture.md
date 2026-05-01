@@ -7,8 +7,8 @@
 ## 分层结构
 
 ```
-Annotations          注解定义层：Field / Index / Item / PartitionedHashKey
-ItemReflection       元数据解析层：将注解解析为运行时反射信息
+Attributes           Attribute 定义层：Field / Index / Item / PartitionedHashKey（PHP 8 原生 #[Attribute]）
+ItemReflection       元数据解析层：通过 ReflectionAPI 将 Attribute 解析为运行时反射信息
 ItemManager          核心管理器：对象生命周期管理入口
 ItemRepository       仓库层：CRUD / Query / Scan 操作
 ManagedItemState     状态追踪层：脏检查、CAS、PartitionedHashKey 更新
@@ -24,8 +24,8 @@ Exceptions           异常层
 
 | 类 | 职责 |
 |----|------|
-| `ItemManager` | 统一入口；管理命名空间扫描、注解读取器、Repository 缓存；提供 `persist` / `remove` / `flush` / `get` / `detach` / `clear` / `refresh` 等操作 |
-| `ItemReflection` | 解析 `@Item` / `@Field` / `@PartitionedHashKey` 注解；提供 hydrate / dehydrate、属性读写、主键提取、字段映射 |
+| `ItemManager` | 统一入口；管理命名空间扫描、Repository 缓存；提供 `persist` / `remove` / `flush` / `get` / `detach` / `clear` / `refresh` 等操作 |
+| `ItemReflection` | 通过 `ReflectionClass::getAttributes()` / `ReflectionProperty::getAttributes()` 解析 `#[Item]` / `#[Field]` / `#[PartitionedHashKey]` Attribute；提供 hydrate / dehydrate、属性读写、主键提取、字段映射 |
 | `ItemRepository` | 每个 Item 类对应一个实例；负责 get / query / scan / batchGet / persist / remove / flush 等数据操作；内部维护 `ManagedItemState` 映射 |
 | `ManagedItemState` | 追踪单个对象的状态（NEW / MANAGED / REMOVED）；脏数据检测；CAS 时间戳更新；PartitionedHashKey 计算 |
 | `Connection` | 数据库连接接口；定义所有底层数据操作方法签名 |
@@ -52,14 +52,16 @@ new → persist() → [STATE_NEW]
 
 ---
 
-## 注解体系
+## Attribute 体系
 
-| 注解 | 目标 | 作用 |
-|------|------|------|
-| `@Item` | 类 | 声明 DynamoDB 表映射：表名、主键索引、GSI、LSI、repository 类、是否 projected |
-| `@Field` | 属性 | 声明属性到 DynamoDB attribute 的映射：类型、别名、CAS 策略、是否 GSI key |
-| `@Index` | 嵌套 | 描述索引结构：hash key、range key、索引名 |
-| `@PartitionedHashKey` | 属性 | 声明分区哈希键：baseField、hashField、分区大小 |
+| Attribute | 目标 | 作用 |
+|-----------|------|------|
+| `#[Item]` | 类 | 声明 DynamoDB 表映射：表名、主键索引、GSI、LSI、repository 类、是否 projected |
+| `#[Field]` | 属性 | 声明属性到 DynamoDB attribute 的映射：类型、别名、CAS 策略、是否 GSI key |
+| `Index` | 嵌套 | 描述索引结构：hash key、range key、索引名（作为 `#[Item]` 的嵌套参数使用） |
+| `#[PartitionedHashKey]` | 属性 | 声明分区哈希键：baseField、hashField、分区大小 |
+
+Attribute 类位于 `src/Attributes/` 目录，命名空间为 `Oasis\Mlib\ODM\Dynamodb\Attributes`。
 
 ---
 
@@ -68,7 +70,7 @@ new → persist() → [STATE_NEW]
 - `Connection` 接口定义了所有数据操作（get / set / query / scan / batch 等）
 - `AbstractDbConnection` 提供公共属性管理（tableName / attributeTypes / itemReflection）
 - `DynamoDbConnection` 委托 `DynamoDbTable`（来自 `oasis/aws-wrappers`）执行实际操作
-- `ItemManager` 构造时可接受 `Connection` 实例或 AWS 配置数组；后者默认创建 `DynamoDbConnection`
+- `ItemManager` 构造时接受两个参数：`$dbCnn`（`Connection` 实例或 AWS 配置数组）和 `$defaultTablePrefix`（表名前缀）；传入数组时默认创建 `DynamoDbConnection`
 
 ---
 
@@ -99,6 +101,6 @@ new → persist() → [STATE_NEW]
 |--------|------|
 | `ODMException` | 通用 ODM 错误（类型不匹配、字段未定义等） |
 | `DataConsistencyException` | CAS 冲突 |
-| `AnnotationParsingException` | 注解解析错误 |
-| `NotAnnotatedException` | 类未标注 `@Item` |
+| `AnnotationParsingException` | Attribute 解析错误 |
+| `NotAnnotatedException` | 类未标注 `#[Item]` |
 | `UnderlyingDatabaseException` | 底层数据库返回异常结果 |
