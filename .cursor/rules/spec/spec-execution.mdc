@@ -1,0 +1,163 @@
+---
+description: 当执行 spec plan 中的 task（编码、测试、code review）时读取。
+alwaysApply: false
+---
+
+# Spec Plan Execution
+
+本规则在执行 `.cursor/specs/<name>/plan.md` 中的 task 时生效。
+
+Plan 文件由 spec-planner sub-agent 生成，包含 top-level task（`## - [ ] Task N:`）和 sub-step（`- [ ]`）。
+
+### 术语约定
+
+- `Task 3-5` = Task 3 到 Task 5（范围），不是 Task 3 的 sub-step 5。
+- 引用 sub-step 时使用 `Task 3.2`（用句点分隔）。
+
+---
+
+## 执行方法
+
+使用 **Cursor Plan Mode** 执行：
+
+1. 读取 `plan.md`，对当前要执行的 top-level task 进入 Plan Mode 生成执行计划
+2. 用户 review 后点击 Build 执行
+3. 执行完成后在 plan.md 中标记 `- [x]`，commit，推进下一个 task
+
+### Sub-agent 派发
+
+所有 top-level task 均应派发给 **sub-agent** 执行，以控制主 agent 上下文消耗。主 agent 仅负责读取 plan、派发 task、汇总结果、标记进度。
+
+| 场景 | 派发方式 |
+|------|---------|
+| Plan 标注 `[Parallel: ...]` 的 task | 并行派发多个 sub-agent，全部完成后统一 review 再推进 |
+| 未标注但无依赖关系的 task（不修改同一文件、无调用依赖） | 主 agent 自行判断可否并行派发 |
+| 有依赖关系的 task | 串行派发：前一个 sub-agent 完成后，主 agent 验证结果，再派发下一个 |
+
+派发时向 sub-agent 提供：当前 task 的完整描述、相关文件路径、前序 task 的关键产出（如新增的类名 / 接口签名）。避免把整个 plan 传给 sub-agent。
+
+### Pre-execution Review
+
+每次开始执行 plan.md（或从中断处恢复执行）时，先做一次轻量预检：
+
+1. **Drift 检测**：将当前要执行的 task 涉及的关键文件与 design.md 中的预期做快速比对——如果代码结构、接口签名、依赖关系已发生变化（例如被其他分支 merge 改动），标记为 drift
+2. **决策**：
+   - 无 drift → 正常执行
+   - 发现 drift 但不影响当前 task 的实现路径 → 记录 drift，正常执行
+   - 发现 drift 且影响当前 task 的实现路径 → **停下来**，向用户报告 drift 内容，等待确认后再继续
+
+---
+
+## 执行约束
+
+### TDD 循环
+
+每个 sub-step 遵循：写失败测试 → 验证失败 → 实现 → 验证通过。不要先写实现再补测试。
+
+### Commit 粒度
+
+以 top-level task 为 commit 粒度。谁负责 commit 取决于派发方式：
+
+| 派发方式 | sub-agent 职责 | 主 agent 职责 |
+|---------|---------------|-------------|
+| 串行 | 写代码 + 标记 plan.md `[x]` + commit | 验证后推进下一个 task |
+| 并行 | 写代码 + 标记 plan.md `[x]`（不 commit） | 全部完成后 review → 逐 task stage + commit |
+
+### Checkpoint
+
+- 遇到 checkpoint step 必须执行其指定的验证命令
+- 通过标准：不仅要求测试全部通过，还要求**输出干净**——无 compiler warning、无 deprecation warning、无异常堆栈、无非预期的 stderr 输出
+- 未通过 checkpoint 时修复后重新验证，不得跳过
+
+---
+
+## 测试分层
+
+| 层 | 测试类型 | 覆盖范围 |
+|----|---------|---------|
+| Service | property-based tests | 数据生成、唯一性、不变性、边界条件 |
+| API / CLI / Controller | integration tests | I/O 行为（request/response、stdout/stderr、exit code） |
+| 单元测试 | 补充测试 | 错误路径与边界条件 |
+
+每次完成测试编写后自检：happy path、边界条件、错误场景、中文 / Unicode round-trip。
+
+---
+
+## Bug Fix 测试规则
+
+| 场景 | 测试要求 |
+|------|---------|
+| 正式 bug fix（有 issue 记录） | 必须先写 reproduction test，确认修复前失败、修复后通过 |
+| 开发中发现的行为问题 | 应补充对应 test case |
+| 编码错误（编译失败、typo） | 不需要专门写 test |
+
+---
+
+## 手工测试
+
+遇到手工测试 task 时，按 `manual-testing` 规范执行。agent 不得仅编写测试文档就标记完成——必须实际执行测试步骤。
+
+---
+
+## Code Review
+
+Plan 的最后一个 top-level task 通常为 code review。执行时派发 `code-reviewer` sub-agent 处理。
+
+---
+
+## Release Stabilize 特殊规则
+
+在 release 分支上执行 stabilize 阶段的测试 task 时，遵循以下额外规则：
+
+### Alpha Tag
+
+- 每个测试 task 开始前打 alpha tag（如 `v0.2-alpha3`）
+- alpha tag 序号：查询已有 alpha tag，取最大序号 +1；无 alpha tag 则为 alpha1
+- alpha tag 打出后到 commit 前，禁止任何 git commit
+
+### 问题处理
+
+- 发现问题时：3 轮对话内能修复则直接修复，不提 issue
+- 超过 3 轮修不好的：创建 issue 文件，标注发现时的 alpha tag
+
+### Issue Severity 处理
+
+| Severity | 处理方式 |
+|----------|----------|
+| `[P0] critical` | 必须在当前 release 分支上修复，阻塞 finish |
+| `[P1] major` | 必须在当前 release 分支上修复，阻塞 finish |
+| `[P2] minor` | 需用户确认是否可接受带 issue 发布 |
+| `[P3] trivial` | 可忽略，不阻塞发布 |
+
+### Issue 修复规则
+
+- 修复前必须先编写 reproduction test
+- 修复后重新执行对应测试项，确认通过后更新 issue 状态为 closed
+
+### Beta Tag
+
+- beta tag 由用户手动控制，agent 不可自主打
+
+---
+
+## Blocker Escalation
+
+遇到以下任一情况时，**必须立即停止执行并向用户报告**，不得自行绕过或硬冲：
+
+| 场景 | 说明 |
+|------|------|
+| 修复失败 | 同一问题尝试 3 轮仍无法解决（编译错误、测试失败、逻辑缺陷） |
+| 指令不清 | task 描述模糊，存在多种合理理解，不同理解会导致不同实现 |
+| 缺少依赖 | task 依赖的外部资源、配置、权限不可用，且无法在当前 session 内解决 |
+| Design drift | Pre-execution Review 发现代码现状与 design 不一致，且影响实现路径 |
+| 设计决策 | 实现过程中遇到 design.md 未覆盖的架构、接口、数据模型决策 |
+
+报告时应包含：问题描述、已尝试的方案（如有）、建议的下一步选项。
+
+---
+
+## Error Handling
+
+- 编译 / 测试失败：分析错误，修复后重新验证
+- 3 轮内无法修复：向用户报告，请求协助（参见 Blocker Escalation）
+- Git 操作失败：输出错误信息，不静默忽略

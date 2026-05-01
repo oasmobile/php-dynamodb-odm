@@ -1,0 +1,15 @@
+---
+description: Cursor 平台专属规则，始终生效
+alwaysApply: true
+---
+
+# Cursor Scope Rules
+
+## `<spec-dir>` 取值
+
+- `<spec-dir>` = `.cursor/specs`
+
+## 强制读取
+
+- 每次对话开始时，agent 必须先读取项目根目录下的 `AGENTS.md` 并遵守其中的指令。
+- Agent 首次接触项目时，必须先读取根目录下的 `PROJECT.md` 获取项目的技术栈、构建命令、运行入口、敏感文件清单等项目特定信息。

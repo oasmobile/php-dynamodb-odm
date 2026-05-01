@@ -1,0 +1,30 @@
+---
+description: 当生成 spec 文档（goal、design、plan）时读取，包含 Socratic Review、graphify 就绪检测、分段写入等规范
+alwaysApply: false
+---
+
+# Spec Planning 指引
+
+---
+
+## 通用
+
+- 文档以中文行文，英文术语可直接使用
+- 每份文档末尾包含 Socratic Review（自问自答式审查），记录审查 log
+- **分段写入**：生成 spec 文件时，如果预计内容较大（超过约 50 行），不应尝试一次性写入，而应分段写入（先写入第一段，再逐段追加），避免单次写入过大导致截断或丢失
+- **Graphify 就绪检测**：在 spec planning 开始时，检查 `graphify-out/GRAPH_REPORT.md` 是否存在且 `graphify` 命令可用（`which graphify`）。两者都满足 → `graphify_ready = true`，否则 `false`。后续步骤中涉及架构查询的地方统一以 `graphify_ready` 为前提条件
+- **架构参考**：如果 `graphify_ready`，在需要理解项目结构、模块依赖、受影响范围时，优先使用 graphify 子命令（`graphify query`、`graphify explain`、`graphify path` 等）进行结构化查询，而不是直接读取源文件。具体用法参见 `graphify` 规则
+
+---
+
+## Design
+
+- 如果 goal.md 中存在 Clarification 记录且用户已回答，生成前先读取，确保 design 体现用户在 goal Clarification 中做出的决策
+- 完成后做 Socratic Review 并记录 log
+
+---
+
+## Plan
+
+- 完成后做 Socratic Review 并记录 log
+- **Release top-level task 额外规则**：手工测试类 top-level task 的第一个 sub-step 为 "Increment alpha tag"（查询已有 alpha tag，取最大序号 +1，打新 tag）
