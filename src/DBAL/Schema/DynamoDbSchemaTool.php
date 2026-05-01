@@ -16,7 +16,7 @@ use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
 
-use function GuzzleHttp\Promise\all;
+use GuzzleHttp\Promise\Utils;
 
 /**
  * Class DynamoDbSchema
@@ -96,7 +96,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
 
         if (!$dryRun) {
             $this->outputWrite("Waiting for all tables to be active ...");
-            all($waits)->wait();
+            Utils::all($waits)->wait();
             $this->outputWrite("Done.");
         }
     }
@@ -306,7 +306,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
             }
             if ($waits) {
                 $this->outputWrite("Waiting for all created tables to be active ...");
-                all($waits)->wait();
+                Utils::all($waits)->wait();
                 $this->outputWrite("Done.");
             }
 
@@ -349,7 +349,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
             $this->outputWrite('Deleted.');
         }
         $this->outputWrite("Waiting for all tables to be inactive");
-        all($waits)->wait();
+        Utils::all($waits)->wait();
         $this->outputWrite("Done.");
     }
 }

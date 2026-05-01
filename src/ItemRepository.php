@@ -327,7 +327,7 @@ class ItemRepository
         callable $callback,
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         bool $isConsistentRead = false,
         bool $isAscendingOrder = true
     ): void {
@@ -367,7 +367,7 @@ class ItemRepository
     public function query(
         string $conditions,
         array $params,
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         string $filterExpression = '',
         mixed &$lastKey = null,
         int $evaluationLimit = 30,
@@ -399,7 +399,7 @@ class ItemRepository
     public function queryAll(
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         string $filterExpression = '',
         bool $isConsistentRead = false,
         bool $isAscendingOrder = true
@@ -424,7 +424,7 @@ class ItemRepository
         callable $callback,
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         string $filterExpression = '',
         bool $isConsistentRead = false,
         bool $isAscendingOrder = true
@@ -450,7 +450,7 @@ class ItemRepository
     public function queryCount(
         string $conditions,
         array $params,
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         string $filterExpression = '',
         bool $isConsistentRead = false
     ): int {
@@ -547,7 +547,7 @@ class ItemRepository
     public function scan(
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         mixed &$lastKey = null,
         int $evaluationLimit = 30,
         bool $isConsistentRead = false,
@@ -577,7 +577,7 @@ class ItemRepository
     public function scanAll(
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         bool $isConsistentRead = false,
         bool $isAscendingOrder = true,
         int $parallel = 1
@@ -602,7 +602,7 @@ class ItemRepository
         callable $callback,
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         bool $isConsistentRead = false,
         bool $isAscendingOrder = true,
         int $parallel = 1
@@ -648,7 +648,7 @@ class ItemRepository
     public function scanCount(
         string $conditions = '',
         array $params = [],
-        string $indexName = DynamoDbIndex::PRIMARY_INDEX,
+        string|bool $indexName = DynamoDbIndex::PRIMARY_INDEX,
         bool $isConsistentRead = false,
         int $parallel = 10
     ): int {
