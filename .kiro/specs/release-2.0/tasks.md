@@ -277,7 +277,7 @@
     - _Requirements: 6.8_
   - [x] 7.11 Checkpoint: 验证项目无语法错误（`php -l` 检查所有 src/ 文件）且单元测试全部通过，commit
 
-- [-] 8. 测试模型 Attribute 迁移与现有集成测试适配
+- [x] 8. 测试模型 Attribute 迁移与现有集成测试适配
   - [x] 8.1 迁移 `ut/` 下五个测试模型类到 PHP 8 原生 Attribute
     - `User.php`：将 `@Item(...)`、`@Field(...)`、`@Index(...)`、`@PartitionedHashKey(...)` docblock 注解替换为 `#[Item(...)]`、`#[Field(...)]`、`#[Index(...)]`、`#[PartitionedHashKey(...)]` Attribute
     - `Game.php`：同上
@@ -297,56 +297,56 @@
     - 执行 `vendor/bin/phpunit --testsuite unit`
     - 确认所有单元测试通过（单元测试中使用测试模型类的部分应正常工作）
     - _Requirements: 7.6, 7.7, 7.8_
-  - [-] 8.4 Checkpoint: 验证测试模型类语法正确且单元测试全部通过，commit
+  - [x] 8.4 Checkpoint: 验证测试模型类语法正确且单元测试全部通过，commit
 
-- [~] 9. Property-Based Testing（PBT）
-  - [ ] 9.1 编写 Property 1: Hydrate/Dehydrate Round-Trip 测试
+- [-] 9. Property-Based Testing（PBT）
+  - [x] 9.1 编写 Property 1: Hydrate/Dehydrate Round-Trip 测试
     - 在 `ut/PBT/HydrateDehydrateRoundTripTest.php` 创建测试
     - 使用 Eris 生成覆盖 DynamoDB 全部数据类型（S/N/B/BOOL/NULL/L/M/SS/NS/BS）的 field data 数组
     - 验证 `dehydrate(hydrate(data))` 产生与原始数据等价的数组（考虑 null/空字符串等价性）
     - 注释引用：`// Feature: release-2.0, Property 1: Hydrate/Dehydrate Round-Trip`
     - **Property 1: Hydrate/Dehydrate Round-Trip**
     - **Validates: Requirements 11.2**
-  - [ ] 9.2 编写 Property 2: Dirty Data Detection Idempotence 测试
+  - [x] 9.2 编写 Property 2: Dirty Data Detection Idempotence 测试
     - 在 `ut/PBT/DirtyDataIdempotenceTest.php` 创建测试
     - 复用 Property 1 的数据生成器
     - 验证未修改对象的 `hasDirtyData()` 返回 false
     - 注释引用：`// Feature: release-2.0, Property 2: Dirty Data Detection Idempotence`
     - **Property 2: Dirty Data Detection Idempotence**
     - **Validates: Requirements 11.3**
-  - [ ] 9.3 编写 Property 3: CAS Check Condition Invariant 测试
+  - [x] 9.3 编写 Property 3: CAS Check Condition Invariant 测试
     - 在 `ut/PBT/CasCheckConditionTest.php` 创建测试
     - 生成包含 CAS 字段的原始数据
     - 验证 `getCheckConditionData()` 返回原始 CAS 字段值
     - 注释引用：`// Feature: release-2.0, Property 3: CAS Check Condition Invariant`
     - **Property 3: CAS Check Condition Invariant**
     - **Validates: Requirements 11.4**
-  - [ ] 9.4 编写 Property 4: PartitionedHashKey Computation Determinism 测试
+  - [x] 9.4 编写 Property 4: PartitionedHashKey Computation Determinism 测试
     - 在 `ut/PBT/PartitionedHashKeyTest.php` 创建测试
     - 生成随机字符串作为 base value 和 hash source
     - 验证两次计算产生相同结果
     - 注释引用：`// Feature: release-2.0, Property 4: PartitionedHashKey Computation Determinism`
     - **Property 4: PartitionedHashKey Computation Determinism**
     - **Validates: Requirements 11.5**
-  - [ ] 9.5 编写 Property 5: Index Keys Consistency 测试
+  - [x] 9.5 编写 Property 5: Index Keys Consistency 测试
     - 在 `ut/PBT/IndexKeysConsistencyTest.php` 创建测试
     - 生成随机 hash/range 字符串
     - 验证 `getKeys()` 返回正确数量的元素（1 或 2）
     - 注释引用：`// Feature: release-2.0, Property 5: Index Keys Consistency`
     - **Property 5: Index Keys Consistency**
     - **Validates: Requirements 11.6**
-  - [ ] 9.6 编写 Property 6: Partitioned Values Output Size 测试
+  - [x] 9.6 编写 Property 6: Partitioned Values Output Size 测试
     - 在 `ut/PBT/PartitionedValuesTest.php` 创建测试
     - 生成随机正整数（partition size）和字符串（base value）
     - 验证 `getAllPartitionedValues()` 返回恰好 `size` 个元素
     - 注释引用：`// Feature: release-2.0, Property 6: Partitioned Values Output Size`
     - **Property 6: Partitioned Values Output Size**
     - **Validates: Requirements 11.7**
-  - [ ] 9.7 运行全部 PBT 测试验证通过
+  - [x] 9.7 运行全部 PBT 测试验证通过
     - 执行 `vendor/bin/phpunit --testsuite pbt`
     - 确认所有 PBT 测试通过
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
-  - [ ] 9.8 Checkpoint: 验证全部 PBT 测试通过，检查 unit+pbt 覆盖率 ≥85%，commit
+  - [-] 9.8 Checkpoint: 验证全部 PBT 测试通过，检查 unit+pbt 覆盖率 ≥85%，commit
 
 - [~] 10. 集成测试补齐
   - [ ] 10.1 编写 CRUD 生命周期集成测试
