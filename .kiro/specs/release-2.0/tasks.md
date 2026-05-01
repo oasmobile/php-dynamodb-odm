@@ -204,7 +204,7 @@
     - _Requirements: 4.1, 4.2, 10.2_
   - [x] 5.4 Checkpoint: 验证 ItemReflection 单元测试全部通过，commit
 
-- [-] 6. ItemManager 构造函数简化
+- [x] 6. ItemManager 构造函数简化
   - [x] 6.1 适配 `ItemManager` 单元测试到新 API（RED）
     - 更新 `ut/Unit/ItemManagerTest.php`：构造 `ItemManager` 时仅传 2 参数（`$dbCnn` 和 `$prefix`）
     - 移除对 `getReader()` 和 `loadAnnotationClass()` 的测试
@@ -223,62 +223,62 @@
     - 执行 `vendor/bin/phpunit --testsuite unit --filter ItemManagerTest`
     - 确认所有测试从 RED 变为 GREEN
     - _Requirements: 5.1, 5.2, 10.5_
-  - [-] 6.4 Checkpoint: 验证 ItemManager 单元测试全部通过，commit
+  - [x] 6.4 Checkpoint: 验证 ItemManager 单元测试全部通过，commit
 
-- [ ] 7. PHP 8.x 语法全面升级
-  - [ ] 7.1 升级 `ItemReflection.php` 语法
+- [x] 7. PHP 8.x 语法全面升级
+  - [x] 7.1 升级 `ItemReflection.php` 语法
     - 添加 typed properties：`string $itemClass`、`?ReflectionClass $reflectionClass`、`?Item $itemDefinition` 等
     - 移除 `getPropertyValue()` 和 `updateProperty()` 中的 `setAccessible(true)` 调用
     - 添加所有方法的返回类型声明
     - _Requirements: 6.1, 6.6, 6.7, 6.8_
-  - [ ] 7.2 升级 `ItemRepository.php` 语法
+  - [x] 7.2 升级 `ItemRepository.php` 语法
     - 添加 typed properties
     - 使用 constructor promotion：`$itemReflection`、`$itemManager`
     - 添加所有方法的返回类型声明
     - _Requirements: 6.1, 6.2, 6.7, 6.8_
-  - [ ] 7.3 升级 `ManagedItemState.php` 语法
+  - [x] 7.3 升级 `ManagedItemState.php` 语法
     - 添加 typed properties
     - 使用 constructor promotion：`$itemReflection`、`$item`、`$originalData`
     - 将 `isDataEqual()` 中的 `switch(true)` 替换为 `match(true)`（CR Q4 决策）
     - 更新 import 从 `Annotations\Field` 到 `Attributes\Field`
     - 添加所有方法的返回类型声明
     - _Requirements: 6.1, 6.2, 6.3, 6.7, 6.8_
-  - [ ] 7.4 升级 `Connection.php` 接口
+  - [x] 7.4 升级 `Connection.php` 接口
     - 添加所有方法的返回类型声明（`__construct` 除外，Non-Goal 约束）
     - _Requirements: 6.7, 6.8_
-  - [ ] 7.5 升级 `AbstractDbConnection.php` 语法
+  - [x] 7.5 升级 `AbstractDbConnection.php` 语法
     - 添加 typed properties：`array $dbConfig`、`string $tableName`、`array $attributeTypes`、`?ItemReflection $itemReflection`
     - 添加所有方法的返回类型声明
     - `protected` 方法签名与子类同步收紧（CR Q1 决策）
     - _Requirements: 6.1, 6.7, 6.8_
-  - [ ] 7.6 升级 `DynamoDbConnection.php` 语法
+  - [x] 7.6 升级 `DynamoDbConnection.php` 语法
     - 添加 typed property：`?DynamoDbTable $dynamodbTable`
     - 添加所有方法的返回类型声明
     - _Requirements: 6.1, 6.7, 6.8_
-  - [ ] 7.7 升级 `AbstractSchemaTool.php` 语法
+  - [x] 7.7 升级 `AbstractSchemaTool.php` 语法
     - 添加 typed properties
     - 使用 constructor promotion：`$itemManager`、`$classReflections`、`$outputFunction`
     - 添加所有方法的返回类型声明
     - `protected` 方法签名与子类同步收紧（CR Q1 决策）
     - _Requirements: 6.1, 6.2, 6.7, 6.8_
-  - [ ] 7.8 升级 `DynamoDbSchemaTool.php` 语法
+  - [x] 7.8 升级 `DynamoDbSchemaTool.php` 语法
     - 添加返回类型声明：`createSchema(): void`、`updateSchema(): void`、`dropSchema(): void`
     - 更新 import 从 `Annotations\Index` 到 `Attributes\Index`
     - 如有 `strpos` 模式则替换为 `str_contains`
     - _Requirements: 6.5, 6.7, 6.8_
-  - [ ] 7.9 升级 Console 层语法
+  - [x] 7.9 升级 Console 层语法
     - `AbstractSchemaCommand.php`：添加 typed property `?ItemManager $itemManager`，添加返回类型声明
     - `CreateSchemaCommand.php`、`UpdateSchemaCommand.php`、`DropSchemaCommand.php`：`configure(): void`、`execute(): int`（Symfony 7 要求返回 int）
     - `ConsoleHelper.php`：使用 constructor promotion，添加返回类型声明
     - _Requirements: 6.1, 6.2, 6.7, 6.8_
-  - [ ] 7.10 运行全部单元测试验证语法升级无回归
+  - [x] 7.10 运行全部单元测试验证语法升级无回归
     - 执行 `vendor/bin/phpunit --testsuite unit`
     - 确认所有单元测试通过
     - _Requirements: 6.8_
-  - [ ] 7.11 Checkpoint: 验证项目无语法错误（`php -l` 检查所有 src/ 文件）且单元测试全部通过，commit
+  - [x] 7.11 Checkpoint: 验证项目无语法错误（`php -l` 检查所有 src/ 文件）且单元测试全部通过，commit
 
-- [ ] 8. 测试模型 Attribute 迁移与现有集成测试适配
-  - [ ] 8.1 迁移 `ut/` 下五个测试模型类到 PHP 8 原生 Attribute
+- [-] 8. 测试模型 Attribute 迁移与现有集成测试适配
+  - [x] 8.1 迁移 `ut/` 下五个测试模型类到 PHP 8 原生 Attribute
     - `User.php`：将 `@Item(...)`、`@Field(...)`、`@Index(...)`、`@PartitionedHashKey(...)` docblock 注解替换为 `#[Item(...)]`、`#[Field(...)]`、`#[Index(...)]`、`#[PartitionedHashKey(...)]` Attribute
     - `Game.php`：同上
     - `ConsoleGame.php`：同上
@@ -287,19 +287,19 @@
     - 所有 import 从 `Oasis\Mlib\ODM\Dynamodb\Annotations\*` 改为 `Oasis\Mlib\ODM\Dynamodb\Attributes\*`
     - 移除所有 `@Item`、`@Field`、`@Index`、`@PartitionedHashKey` docblock 注解
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8_
-  - [ ] 8.2 适配 `ut/ItemManagerTest.php` 到 PHPUnit 13 并迁移到 `ut/Integration/`
+  - [x] 8.2 适配 `ut/ItemManagerTest.php` 到 PHPUnit 13 并迁移到 `ut/Integration/`
     - 将文件移动到 `ut/Integration/ItemManagerTest.php`
     - `PHPUnit_Framework_TestCase` → `PHPUnit\Framework\TestCase`
     - `setUp()` 添加 `: void` 返回类型
     - 构造 `ItemManager` 时移除 `$cacheDir` 和 `$isDev` 参数（仅传 `$dbCnn` 和 `$prefix`）
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 13.10, 13.11_
-  - [ ] 8.3 运行全部单元测试验证测试模型迁移无回归
+  - [x] 8.3 运行全部单元测试验证测试模型迁移无回归
     - 执行 `vendor/bin/phpunit --testsuite unit`
     - 确认所有单元测试通过（单元测试中使用测试模型类的部分应正常工作）
     - _Requirements: 7.6, 7.7, 7.8_
-  - [ ] 8.4 Checkpoint: 验证测试模型类语法正确且单元测试全部通过，commit
+  - [-] 8.4 Checkpoint: 验证测试模型类语法正确且单元测试全部通过，commit
 
-- [ ] 9. Property-Based Testing（PBT）
+- [~] 9. Property-Based Testing（PBT）
   - [ ] 9.1 编写 Property 1: Hydrate/Dehydrate Round-Trip 测试
     - 在 `ut/PBT/HydrateDehydrateRoundTripTest.php` 创建测试
     - 使用 Eris 生成覆盖 DynamoDB 全部数据类型（S/N/B/BOOL/NULL/L/M/SS/NS/BS）的 field data 数组
@@ -348,7 +348,7 @@
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
   - [ ] 9.8 Checkpoint: 验证全部 PBT 测试通过，检查 unit+pbt 覆盖率 ≥85%，commit
 
-- [ ] 10. 集成测试补齐
+- [~] 10. 集成测试补齐
   - [ ] 10.1 编写 CRUD 生命周期集成测试
     - 在 `ut/Integration/` 下补齐集成测试（可在现有 `ItemManagerTest.php` 中扩展或新建文件）
     - 覆盖完整 CRUD 生命周期：create（persist + flush）→ read（get）→ update（modify + flush）→ delete（remove + flush）

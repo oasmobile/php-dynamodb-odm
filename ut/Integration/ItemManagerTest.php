@@ -6,30 +6,35 @@
  * Time: 20:56
  */
 
-namespace Oasis\Mlib\ODM\Dynamodb\Ut;
+namespace Oasis\Mlib\ODM\Dynamodb\Ut\Integration;
 
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\DataConsistencyException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemManager;
-use PHPUnit_Framework_TestCase;
+use Oasis\Mlib\ODM\Dynamodb\Ut\BasicGameInfo;
+use Oasis\Mlib\ODM\Dynamodb\Ut\ConsoleGame;
+use Oasis\Mlib\ODM\Dynamodb\Ut\Game;
+use Oasis\Mlib\ODM\Dynamodb\Ut\User;
+use Oasis\Mlib\ODM\Dynamodb\Ut\UTConfig;
+use PHPUnit\Framework\TestCase;
 
-class ItemManagerTest extends PHPUnit_Framework_TestCase
+class ItemManagerTest extends TestCase
 {
     /** @var  ItemManager */
     protected $itemManager;
     /** @var  ItemManager */
     protected $itemManager2;
     
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->itemManager  = new ItemManager(
-            UTConfig::$dynamodbConfig, UTConfig::$tablePrefix, __DIR__ . "/cache", true
+            UTConfig::$dynamodbConfig, UTConfig::$tablePrefix
         );
         $this->itemManager2 = new ItemManager(
-            new DynamoDbConnection(UTConfig::$dynamodbConfig), UTConfig::$tablePrefix, __DIR__ . "/cache", true
+            new DynamoDbConnection(UTConfig::$dynamodbConfig), UTConfig::$tablePrefix
         );
     }
     
