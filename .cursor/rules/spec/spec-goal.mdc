@@ -1,0 +1,16 @@
+---
+description: 生成 spec goal.md 时读取。定义 goal.md 的生成流程、内容结构和 clarification 规范。
+alwaysApply: false
+---
+
+请阅读 [`.kiro/steering/spec/spec-goal.md`](/.kiro/steering/spec/spec-goal.md) 获取完整规范。
+
+## Cursor 适配
+
+### 路径
+
+- goal.md 生成到 `<spec-dir>/<name>/goal.md`（`<spec-dir>` 由 `cursor-scope` 规则定义）
+
+### Clarification 交互
+
+Kiro 版本使用 `userInput` 工具逐题交互。Cursor 中直接在对话中向用户逐个提问，等待回答后再提出下一个。

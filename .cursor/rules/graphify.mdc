@@ -1,0 +1,6 @@
+---
+description: 涉及 graphify 图谱查询或维护时读取
+alwaysApply: false
+---
+
+请阅读 [`.kiro/steering/graphify.md`](/.kiro/steering/graphify.md) 获取完整规范。

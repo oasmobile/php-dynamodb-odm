@@ -1,0 +1,6 @@
+---
+description: 当生成或执行手工测试（manual test）、编排测试脚本、管理测试资源目录时读取
+alwaysApply: false
+---
+
+请阅读 [`.kiro/steering/spec/manual-testing.md`](/.kiro/steering/spec/manual-testing.md) 获取完整规范。

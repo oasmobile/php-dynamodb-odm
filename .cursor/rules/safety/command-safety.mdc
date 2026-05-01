@@ -1,0 +1,6 @@
+---
+description: 当执行 shell 命令时读取，包含禁止危险命令和需确认操作的安全约束
+alwaysApply: false
+---
+
+请阅读 [`.kiro/steering/safety/command-safety.md`](/.kiro/steering/safety/command-safety.md) 获取完整规范。

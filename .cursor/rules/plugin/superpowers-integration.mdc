@@ -1,0 +1,57 @@
+---
+description: Superpowers 插件与项目 spec 流程的集成约束。spec-planner 写 plan 或 spec-execution 执行 task 时读取。
+alwaysApply: false
+---
+
+## Spec Artifact 路径
+
+Superpowers skill 产出的 spec 和 plan 文件统一保存到项目 spec 目录，不使用 superpowers 默认路径：
+
+| Superpowers 默认路径 | 项目路径 |
+|---------------------|---------|
+| `docs/superpowers/specs/` | `.cursor/specs/<name>/design.md` |
+| `docs/superpowers/plans/` | `.cursor/specs/<name>/plan.md` |
+
+`<name>` 为 feature / topic 的有意义名称（如 `aws-profile-support`、`release-0.5`）。
+
+---
+
+## 禁止自动调用
+
+| Skill | 原因 | 替代流程 |
+|-------|------|---------|
+| finishing-a-development-branch | 项目已有 finish 流程 | `gitflow-finisher` agent |
+| using-git-worktrees | 项目已有 worktree 规则 | `gitflow-finisher` agent（含 worktree 感知） |
+
+---
+
+## Skill Override
+
+### writing-plans
+
+项目采用 design → plan → execution 三阶段分离流程。Plan 阶段只负责任务分解，不写实现代码：
+
+| writing-plans 原始要求 | 项目 override |
+|----------------------|--------------|
+| "Complete code in every step" | Plan 中不含实现代码；描述清楚做什么、改哪里、测什么即可 |
+| "code blocks required for code steps" | 仅验证命令需附代码块（如项目的全量测试命令）；实现代码由 execution agent 编写 |
+
+原因：execution agent 能读源码、理解 design.md，自行编写实现比照搬 plan 中预写的代码更可靠。
+
+其余 writing-plans 原则（bite-sized steps、exact file paths、TDD、no placeholders、self-review）照常遵循。
+
+---
+
+## 自由使用
+
+以下 skill 与项目流程无冲突，agent 可按需调用，无需额外适配：
+
+- brainstorming
+- writing-plans（受上述 override 约束）
+- executing-plans
+- subagent-driven-development
+- test-driven-development
+- systematic-debugging
+- verification-before-completion
+- requesting-code-review / receiving-code-review
+- dispatching-parallel-agents

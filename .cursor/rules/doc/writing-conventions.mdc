@@ -1,0 +1,6 @@
+---
+description: 当编写或修改文档（markdown）时读取，包含中英文规则、标题格式、引用格式、代码格式要求
+alwaysApply: false
+---
+
+请阅读 [`.kiro/steering/doc/writing-conventions.md`](/.kiro/steering/doc/writing-conventions.md) 获取完整规范。

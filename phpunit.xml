@@ -1,14 +1,23 @@
-<!--suppress XmlUnboundNsPrefix -->
-<phpunit
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.7/phpunit.xsd"
-        bootstrap="ut/bootstrap.php"
-        backupGlobals="false"
-        backupStaticAttributes="false"
->
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="ut/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache">
     <testsuites>
-        <testsuite name="basic">
-            <file>ut/ItemManagerTest.php</file>
+        <testsuite name="unit">
+            <directory>ut/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>ut/Integration</directory>
+        </testsuite>
+        <testsuite name="pbt">
+            <directory>ut/PBT</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
 </phpunit>

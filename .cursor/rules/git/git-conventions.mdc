@@ -1,0 +1,6 @@
+---
+description: 当执行任何 git 操作（特别是 commit 操作）时，都应该读取这个文件
+alwaysApply: false
+---
+
+请阅读 [`.kiro/steering/git/git-conventions.md`](/.kiro/steering/git/git-conventions.md) 获取完整规范。

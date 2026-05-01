@@ -8,72 +8,48 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\PartitionedHashKey;
 
-/**
- * Class User
- *
- * @Item(
- *     table="users",
- *     primaryIndex=@Index(hash="id"),
- *     globalSecondaryIndices={
- *      {"hometown", "age"},
- *      {"hometown", "wage"},
- *      @Index(hash="hometownPartition", range="age", name="home-age-gsi")
- *     }
- *     )
- * @package Oasis\Mlib\ODM\Dynamodb
- */
+#[Item(
+    table: 'users',
+    primaryIndex: new Index(hash: 'id'),
+    globalSecondaryIndices: [
+        new Index(hash: 'hometown', range: 'age'),
+        new Index(hash: 'hometown', range: 'wage'),
+        new Index(hash: 'hometownPartition', range: 'age', name: 'home-age-gsi'),
+    ],
+)]
 class User
 {
-    /**
-     * @var int
-     * @Field(type="number", name="uid")
-     */
+    #[Field(type: 'number', name: 'uid')]
     protected $id = 0;
-    /**
-     * @var
-     * @Field(type="string", cas="enabled")
-     */
+
+    #[Field(type: 'string', cas: Field::CAS_ENABLED)]
     protected $name;
-    /**
-     * @var
-     * @Field(type="string")
-     */
+
+    #[Field(type: 'string')]
     protected $alias = '';
-    /**
-     * @var
-     * @Field(type="number")
-     */
+
+    #[Field(type: 'number')]
     protected $age;
-    /**
-     * @var
-     * @Field(type="number", name="salary")
-     */
+
+    #[Field(type: 'number', name: 'salary')]
     protected $wage;
-    /**
-     * @var
-     * @Field(type="string")
-     */
+
+    #[Field(type: 'string')]
     protected $hometown = 'new york';
-    /**
-     * @var string
-     * @Field()
-     * @PartitionedHashKey(hashField="id", baseField="hometown")
-     */
+
+    #[Field()]
+    #[PartitionedHashKey(hashField: 'id', baseField: 'hometown')]
     protected $hometownPartition;
-    /**
-     * @var
-     * @Field(type="number", name="ts", cas="timestamp")
-     */
+
+    #[Field(type: 'number', name: 'ts', cas: Field::CAS_TIMESTAMP)]
     protected $lastUpdated;
-    /**
-     * @var
-     * @Field(type="string")
-     */
+
+    #[Field(type: 'string')]
     protected $dummy;
     
     public $haha;

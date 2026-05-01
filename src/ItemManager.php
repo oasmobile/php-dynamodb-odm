@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -8,14 +9,8 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Doctrine\Common\Annotations\AnnotationException;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\Common\Annotations\CachedReader;
-use Doctrine\Common\Cache\FilesystemCache;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\Connection;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
-use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Finder\Finder;
 
 use function is_dir;
@@ -23,55 +18,37 @@ use function mwarning;
 
 class ItemManager
 {
-    /**
-     * @var string[]
-     */
-    protected $possibleItemClasses = [];
+    /** @var string[] */
+    protected array $possibleItemClasses = [];
     
-    protected $databaseConfig;
-    protected $defaultTablePrefix;
+    protected ?array $databaseConfig = null;
+    protected string $defaultTablePrefix;
     
-    /** @var  AnnotationReader */
-    protected $reader;
     /**
-     * @var ItemReflection[]
      * Maps item class to item reflection
+     * @var ItemReflection[]
      */
-    protected $itemReflections;
+    protected array $itemReflections = [];
     /**
-     * @var ItemRepository[]
      * Maps item class to corresponding repository
+     * @var ItemRepository[]
      */
-    protected $repositories = [];
+    protected array $repositories = [];
     
-    /**
-     * @var array
-     */
-    protected $reservedAttributeNames = [];
+    /** @var string[] */
+    protected array $reservedAttributeNames = [];
     
-    /**
-     * @var bool
-     */
-    protected $skipCheckAndSet = false;
+    protected bool $skipCheckAndSet = false;
 
-    /**
-     * @var Connection
-     */
-    protected $dbConnection = null;
-
+    protected ?Connection $dbConnection = null;
 
     /**
      * ItemManager constructor.
      *
      * @param  array|Connection  $dbCnn
      * @param  string  $defaultTablePrefix
-     * @param  string  $cacheDir
-     * @param  bool  $isDev
-     * @throws AnnotationException
-     *
-     * @noinspection PhpDeprecationInspection
      */
-    public function __construct($dbCnn, $defaultTablePrefix, $cacheDir, $isDev = true)
+    public function __construct(array|Connection $dbCnn, string $defaultTablePrefix = '')
     {
         if ($dbCnn instanceof Connection) {
             $this->dbConnection = $dbCnn;
@@ -81,17 +58,9 @@ class ItemManager
         }
 
         $this->defaultTablePrefix = $defaultTablePrefix;
-        
-        AnnotationRegistry::registerLoader([$this, 'loadAnnotationClass']);
-        
-        $this->reader = new CachedReader(
-            new AnnotationReader(),
-            new FilesystemCache($cacheDir),
-            $isDev
-        );
     }
     
-    public function addNamespace($namespace, $srcDir)
+    public function addNamespace(string $namespace, string $srcDir): void
     {
         if (!is_dir($srcDir)) {
             mwarning("Directory %s doesn't exist.", $srcDir);
@@ -109,122 +78,88 @@ class ItemManager
                 $splFileInfo->getBasename(".php")
             );
             $classname = preg_replace('#\\\\+#', '\\', $classname);
-            //mdebug("Class name is %s", $classname);
             $this->possibleItemClasses[] = $classname;
         }
     }
     
-    public function addReservedAttributeNames(...$args)
+    public function addReservedAttributeNames(string ...$args): void
     {
         foreach ($args as $arg) {
             $this->reservedAttributeNames[] = $arg;
         }
     }
     
-    public function clear()
+    public function clear(): void
     {
         foreach ($this->repositories as $itemRepository) {
             $itemRepository->clear();
         }
     }
     
-    public function detach($item)
+    public function detach(object $item): void
     {
-        if (!is_object($item)) {
-            throw new ODMException("You can only detach a managed object!");
-        }
         $this->getRepository(get_class($item))->detach($item);
     }
     
-    public function flush()
+    public function flush(): void
     {
         foreach ($this->repositories as $repository) {
             $repository->flush();
         }
     }
     
-    public function get($itemClass, array $keys, $consistentRead = false)
+    public function get(string $itemClass, array $keys, bool $consistentRead = false): ?object
     {
         return $this->getRepository($itemClass)->get($keys, $consistentRead);
     }
     
     /**
      * @deprecated use shouldSkipCheckAndSet() instead
-     * @return bool
      */
-    public function isSkipCheckAndSet()
+    public function isSkipCheckAndSet(): bool
     {
         return $this->skipCheckAndSet;
     }
     
-    /**
-     * @param bool $skipCheckAndSet
-     */
-    public function setSkipCheckAndSet($skipCheckAndSet)
+    public function setSkipCheckAndSet(bool $skipCheckAndSet): void
     {
         $this->skipCheckAndSet = $skipCheckAndSet;
     }
     
-    /**
-     * @param $className
-     *
-     * @internal
-     * @return bool
-     */
-    public function loadAnnotationClass($className)
-    {
-        if (class_exists($className)) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    
-    public function persist($item)
+    public function persist(object $item): void
     {
         $this->getRepository(get_class($item))->persist($item);
     }
     
-    public function refresh($item, $persistIfNotManaged = false)
+    public function refresh(object $item, bool $persistIfNotManaged = false): void
     {
         $this->getRepository(get_class($item))->refresh($item, $persistIfNotManaged);
     }
     
-    public function remove($item)
+    public function remove(object $item): void
     {
         $this->getRepository(get_class($item))->remove($item);
     }
     
-    /**
-     * @return bool
-     */
-    public function shouldSkipCheckAndSet()
+    public function shouldSkipCheckAndSet(): bool
     {
         return $this->skipCheckAndSet;
     }
     
-    /**
-     * @return mixed
-     */
-    public function getDefaultTablePrefix()
+    public function getDefaultTablePrefix(): string
     {
         return $this->defaultTablePrefix;
     }
     
     /**
-     * @return array
-     * todo: set deprecated and recommend getDatabaseConfig() instead
+     * @deprecated use getDatabaseConfig() instead
      */
-    public function getDynamodbConfig()
+    public function getDynamodbConfig(): array
     {
         return $this->getDatabaseConfig();
     }
 
-    /**
-     * @return array
-     */
-    public function getDatabaseConfig()
+    public function getDatabaseConfig(): array
     {
         if ($this->dbConnection instanceof Connection) {
             return $this->dbConnection->getDatabaseConfig();
@@ -233,16 +168,11 @@ class ItemManager
         return $this->databaseConfig;
     }
     
-    /**
-     * @param $itemClass
-     *
-     * @return ItemReflection
-     */
-    public function getItemReflection($itemClass)
+    public function getItemReflection(string $itemClass): ItemReflection
     {
         if (!isset($this->itemReflections[$itemClass])) {
             $reflection = new ItemReflection($itemClass, $this->reservedAttributeNames);
-            $reflection->parse($this->reader);
+            $reflection->parse();
             $this->itemReflections[$itemClass] = $reflection;
         }
         else {
@@ -255,25 +185,12 @@ class ItemManager
     /**
      * @return string[]
      */
-    public function getPossibleItemClasses()
+    public function getPossibleItemClasses(): array
     {
         return $this->possibleItemClasses;
     }
     
-    /**
-     * @return AnnotationReader
-     */
-    public function getReader()
-    {
-        return $this->reader;
-    }
-    
-    /**
-     * @param $itemClass
-     *
-     * @return ItemRepository
-     */
-    public function getRepository($itemClass)
+    public function getRepository(string $itemClass): ItemRepository
     {
         if (!isset($this->repositories[$itemClass])) {
             $reflection                     = $this->getItemReflection($itemClass);
@@ -292,28 +209,25 @@ class ItemManager
     }
     
     /**
-     * @return array
+     * @return string[]
      */
-    public function getReservedAttributeNames()
+    public function getReservedAttributeNames(): array
     {
         return $this->reservedAttributeNames;
     }
     
     /**
-     * @param array $reservedAttributeNames
+     * @param string[] $reservedAttributeNames
      */
-    public function setReservedAttributeNames($reservedAttributeNames)
+    public function setReservedAttributeNames(array $reservedAttributeNames): void
     {
         $this->reservedAttributeNames = $reservedAttributeNames;
     }
 
     /**
-     *
      * Get a new database connection
-     *
-     * @return Connection
      */
-    public function createDBConnection()
+    public function createDBConnection(): Connection
     {
         if ($this->dbConnection instanceof Connection) {
             return clone $this->dbConnection;
