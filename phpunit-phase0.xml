@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.7/phpunit.xsd"
+        bootstrap="ut/bootstrap.php"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+>
+    <testsuites>
+        <testsuite name="phase0-unit">
+            <file>ut/FieldTest.php</file>
+            <file>ut/ItemTest.php</file>
+            <file>ut/IndexTest.php</file>
+            <file>ut/PartitionedHashKeyTest.php</file>
+            <file>ut/ExceptionHierarchyTest.php</file>
+            <file>ut/ItemReflectionTest.php</file>
+            <file>ut/ItemManagerUnitTest.php</file>
+            <file>ut/ManagedItemStateTest.php</file>
+            <file>ut/ItemRepositoryTest.php</file>
+            <file>ut/CreateSchemaCommandTest.php</file>
+            <file>ut/UpdateSchemaCommandTest.php</file>
+            <file>ut/DropSchemaCommandTest.php</file>
+            <file>ut/ConsoleHelperTest.php</file>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+        </whitelist>
+    </filter>
+</phpunit>

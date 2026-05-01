@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -16,25 +17,16 @@ use Symfony\Component\Console\Command\Command;
 
 abstract class AbstractSchemaCommand extends Command
 {
-    /** @var  ItemManager */
-    protected $itemManager;
+    protected ?ItemManager $itemManager = null;
     
-    /**
-     * @param ItemManager $itemManager
-     *
-     * @return AbstractSchemaCommand
-     */
-    public function withItemManager($itemManager)
+    public function withItemManager(ItemManager $itemManager): static
     {
         $this->itemManager = $itemManager;
         
         return $this;
     }
     
-    /**
-     * @return ItemManager
-     */
-    public function getItemManager()
+    public function getItemManager(): ItemManager
     {
         return $this->itemManager;
     }
@@ -42,7 +34,7 @@ abstract class AbstractSchemaCommand extends Command
     /**
      * @noinspection PhpRedundantCatchClauseInspection
      */
-    protected function getManagedItemClasses()
+    protected function getManagedItemClasses(): array
     {
         $classes = [];
         foreach ($this->itemManager->getPossibleItemClasses() as $class) {
@@ -53,7 +45,7 @@ abstract class AbstractSchemaCommand extends Command
             } catch (ReflectionException $e) {
                 continue;
             } catch (Exception $e) {
-                mtrace($e, "Annotation parsing exception found: ", 'error');
+                mtrace($e, "Attribute parsing exception found: ", 'error');
                 throw $e;
             }
             $classes[$class] = $reflection;

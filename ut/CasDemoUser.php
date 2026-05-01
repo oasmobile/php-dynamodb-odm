@@ -8,35 +8,22 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
 
-/**
- * Class CasDemoUser
- *
- * @Item(
- *     table="cas-demo-users",
- *     primaryIndex=@Index(hash="id")
- *     )
- * @package Oasis\Mlib\ODM\Dynamodb\Ut
- */
-
+#[Item(
+    table: 'cas-demo-users',
+    primaryIndex: new Index(hash: 'id'),
+)]
 class CasDemoUser
 {
-    /**
-     * @var int
-     * @Field(type="number", name="uid")
-     */
+    #[Field(type: 'number', name: 'uid')]
     public $id = 0;
-    /**
-     * @var
-     * @Field(type="string")
-     */
+
+    #[Field(type: 'string')]
     public $name;
-    /**
-     * @var
-     * @Field(type="string", cas="enabled")
-     */
+
+    #[Field(type: 'string', cas: Field::CAS_ENABLED)]
     public $ver;
 }

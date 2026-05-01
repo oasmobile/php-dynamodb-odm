@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: xuchang
@@ -12,11 +13,11 @@ use Aws\DynamoDb\Exception\DynamoDbException;
 use Oasis\Mlib\AwsWrappers\DynamoDbIndex;
 use Oasis\Mlib\AwsWrappers\DynamoDbManager;
 use Oasis\Mlib\AwsWrappers\DynamoDbTable;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Oasis\Mlib\ODM\Dynamodb\ItemReflection;
 
-use function GuzzleHttp\Promise\all;
+use GuzzleHttp\Promise\Utils;
 
 /**
  * Class DynamoDbSchema
@@ -25,17 +26,19 @@ use function GuzzleHttp\Promise\all;
 class DynamoDbSchemaTool extends AbstractSchemaTool
 {
 
-    public function createSchema($skipExisting, $dryRun)
+    public function createSchema(bool $skipExisting, bool $dryRun): void
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
 
-        $classes = $this->getManagedItemClasses();
+        $classes        = $this->getManagedItemClasses();
+        $existingTables = [];
         foreach ($classes as $class => $reflection) {
             $tableName = $this->itemManager->getDefaultTablePrefix().$reflection->getTableName();
             if ($dynamoManager->listTables(sprintf("/^%s\$/", preg_quote($tableName, "/")))) {
                 if (!$skipExisting && !$dryRun) {
                     throw new ODMException("Table ".$tableName." already exists!");
                 }
+                $existingTables[$tableName] = true;
             }
         }
 
@@ -68,6 +71,11 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
 
             $tableName = $this->itemManager->getDefaultTablePrefix().$reflection->getTableName();
 
+            if ($skipExisting && isset($existingTables[$tableName])) {
+                $this->outputWrite("Table <info>$tableName</info> already exists, skipping.");
+                continue;
+            }
+
             $this->outputWrite("Will create table <info>$tableName</info> for class <info>$class</info> ...");
             if (!$dryRun) {
                 $dynamoManager->createTable(
@@ -78,7 +86,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                 );
 
                 if ($gsis) {
-                    // if there is gsi, we nee to wait before creating next table
+                    // if there is gsi, we need to wait before creating next table
                     $this->outputWrite("Will wait for GSI creation ...");
                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 60, 2);
                 }
@@ -96,13 +104,13 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
 
         if (!$dryRun) {
             $this->outputWrite("Waiting for all tables to be active ...");
-            all($waits)->wait();
+            Utils::all($waits)->wait();
             $this->outputWrite("Done.");
         }
     }
 
     /** @noinspection PhpStatementHasEmptyBodyInspection */
-    public function updateSchema($isDryRun)
+    public function updateSchema(bool $isDryRun): void
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         $classes       = $this->getManagedItemClasses();
@@ -216,7 +224,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                             );
                             if (!$isDryRun) {
                                 $table->addGlobalSecondaryIndex($idx);
-                                // if there is gsi alteration, we nee to wait before continue
+                                // if there is gsi alteration, we need to wait before continue
                                 $this->outputWrite("Will wait for creation of GSI ".$idx->getName()." ...");
                                 $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
                                 $this->outputWrite('Done.');
@@ -246,14 +254,10 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
                                     ."] on table <info>$tableName</info> for class <info>$class</info> ..."
                                 );
                                 if (!$isDryRun) {
-                                    // if there is gsi alteration, we nee to wait before continue
+                                    // if there is gsi alteration, we need to wait before continue
                                     $table->deleteGlobalSecondaryIndex($idx->getName());
                                     $this->outputWrite("Will wait for deletion of GSI ".$idx->getName()." ...");
                                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
-                                    //$output->writeln(
-                                    //    "Will sleep 3 seconds before creating new GSI. If the creation fails, you can feel free to run update command again."
-                                    //);
-                                    //sleep(3);
                                     $table->addGlobalSecondaryIndex($idx);
                                     $this->outputWrite("Will wait for creation of GSI ".$idx->getName()." ...");
                                     $dynamoManager->waitForTablesToBeFullyReady($tableName, 300, 5);
@@ -310,7 +314,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
             }
             if ($waits) {
                 $this->outputWrite("Waiting for all created tables to be active ...");
-                all($waits)->wait();
+                Utils::all($waits)->wait();
                 $this->outputWrite("Done.");
             }
 
@@ -324,7 +328,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
         }
     }
 
-    public function dropSchema()
+    public function dropSchema(): void
     {
         $dynamoManager = new DynamoDbManager($this->getItemManager()->getDynamodbConfig());
         $classes       = $this->getManagedItemClasses();
@@ -353,7 +357,7 @@ class DynamoDbSchemaTool extends AbstractSchemaTool
             $this->outputWrite('Deleted.');
         }
         $this->outputWrite("Waiting for all tables to be inactive");
-        all($waits)->wait();
+        Utils::all($waits)->wait();
         $this->outputWrite("Done.");
     }
 }

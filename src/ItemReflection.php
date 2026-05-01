@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -8,10 +9,9 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Doctrine\Common\Annotations\Reader;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\PartitionedHashKey;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\PartitionedHashKey;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\AnnotationParsingException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\NotAnnotatedException;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
@@ -23,60 +23,54 @@ use function is_null;
 
 class ItemReflection
 {
-    protected $itemClass;
+    protected string $itemClass;
     
-    /** @var  ReflectionClass */
-    protected $reflectionClass;
-    /** @var  Item */
-    protected $itemDefinition;
+    protected ?ReflectionClass $reflectionClass = null;
+    protected ?Item $itemDefinition = null;
     /**
-     * @var  array
      * Maps each dynamodb attribute key to its corresponding class property name
+     * @var array<string, string>
      */
-    protected $propertyMapping;
+    protected array $propertyMapping = [];
     /**
-     * @var array
      * Maps each dynamodb attribute key to its type
+     * @var array<string, string>
      */
-    protected $attributeTypes;
+    protected array $attributeTypes = [];
     /**
-     * @var array
      * cas properties, in the format of property name => cas type
+     * @var array<string, string>
      */
-    protected $casProperties;
+    protected array $casProperties = [];
     /**
-     * @var PartitionedHashKey[]
      * partitioned hash keys, in the format of property name => partitioned hash key definition
+     * @var PartitionedHashKey[]
      */
-    protected $partitionedHashKeys;
+    protected array $partitionedHashKeys = [];
     /**
-     * @var  Field[]
      * Maps class property name to its field definition
+     * @var Field[]
      */
-    protected $fieldDefinitions;
+    protected array $fieldDefinitions = [];
     /**
-     * @var ReflectionProperty[]
      * Maps each class property name to its reflection property
+     * @var ReflectionProperty[]
      */
-    protected $reflectionProperties;
+    protected array $reflectionProperties = [];
     /**
-     * @var array
      * Reserved attribute names will be cleared when hydrating an object
+     * @var string[]
      */
-    protected $reservedAttributeNames;
+    protected array $reservedAttributeNames;
     
-    public function __construct($itemClass, $reservedAttributeNames)
+    public function __construct(string $itemClass, array $reservedAttributeNames)
     {
         $this->itemClass              = $itemClass;
         $this->reservedAttributeNames = $reservedAttributeNames;
     }
     
-    public function dehydrate($obj)
+    public function dehydrate(object $obj): array
     {
-        if (!is_object($obj)) {
-            throw new ODMException("You may only dehydrate an object!");
-        }
-        
         if (!$obj instanceof $this->itemClass) {
             throw new ODMException(
                 "Object dehydrated is not of correct type, expected: " . $this->itemClass . ", got: " . get_class($obj)
@@ -96,12 +90,12 @@ class ItemReflection
         return $array;
     }
     
-    public function hydrate(array $array, $obj = null)
+    public function hydrate(array $array, ?object $obj = null): object
     {
         if ($obj === null) {
             $obj = $this->getReflectionClass()->newInstanceWithoutConstructor();
         }
-        elseif (!is_object($obj) || !$obj instanceof $this->itemClass) {
+        elseif (!$obj instanceof $this->itemClass) {
             throw new ODMException("You can not hydrate an object of wrong type, expected: " . $this->itemClass);
         }
         
@@ -127,54 +121,56 @@ class ItemReflection
         return $obj;
     }
     
-    public function parse(Reader $reader)
+    public function parse(): void
     {
-        // initialize class annotation info
         $this->reflectionClass = new ReflectionClass($this->itemClass);
-        $this->itemDefinition  = $reader->getClassAnnotation($this->reflectionClass, Item::class);
-        if (!$this->itemDefinition) {
-            throw new NotAnnotatedException("Class " . $this->itemClass . " is not configured as an Item");
+
+        // Read class-level Attribute
+        $itemAttrs = $this->reflectionClass->getAttributes(Item::class);
+        if (empty($itemAttrs)) {
+            throw new NotAnnotatedException("Class {$this->itemClass} is not configured as an Item");
         }
-        
-        // initialize property annotation info
+        $this->itemDefinition = $itemAttrs[0]->newInstance();
+
+        // Read property-level Attributes
         $this->propertyMapping      = [];
         $this->fieldDefinitions     = [];
         $this->reflectionProperties = [];
         $this->attributeTypes       = [];
         $this->casProperties        = [];
         $this->partitionedHashKeys  = [];
+
         foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             if ($reflectionProperty->isStatic()) {
                 continue;
             }
-            $propertyName                              = $reflectionProperty->getName();
+            $propertyName = $reflectionProperty->getName();
             $this->reflectionProperties[$propertyName] = $reflectionProperty;
-            
-            /** @var Field $field */
-            $field = $reader->getPropertyAnnotation($reflectionProperty, Field::class);
-            if (!$field) {
+
+            $fieldAttrs = $reflectionProperty->getAttributes(Field::class);
+            if (empty($fieldAttrs)) {
                 continue;
             }
-            $fieldName                             = $field->name ? : $propertyName;
+            /** @var Field $field */
+            $field = $fieldAttrs[0]->newInstance();
+            $fieldName = $field->name ?? $propertyName;
             $this->propertyMapping[$fieldName]     = $propertyName;
             $this->fieldDefinitions[$propertyName] = $field;
             $this->attributeTypes[$fieldName]      = $field->type;
-            if ($field->cas != Field::CAS_DISABLED) {
+            if ($field->cas !== Field::CAS_DISABLED) {
                 $this->casProperties[$propertyName] = $field->cas;
             }
-            
-            /** @var PartitionedHashKey $partitionedHashKeyDef */
-            $partitionedHashKeyDef = $reader->getPropertyAnnotation($reflectionProperty, PartitionedHashKey::class);
-            if ($partitionedHashKeyDef) {
-                $this->partitionedHashKeys[$propertyName] = $partitionedHashKeyDef;
+
+            $phkAttrs = $reflectionProperty->getAttributes(PartitionedHashKey::class);
+            if (!empty($phkAttrs)) {
+                $this->partitionedHashKeys[$propertyName] = $phkAttrs[0]->newInstance();
             }
         }
     }
     
-    public function getAllPartitionedValues($hashKeyName, $baseValue)
+    public function getAllPartitionedValues(string $hashKeyName, mixed $baseValue): array
     {
         if (!isset($this->partitionedHashKeys[$hashKeyName])) {
-            // mdebug("The field %s is not declared as a PartitionedHashKey!", $hashKeyName)
             return [$baseValue];
         }
         
@@ -187,7 +183,7 @@ class ItemReflection
         return $ret;
     }
     
-    public function getPropertyValue($obj, $propertyName)
+    public function getPropertyValue(object $obj, string $propertyName): mixed
     {
         if (!$obj instanceof $this->itemClass) {
             throw new ODMException(
@@ -201,15 +197,11 @@ class ItemReflection
             );
         }
         $reflectionProperty = $this->reflectionProperties[$propertyName];
-        $oldAccessibility   = $reflectionProperty->isPublic();
-        $reflectionProperty->setAccessible(true);
-        $ret = $reflectionProperty->getValue($obj);
-        $reflectionProperty->setAccessible($oldAccessibility);
         
-        return $ret;
+        return $reflectionProperty->getValue($obj);
     }
     
-    public function updateProperty($obj, $propertyName, $value)
+    public function updateProperty(object $obj, string $propertyName, mixed $value): void
     {
         if (!$obj instanceof $this->itemClass) {
             throw new ODMException(
@@ -223,36 +215,23 @@ class ItemReflection
             );
         }
         $reflectionProperty = $this->reflectionProperties[$propertyName];
-        $oldAccessibility   = $reflectionProperty->isPublic();
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($obj, $value);
-        $reflectionProperty->setAccessible($oldAccessibility);
     }
     
-    /**
-     * @return mixed
-     */
-    public function getAttributeTypes()
+    public function getAttributeTypes(): array
     {
         return $this->attributeTypes;
     }
     
-    /**
-     * @return array
-     */
-    public function getCasProperties()
+    public function getCasProperties(): array
     {
         return $this->casProperties;
     }
     
     /**
      * Returns field name (attribute key for dynamodb) according to property name
-     *
-     * @param $propertyName
-     *
-     * @return string
      */
-    public function getFieldNameByPropertyName($propertyName)
+    public function getFieldNameByPropertyName(string $propertyName): string
     {
         $field = $this->fieldDefinitions[$propertyName];
         
@@ -262,7 +241,7 @@ class ItemReflection
     /**
      * @return array a map of property name to attribute key
      */
-    public function getFieldNameMapping()
+    public function getFieldNameMapping(): array
     {
         $ret = [];
         foreach ($this->fieldDefinitions as $propertyName => $field) {
@@ -272,7 +251,7 @@ class ItemReflection
         return $ret;
     }
     
-    public function getProjectedAttributes()
+    public function getProjectedAttributes(): array
     {
         if ($this->getItemDefinition()->projected) {
             return array_keys($this->propertyMapping);
@@ -282,18 +261,12 @@ class ItemReflection
         }
     }
     
-    /**
-     * @return mixed
-     */
-    public function getItemClass()
+    public function getItemClass(): string
     {
         return $this->itemClass;
     }
     
-    /**
-     * @return Item
-     */
-    public function getItemDefinition()
+    public function getItemDefinition(): Item
     {
         return $this->itemDefinition;
     }
@@ -301,22 +274,22 @@ class ItemReflection
     /**
      * @return PartitionedHashKey[]
      */
-    public function getPartitionedHashKeys()
+    public function getPartitionedHashKeys(): array
     {
         return $this->partitionedHashKeys;
     }
     
-    public function getPrimaryIdentifier($obj)
+    public function getPrimaryIdentifier(object|array $obj): string
     {
         $id = '';
         foreach ($this->getPrimaryKeys($obj) as $key => $value) {
-            $id .= md5($value);
+            $id .= md5((string) $value);
         }
         
         return md5($id);
     }
     
-    public function getPrimaryKeys($obj, $asAttributeKeys = true)
+    public function getPrimaryKeys(object|array $obj, bool $asAttributeKeys = true): array
     {
         $keys = [];
         foreach ($this->itemDefinition->primaryIndex->getKeys() as $key) {
@@ -348,20 +321,17 @@ class ItemReflection
         return $keys;
     }
     
-    /**
-     * @return ReflectionClass
-     */
-    public function getReflectionClass()
+    public function getReflectionClass(): ReflectionClass
     {
         return $this->reflectionClass;
     }
     
-    public function getRepositoryClass()
+    public function getRepositoryClass(): string
     {
         return $this->itemDefinition->repository ? : ItemRepository::class;
     }
     
-    public function getTableName()
+    public function getTableName(): string
     {
         return $this->itemDefinition->table;
     }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -16,17 +17,12 @@ use Symfony\Component\Console\Application;
 
 class ConsoleHelper
 {
-    /**
-     * @var ItemManager
-     */
-    protected $itemManager;
-    
-    public function __construct(ItemManager $itemManager)
-    {
-        $this->itemManager = $itemManager;
+    public function __construct(
+        protected ItemManager $itemManager,
+    ) {
     }
     
-    public function addCommands(Application $application)
+    public function addCommands(Application $application): void
     {
         $application->addCommands(
             [
@@ -37,10 +33,7 @@ class ConsoleHelper
         );
     }
     
-    /**
-     * @return ItemManager
-     */
-    public function getItemManager()
+    public function getItemManager(): ItemManager
     {
         return $this->itemManager;
     }

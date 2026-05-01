@@ -8,13 +8,16 @@ DynamoDB ODM（Object Data Mapping）库，为 AWS DynamoDB 提供类似 Doctrin
 
 | 项 | 值 |
 |----|-----|
-| 语言 | PHP ≥ 7.1 |
+| 语言 | PHP ≥ 8.5 |
 | 包管理 | Composer |
 | 命名空间 | `Oasis\Mlib\ODM\Dynamodb` |
-| 注解引擎 | `doctrine/annotations` ^1.4 |
-| 控制台 | `symfony/console` ^4.4 |
-| AWS 封装 | `oasis/aws-wrappers` ^2.10 |
-| 测试框架 | PHPUnit ^5.7 |
+| 注解引擎 | PHP 8 原生 Attribute（`#[Attribute]`） |
+| 控制台 | `symfony/console` ^7.0 |
+| 文件扫描 | `symfony/finder` ^7.0 |
+| AWS 封装 | `oasis/aws-wrappers` ^3.0 |
+| 日志 | `oasis/logging` ^3.0 |
+| 测试框架 | PHPUnit ^13.0 |
+| PBT 框架 | `giorgiosironi/eris` ^1.0（dev） |
 | 许可证 | MIT |
 
 ---
@@ -26,7 +29,13 @@ DynamoDB ODM（Object Data Mapping）库，为 AWS DynamoDB 提供类似 Doctrin
 composer install
 
 # 运行单元测试
-./vendor/bin/phpunit
+./vendor/bin/phpunit --testsuite unit
+
+# 运行属性测试（PBT）
+./vendor/bin/phpunit --testsuite pbt
+
+# 运行集成测试（需 DynamoDB 环境）
+./vendor/bin/phpunit --testsuite integration
 
 # Schema CLI 工具
 ./vendor/bin/oasis-dynamodb-odm odm:schema-tool:create
@@ -58,4 +67,3 @@ composer install
 
 - `odm-config.php` — 包含 AWS 配置引用
 - `ut/ut.yml` — 测试用 DynamoDB 连接配置（由 `ut/tpl.ut.yml` 模板生成）
-- `ut/cache/` — 注解缓存目录（已 gitignore）

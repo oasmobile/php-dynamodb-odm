@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -13,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class DropSchemaCommand extends AbstractSchemaCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
@@ -21,7 +22,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
             ->setDescription('Drop the schema tables');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $schemaTool = $this->getItemManager()->createDBConnection()->getSchemaTool(
             $this->getItemManager(),
@@ -31,5 +32,7 @@ class DropSchemaCommand extends AbstractSchemaCommand
 
         // create tables
         $schemaTool->dropSchema();
+
+        return 0;
     }
 }

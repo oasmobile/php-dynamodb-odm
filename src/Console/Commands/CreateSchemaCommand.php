@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: minhao
@@ -15,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CreateSchemaCommand extends AbstractSchemaCommand
 {
 
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
@@ -30,7 +31,7 @@ class CreateSchemaCommand extends AbstractSchemaCommand
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $skipExisting = $input->getOption('skip-existing-table');
         $dryRun       = $input->getOption('dry-run');
@@ -42,6 +43,8 @@ class CreateSchemaCommand extends AbstractSchemaCommand
 
         // create tables
         $schemaTool->createSchema($skipExisting, $dryRun);
+
+        return 0;
     }
 
 }

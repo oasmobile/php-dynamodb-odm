@@ -8,30 +8,21 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb\Ut;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
 
-/**
- * Class BasicGameInfo
- *
- * @package Oasis\Mlib\ODM\Dynamodb\Ut
- * @Item(
- *     table="games",
- *     primaryIndex={"gamecode"},
- *     projected=true
- * )
- */
+#[Item(
+    table: 'games',
+    primaryIndex: new Index(hash: 'gamecode'),
+    projected: true,
+)]
 class BasicGameInfo
 {
-    /**
-     * @var string
-     * @Field()
-     */
+    #[Field()]
     protected $gamecode;
-    /**
-     * @var string
-     * @Field()
-     */
+
+    #[Field()]
     protected $family;
     
     /**

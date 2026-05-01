@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /**
  * Created by PhpStorm.
@@ -9,7 +10,7 @@
 
 namespace Oasis\Mlib\ODM\Dynamodb;
 
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
 use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 
 use function is_null;
@@ -21,23 +22,16 @@ class ManagedItemState
     public const STATE_MANAGED = 2;
     public const STATE_REMOVED = 3;
     
-    /** @var  ItemReflection */
-    protected $itemReflection;
-    protected $item;
-    /**
-     * @var array
-     */
-    protected $originalData;
-    protected $state = self::STATE_MANAGED;
+    protected int $state = self::STATE_MANAGED;
     
-    public function __construct(ItemReflection $itemReflection, $item, array $originalData = [])
-    {
-        $this->itemReflection = $itemReflection;
-        $this->item           = $item;
-        $this->originalData   = $originalData;
+    public function __construct(
+        protected ItemReflection $itemReflection,
+        protected object $item,
+        protected array $originalData = [],
+    ) {
     }
     
-    public function hasDirtyData()
+    public function hasDirtyData(): bool
     {
         if ($this->state != self::STATE_MANAGED) {
             return false;
@@ -52,23 +46,17 @@ class ManagedItemState
         }
     }
     
-    /**
-     * @return bool
-     */
-    public function isNew()
+    public function isNew(): bool
     {
         return $this->state == self::STATE_NEW;
     }
     
-    /**
-     * @return bool
-     */
-    public function isRemoved()
+    public function isRemoved(): bool
     {
         return $this->state == self::STATE_REMOVED;
     }
     
-    public function updatePartitionedHashKeys($hashFunction = null)
+    public function updatePartitionedHashKeys(?callable $hashFunction = null): void
     {
         foreach ($this->itemReflection->getPartitionedHashKeys() as $partitionedHashKey => $def) {
             $baseValue  = $this->itemReflection->getPropertyValue($this->item, $def->baseField);
@@ -76,14 +64,14 @@ class ManagedItemState
             if (is_callable($hashFunction)) {
                 $hashSource = call_user_func($hashFunction, $hashSource);
             }
-            $hashNumber    = hexdec(substr(md5($hashSource), 0, 8));
+            $hashNumber    = hexdec(substr(md5((string) $hashSource), 0, 8));
             $hashRemainder = dechex($hashNumber % $def->size);
             $hashResult    = sprintf("%s-%s", $baseValue, $hashRemainder);
             $this->itemReflection->updateProperty($this->item, $partitionedHashKey, $hashResult);
         }
     }
     
-    public function updateCASTimestamps($timestampOffset = 0)
+    public function updateCASTimestamps(int $timestampOffset = 0): void
     {
         $now = time() + $timestampOffset;
         foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
@@ -93,77 +81,53 @@ class ManagedItemState
         }
     }
     
-    /**
-     * @return array
-     */
-    public function getCheckConditionData()
+    public function getCheckConditionData(): array
     {
         $checkValues = [];
         foreach ($this->itemReflection->getCasProperties() as $propertyName => $casType) {
             $fieldName               = $this->itemReflection->getFieldNameByPropertyName($propertyName);
-            $checkValues[$fieldName] = isset($this->originalData[$fieldName]) ? $this->originalData[$fieldName] : null;
+            $checkValues[$fieldName] = $this->originalData[$fieldName] ?? null;
         }
         
         return $checkValues;
     }
     
-    /**
-     * @return mixed
-     */
-    public function getItem()
+    public function getItem(): object
     {
         return $this->item;
     }
     
-    /**
-     * @param mixed $item
-     */
-    public function setItem($item)
+    public function setItem(object $item): void
     {
         $this->item = $item;
     }
     
-    /**
-     * @return array
-     */
-    public function getOriginalData()
+    public function getOriginalData(): array
     {
         return $this->originalData;
     }
     
-    /**
-     * @param array $originalData
-     */
-    public function setOriginalData($originalData)
+    public function setOriginalData(array $originalData): void
     {
         $this->originalData = $originalData;
     }
     
-    public function getOriginalValue($key)
+    public function getOriginalValue(string $key): mixed
     {
-        if (isset($this->originalData[$key])) {
-            return $this->originalData[$key];
-        }
-        else {
-            return null;
-        }
+        return $this->originalData[$key] ?? null;
     }
     
-    /**
-     * @param int $state
-     */
-    public function setState($state)
+    public function setState(int $state): void
     {
         $this->state = $state;
     }
     
-    public function setUpdated()
+    public function setUpdated(): void
     {
         $this->originalData = $this->itemReflection->dehydrate($this->item);
     }
 
-    /** @noinspection PhpParamsInspection */
-    protected function isDataEqual(&$a, &$b)
+    protected function isDataEqual(mixed &$a, mixed &$b): bool
     {
         // empty string is considered null in dynamodb
         if (
@@ -177,32 +141,29 @@ class ManagedItemState
             return false;
         }
         
-        switch (true) {
-            case (is_double($a)):
-                return "$a" == "$b";
-                break;
-            case (is_array($a)):
-                if (count($a) !== count($b)) {
-                    return false;
-                }
-                foreach ($a as $k => &$v) {
-                    if (!key_exists($k, $b)) {
-                        return false;
-                    }
-                    if (!$this->isDataEqual($v, $b[$k])) {
-                        return false;
-                    }
-                }
-                
-                // every $k in $a can be found in $b and is equal
-                return true;
-                break;
-            case (is_resource($a)):
-            case (is_object($a)):
-                throw new ODMException("DynamoDb data cannot contain value of resource/object");
-                break;
-            default:
-                return $a === $b;
+        return match (true) {
+            is_double($a) => "$a" == "$b",
+            is_array($a) => $this->isArrayDataEqual($a, $b),
+            is_resource($a), is_object($a) => throw new ODMException("DynamoDb data cannot contain value of resource/object"),
+            default => $a === $b,
+        };
+    }
+
+    private function isArrayDataEqual(array &$a, array &$b): bool
+    {
+        if (count($a) !== count($b)) {
+            return false;
         }
+        foreach ($a as $k => &$v) {
+            if (!key_exists($k, $b)) {
+                return false;
+            }
+            if (!$this->isDataEqual($v, $b[$k])) {
+                return false;
+            }
+        }
+
+        // every $k in $a can be found in $b and is equal
+        return true;
     }
 }

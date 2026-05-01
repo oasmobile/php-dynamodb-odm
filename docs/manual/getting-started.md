@@ -28,8 +28,6 @@ use Oasis\Mlib\ODM\Dynamodb\ItemManager;
 $im = new ItemManager(
     ['profile' => 'my-aws-profile', 'region' => 'ap-northeast-1'],  // AWS 配置
     'myapp-',       // 表名前缀
-    __DIR__ . '/cache',  // 注解缓存目录
-    true            // 是否开发环境
 );
 
 $im->addNamespace('App\\Items', __DIR__ . '/src/Items');
@@ -39,32 +37,29 @@ $im->addNamespace('App\\Items', __DIR__ . '/src/Items');
 |------|------|
 | `$dbCnn` | AWS SDK 配置数组，或 `Connection` 实例 |
 | `$defaultTablePrefix` | 表名前缀，所有表名会自动加上此前缀 |
-| `$cacheDir` | Doctrine 注解缓存目录 |
-| `$isDev` | 开发模式下注解变更自动失效缓存 |
 
 ---
 
 ## 定义 Item 类
 
-使用注解将 PHP 类映射到 DynamoDB 表：
+使用 PHP 8 原生 Attribute 将 PHP 类映射到 DynamoDB 表：
 
 ```php
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Field;
-use Oasis\Mlib\ODM\Dynamodb\Annotations\Item;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Field;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Index;
+use Oasis\Mlib\ODM\Dynamodb\Attributes\Item;
 
-/**
- * @Item(
- *     table="users",
- *     primaryIndex={"id"}
- * )
- */
+#[Item(
+    table: 'users',
+    primaryIndex: new Index(hash: 'id'),
+)]
 class User
 {
-    /** @Field(type="number") */
-    protected $id;
+    #[Field(type: 'number')]
+    protected int $id = 0;
 
-    /** @Field(type="string") */
-    protected $name;
+    #[Field(type: 'string')]
+    protected ?string $name = null;
 
     // getter / setter ...
 }
@@ -151,8 +146,8 @@ $users = $repo->scan(
 
 ## 进阶主题
 
-- CAS（Check-and-Set）：通过 `@Field(cas="timestamp")` 实现乐观锁
+- CAS（Check-and-Set）：通过 `#[Field(cas: Field::CAS_TIMESTAMP)]` 实现乐观锁
 - PartitionedHashKey：通过分区哈希键提升热点查询性能
 - Projected Item：只读投影，仅获取部分属性
-- 自定义 Repository：通过 `@Item(repository="App\\MyRepo")` 指定
+- 自定义 Repository：通过 `#[Item(repository: 'App\\MyRepo')]` 指定
 - 自定义 Connection：实现 `Connection` 接口以对接其他数据库
