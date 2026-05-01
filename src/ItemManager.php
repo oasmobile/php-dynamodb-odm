@@ -11,7 +11,6 @@ namespace Oasis\Mlib\ODM\Dynamodb;
 
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\Connection;
 use Oasis\Mlib\ODM\Dynamodb\DBAL\Drivers\DynamoDbConnection;
-use Oasis\Mlib\ODM\Dynamodb\Exceptions\ODMException;
 use Symfony\Component\Finder\Finder;
 
 use function is_dir;

@@ -22,7 +22,7 @@ class Index
         }
     }
 
-    public function getKeys()
+    public function getKeys(): array
     {
         $ret = [
             $this->hash,
@@ -34,7 +34,7 @@ class Index
         return $ret;
     }
 
-    public function getDynamodbIndex(array $fieldNameMapping, array $attributeTypes)
+    public function getDynamodbIndex(array $fieldNameMapping, array $attributeTypes): DynamoDbIndex
     {
         $hash  = $fieldNameMapping[$this->hash];
         $range = $this->range ? $fieldNameMapping[$this->range] : '';
