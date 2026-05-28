@@ -1622,16 +1622,16 @@
         },
         {
             "name": "symfony/deprecation-contracts",
-            "version": "v3.6.0",
+            "version": "v3.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/deprecation-contracts.git",
-                "reference": "63afe740e99a13ba87ec199bb07bbdee937a5b62"
+                "reference": "50f59d1f3ca46d41ac911f97a78626b6756af35b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/63afe740e99a13ba87ec199bb07bbdee937a5b62",
-                "reference": "63afe740e99a13ba87ec199bb07bbdee937a5b62",
+                "url": "https://api.github.com/repos/symfony/deprecation-contracts/zipball/50f59d1f3ca46d41ac911f97a78626b6756af35b",
+                "reference": "50f59d1f3ca46d41ac911f97a78626b6756af35b",
                 "shasum": ""
             },
             "require": {
@@ -1644,7 +1644,7 @@
                     "name": "symfony/contracts"
                 },
                 "branch-alias": {
-                    "dev-main": "3.6-dev"
+                    "dev-main": "3.7-dev"
                 }
             },
             "autoload": {
@@ -1669,7 +1669,7 @@
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.6.0"
+                "source": "https://github.com/symfony/deprecation-contracts/tree/v3.7.0"
             },
             "funding": [
                 {
@@ -1681,11 +1681,15 @@
                     "type": "github"
                 },
                 {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
                     "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-25T14:21:43+00:00"
+            "time": "2026-04-13T15:52:40+00:00"
         },
         {
             "name": "symfony/filesystem",
@@ -1827,16 +1831,16 @@
         },
         {
             "name": "symfony/polyfill",
-            "version": "v1.37.0",
+            "version": "v1.38.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill.git",
-                "reference": "9473fdea62d1f47e2201583b9aeb097aeefd3ac2"
+                "reference": "09e53d15109121636a416310ea0d510bd292c463"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill/zipball/9473fdea62d1f47e2201583b9aeb097aeefd3ac2",
-                "reference": "9473fdea62d1f47e2201583b9aeb097aeefd3ac2",
+                "url": "https://api.github.com/repos/symfony/polyfill/zipball/09e53d15109121636a416310ea0d510bd292c463",
+                "reference": "09e53d15109121636a416310ea0d510bd292c463",
                 "shasum": ""
             },
             "require": {
@@ -1929,7 +1933,7 @@
             ],
             "support": {
                 "issues": "https://github.com/symfony/polyfill/issues",
-                "source": "https://github.com/symfony/polyfill/tree/v1.37.0"
+                "source": "https://github.com/symfony/polyfill/tree/v1.38.1"
             },
             "funding": [
                 {
@@ -1949,7 +1953,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-26T14:42:55+00:00"
+            "time": "2026-05-26T13:03:06+00:00"
         },
         {
             "name": "symfony/service-contracts",
@@ -4150,16 +4154,16 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v8.0.8",
+            "version": "v8.0.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "54174ab48c0c0f9e21512b304be17f8150ccf8f1"
+                "reference": "2a36f4b8405d41fa31799b06874dbd45c1b16c30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/54174ab48c0c0f9e21512b304be17f8150ccf8f1",
-                "reference": "54174ab48c0c0f9e21512b304be17f8150ccf8f1",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/2a36f4b8405d41fa31799b06874dbd45c1b16c30",
+                "reference": "2a36f4b8405d41fa31799b06874dbd45c1b16c30",
                 "shasum": ""
             },
             "require": {
@@ -4201,7 +4205,7 @@
             "description": "Loads and dumps YAML files",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/yaml/tree/v8.0.8"
+                "source": "https://github.com/symfony/yaml/tree/v8.0.12"
             },
             "funding": [
                 {
@@ -4221,7 +4225,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-30T15:14:47+00:00"
+            "time": "2026-05-20T07:22:03+00:00"
         },
         {
             "name": "theseer/tokenizer",
